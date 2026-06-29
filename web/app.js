@@ -125,6 +125,13 @@ function demoState() {
   };
 }
 
+function emptyState() {
+  return {
+    relationshipStartedAt: new Date().toISOString(),
+    events: [],
+  };
+}
+
 function loadState() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
@@ -1094,7 +1101,7 @@ function askResetConfirmation() {
 }
 
 function resetPreviewState() {
-  state = demoState();
+  state = emptyState();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   scrollY = 0;
   selectedEventId = '';
@@ -1102,7 +1109,7 @@ function resetPreviewState() {
   resolveMode = '';
   activeKnotAnimation = null;
   lastStatsSignature = '';
-  lastTimelineSignature = '';
+  lastTimelineSignature = '__reset__';
   autoScrollTop = true;
   closeModal();
   toggleSettingsDock(false);

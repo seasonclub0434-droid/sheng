@@ -37,8 +37,8 @@ test('github pages root serves the browser preview', () => {
   assert.ok(pagesHtml.includes('<title>绳话</title>'));
   assert.ok(pagesHtml.includes('id="ropeCanvas"'));
   assert.ok(pagesHtml.includes('id="timelineToggle"'));
-  assert.ok(pagesHtml.includes('href="./web/styles.css?v=settings-reset-1"'));
-  assert.ok(pagesHtml.includes('src="./web/app.js?v=settings-reset-1"'));
+  assert.ok(pagesHtml.includes('href="./web/styles.css?v=settings-reset-empty-1"'));
+  assert.ok(pagesHtml.includes('src="./web/app.js?v=settings-reset-empty-1"'));
   assert.ok(!pagesHtml.includes('href="./styles.css'));
   assert.ok(!pagesHtml.includes('src="./app.js'));
   assert.ok(pkg.includes('"serve:web": "python3 -m http.server 4173 --directory ."'));
@@ -97,9 +97,13 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(js.includes('const resetConfirmPanel'));
   assert.ok(js.includes('function toggleSettingsDock('));
   assert.ok(js.includes('function askResetConfirmation('));
+  assert.ok(js.includes('function emptyState('));
   assert.ok(js.includes('function resetPreviewState('));
-  assert.ok(js.includes('state = demoState()'));
+  assert.ok(js.includes('state = emptyState()'));
+  assert.ok(js.includes('events: []'));
+  assert.ok(!js.includes('state = demoState()'));
   assert.ok(js.includes('localStorage.setItem(STORAGE_KEY, JSON.stringify(state))'));
+  assert.ok(js.includes("lastTimelineSignature = '__reset__'"));
   assert.ok(js.includes('settingsToggle.addEventListener'));
   assert.ok(js.includes('resetPreviewAction.addEventListener'));
   assert.ok(js.includes('confirmResetAction.addEventListener'));
@@ -185,8 +189,8 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes("record-timeline-item ${cssClass}${isSelected ? ' selected' : ''}"));
   assert.ok(css.includes('.record-timeline-item.selected'));
   assert.ok(css.includes('#a8322c'));
-  assert.ok(html.includes('styles.css?v=settings-reset-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
 });
 
 test('browser preview keeps the rope natural while selected items use red ink rings', () => {
@@ -201,8 +205,8 @@ test('browser preview keeps the rope natural while selected items use red ink ri
   assert.ok(js.includes("'rgba(248, 235, 202, 0.24)'"));
   assert.ok(js.includes("'rgba(92, 70, 47, 0.18)'"));
   assert.ok(!js.includes("const ROPE_BODY = '#9f3d3a'"));
-  assert.ok(html.includes('styles.css?v=settings-reset-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
 });
 
 test('browser preview adds aged reward badges hanging from the rope', () => {
@@ -219,8 +223,8 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('百日旧徽'));
   assert.ok(js.includes('平安旧夹'));
   assert.ok(js.includes('drawRewardBadge(item, screenY, index)'));
-  assert.ok(html.includes('styles.css?v=settings-reset-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
 });
 
 test('browser preview removes rope dust effects and uses rough kraft paper texture', () => {
@@ -231,8 +235,8 @@ test('browser preview removes rope dust effects and uses rough kraft paper textu
   assert.ok(!js.includes('drawFrayedFibers'));
   assert.ok(!js.includes('drawOldWeb'));
   assert.ok(js.includes("const PAPER = '#caa36f'"));
-  assert.ok(html.includes('styles.css?v=settings-reset-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
   assert.ok(js.includes('function drawPaperMottling('));
   assert.ok(js.includes('function drawKraftFibers('));
   assert.ok(js.includes('function drawPaperStains('));
