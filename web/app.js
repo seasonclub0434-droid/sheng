@@ -26,6 +26,13 @@ const canvas = document.querySelector('#ropeCanvas');
 const ctx = canvas.getContext('2d');
 const phone = document.querySelector('.phone');
 const statsBar = document.querySelector('#statsBar');
+const settingsToggle = document.querySelector('#settingsToggle');
+const settingsClose = document.querySelector('#settingsClose');
+const settingsDock = document.querySelector('#settingsDock');
+const resetPreviewAction = document.querySelector('#resetPreviewAction');
+const resetConfirmPanel = document.querySelector('#resetConfirmPanel');
+const confirmResetAction = document.querySelector('#confirmResetAction');
+const cancelResetAction = document.querySelector('#cancelResetAction');
 const timelineToggle = document.querySelector('#timelineToggle');
 const timelineClose = document.querySelector('#timelineClose');
 const recordTimelineDock = document.querySelector('#recordTimelineDock');
@@ -1050,7 +1057,10 @@ function nextVisibleAnchorY() {
 
 function toggleExchangeTray(forceOpen) {
   const isOpen = forceOpen == null ? !exchangeDock.classList.contains('open') : forceOpen;
-  if (isOpen) toggleRecordTimeline(false);
+  if (isOpen) {
+    toggleRecordTimeline(false);
+    toggleSettingsDock(false);
+  }
   exchangeDock.classList.toggle('open', isOpen);
   exchangeButton.setAttribute('aria-expanded', String(isOpen));
   exchangeTray.setAttribute('aria-hidden', String(!isOpen));
@@ -1058,10 +1068,44 @@ function toggleExchangeTray(forceOpen) {
 
 function toggleRecordTimeline(forceOpen) {
   const isOpen = forceOpen == null ? !recordTimelineDock.classList.contains('open') : forceOpen;
+  if (isOpen) toggleSettingsDock(false);
   recordTimelineDock.classList.toggle('open', isOpen);
   timelineToggle.classList.toggle('open', isOpen);
   timelineToggle.setAttribute('aria-expanded', String(isOpen));
   recordTimelineDock.setAttribute('aria-hidden', String(!isOpen));
+  render();
+}
+
+function toggleSettingsDock(forceOpen) {
+  const isOpen = forceOpen == null ? !settingsDock.classList.contains('open') : forceOpen;
+  if (isOpen) {
+    toggleExchangeTray(false);
+    toggleRecordTimeline(false);
+  }
+  settingsDock.classList.toggle('open', isOpen);
+  settingsToggle.classList.toggle('open', isOpen);
+  settingsToggle.setAttribute('aria-expanded', String(isOpen));
+  settingsDock.setAttribute('aria-hidden', String(!isOpen));
+  if (!isOpen) resetConfirmPanel.classList.add('hidden');
+}
+
+function askResetConfirmation() {
+  resetConfirmPanel.classList.remove('hidden');
+}
+
+function resetPreviewState() {
+  state = demoState();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  scrollY = 0;
+  selectedEventId = '';
+  selectedTimelineId = '';
+  resolveMode = '';
+  activeKnotAnimation = null;
+  lastStatsSignature = '';
+  lastTimelineSignature = '';
+  autoScrollTop = true;
+  closeModal();
+  toggleSettingsDock(false);
   render();
 }
 
@@ -1448,6 +1492,11 @@ document.querySelector('#cancelNote').addEventListener('click', closeModal);
 document.querySelector('#saveNote').addEventListener('click', saveNote);
 document.querySelector('#closeDetail').addEventListener('click', closeModal);
 document.querySelector('#closeNotebook').addEventListener('click', closeModal);
+settingsToggle.addEventListener('click', () => toggleSettingsDock());
+settingsClose.addEventListener('click', () => toggleSettingsDock(false));
+resetPreviewAction.addEventListener('click', askResetConfirmation);
+cancelResetAction.addEventListener('click', () => resetConfirmPanel.classList.add('hidden'));
+confirmResetAction.addEventListener('click', resetPreviewState);
 recordTimelineList.addEventListener('click', (event) => {
   const button = event.target.closest('[data-event-id]');
   if (!button) return;

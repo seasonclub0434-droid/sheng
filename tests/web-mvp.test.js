@@ -37,8 +37,8 @@ test('github pages root serves the browser preview', () => {
   assert.ok(pagesHtml.includes('<title>绳话</title>'));
   assert.ok(pagesHtml.includes('id="ropeCanvas"'));
   assert.ok(pagesHtml.includes('id="timelineToggle"'));
-  assert.ok(pagesHtml.includes('href="./web/styles.css?v=timeline-select-topbar-1"'));
-  assert.ok(pagesHtml.includes('src="./web/app.js?v=timeline-select-topbar-1"'));
+  assert.ok(pagesHtml.includes('href="./web/styles.css?v=settings-reset-1"'));
+  assert.ok(pagesHtml.includes('src="./web/app.js?v=settings-reset-1"'));
   assert.ok(!pagesHtml.includes('href="./styles.css'));
   assert.ok(!pagesHtml.includes('src="./app.js'));
   assert.ok(pkg.includes('"serve:web": "python3 -m http.server 4173 --directory ."'));
@@ -79,6 +79,35 @@ test('browser preview keeps the home screen clean with a journal rope control', 
   assert.ok(!js.includes('eventList.addEventListener'));
   assert.ok(!js.includes('resetDemo'));
   assert.ok(!js.includes('statusText'));
+});
+
+test('browser preview adds a left settings drawer with confirmed reset', () => {
+  assert.ok(html.includes('id="settingsToggle"'));
+  assert.ok(html.includes('class="settings-toggle"'));
+  assert.ok(html.includes('aria-controls="settingsDock"'));
+  assert.ok(html.includes('id="settingsDock"'));
+  assert.ok(html.includes('aria-hidden="true"'));
+  assert.ok(html.includes('id="settingsClose"'));
+  assert.ok(html.includes('id="resetPreviewAction"'));
+  assert.ok(html.includes('id="resetConfirmPanel"'));
+  assert.ok(html.includes('id="confirmResetAction"'));
+  assert.ok(html.includes('id="cancelResetAction"'));
+  assert.ok(pagesHtml.includes('id="settingsToggle"'));
+  assert.ok(js.includes('const settingsToggle'));
+  assert.ok(js.includes('const resetConfirmPanel'));
+  assert.ok(js.includes('function toggleSettingsDock('));
+  assert.ok(js.includes('function askResetConfirmation('));
+  assert.ok(js.includes('function resetPreviewState('));
+  assert.ok(js.includes('state = demoState()'));
+  assert.ok(js.includes('localStorage.setItem(STORAGE_KEY, JSON.stringify(state))'));
+  assert.ok(js.includes('settingsToggle.addEventListener'));
+  assert.ok(js.includes('resetPreviewAction.addEventListener'));
+  assert.ok(js.includes('confirmResetAction.addEventListener'));
+  assert.ok(css.includes('.settings-toggle'));
+  assert.ok(css.includes('.settings-dock.open'));
+  assert.ok(css.includes('.reset-confirm-panel'));
+  assert.ok(css.includes('left: 8px'));
+  assert.ok(css.includes('right: 8px'));
 });
 
 test('browser preview adds a notebook for reviewing resolved knots and badges', () => {
@@ -156,8 +185,8 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes("record-timeline-item ${cssClass}${isSelected ? ' selected' : ''}"));
   assert.ok(css.includes('.record-timeline-item.selected'));
   assert.ok(css.includes('#a8322c'));
-  assert.ok(html.includes('styles.css?v=timeline-select-topbar-1'));
-  assert.ok(html.includes('app.js?v=timeline-select-topbar-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-1'));
 });
 
 test('browser preview keeps the rope natural while selected items use red ink rings', () => {
@@ -172,8 +201,8 @@ test('browser preview keeps the rope natural while selected items use red ink ri
   assert.ok(js.includes("'rgba(248, 235, 202, 0.24)'"));
   assert.ok(js.includes("'rgba(92, 70, 47, 0.18)'"));
   assert.ok(!js.includes("const ROPE_BODY = '#9f3d3a'"));
-  assert.ok(html.includes('styles.css?v=timeline-select-topbar-1'));
-  assert.ok(html.includes('app.js?v=timeline-select-topbar-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-1'));
 });
 
 test('browser preview adds aged reward badges hanging from the rope', () => {
@@ -190,8 +219,8 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('百日旧徽'));
   assert.ok(js.includes('平安旧夹'));
   assert.ok(js.includes('drawRewardBadge(item, screenY, index)'));
-  assert.ok(html.includes('styles.css?v=timeline-select-topbar-1'));
-  assert.ok(html.includes('app.js?v=timeline-select-topbar-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-1'));
 });
 
 test('browser preview removes rope dust effects and uses rough kraft paper texture', () => {
@@ -202,8 +231,8 @@ test('browser preview removes rope dust effects and uses rough kraft paper textu
   assert.ok(!js.includes('drawFrayedFibers'));
   assert.ok(!js.includes('drawOldWeb'));
   assert.ok(js.includes("const PAPER = '#caa36f'"));
-  assert.ok(html.includes('styles.css?v=timeline-select-topbar-1'));
-  assert.ok(html.includes('app.js?v=timeline-select-topbar-1'));
+  assert.ok(html.includes('styles.css?v=settings-reset-1'));
+  assert.ok(html.includes('app.js?v=settings-reset-1'));
   assert.ok(js.includes('function drawPaperMottling('));
   assert.ok(js.includes('function drawKraftFibers('));
   assert.ok(js.includes('function drawPaperStains('));
