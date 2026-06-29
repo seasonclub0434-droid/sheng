@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'latest-trace-1';
+const assetVersion = 'sticky-note-1';
 
 function test(name, fn) {
   try {
@@ -283,16 +283,19 @@ test('browser preview opens at the latest rope entries instead of the top', () =
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });
 
-test('browser preview renders resolved knots as released rope traces', () => {
-  assert.ok(js.includes('function drawReleasedKnotTrace('));
-  assert.ok(js.includes('drawReleasedKnotTrace(item, y, index)'));
-  assert.ok(js.includes('function drawPressureDent('));
-  assert.ok(js.includes('function drawLooseFiberMemory('));
-  assert.ok(js.includes('buildReleasedLoopPath'));
-  assert.ok(js.includes('ropeStroke(buildReleasedLoopPath'));
-  assert.ok(miniPage.includes('this.drawReleasedKnotTrace(ctx, item, y, index)'));
-  assert.ok(miniPage.includes('drawPressureDent(ctx,'));
-  assert.ok(miniPage.includes('drawLooseFiberMemory(ctx,'));
+test('browser preview renders resolved knots as dated sticky notes', () => {
+  assert.ok(js.includes('function drawResolvedStickyNote('));
+  assert.ok(js.includes('drawResolvedStickyNote(item, y, index)'));
+  assert.ok(js.includes('function drawStickyNotePaper('));
+  assert.ok(js.includes('function drawStickyTape('));
+  assert.ok(js.includes('function resolvedNoteDate('));
+  assert.ok(js.includes('fillText(resolvedNoteDate(item)'));
+  assert.ok(js.includes('item.resolvedAt || item.createdAt'));
+  assert.ok(!js.includes('drawReleasedKnotTrace'));
+  assert.ok(!js.includes('drawLooseFiberMemory'));
+  assert.ok(miniPage.includes('this.drawResolvedStickyNote(ctx, item, y, index)'));
+  assert.ok(miniPage.includes('drawStickyNotePaper(ctx,'));
+  assert.ok(miniPage.includes('drawStickyTape(ctx,'));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });

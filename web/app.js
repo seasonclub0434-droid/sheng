@@ -820,56 +820,90 @@ function drawKnot(item, y, index) {
 }
 
 function drawMark(item, y, index) {
-  drawReleasedKnotTrace(item, y, index);
+  drawResolvedStickyNote(item, y, index);
 }
 
-function drawReleasedKnotTrace(item, y, index) {
-  const x = ropeX;
+function resolvedNoteCenter(item, y, index) {
   const seed = toTime(item.createdAt) / 100000;
   const side = itemSide(index);
-
-  drawPressureDent(x, y, seed);
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(side * (0.02 + noise(seed + 4) * 0.018));
-  ctx.globalAlpha = 0.34;
-  const buildReleasedLoopPath = (path) => {
-    path.moveTo(side * -5, -25);
-    path.bezierCurveTo(side * -32, -19, side * -35, 15, side * -5, 22);
-    path.bezierCurveTo(side * 20, 28, side * 33, 3, side * 16, -13);
-    path.bezierCurveTo(side * 7, -21, side * -2, -21, side * -12, -15);
+  return {
+    x: ropeX + side * (38 + noise(seed + 8) * 5),
+    y: y + (noise(seed + 12) - 0.5) * 4,
+    side,
+    seed,
   };
-  ropeStroke(buildReleasedLoopPath, 4.3);
-  ctx.restore();
-
-  drawLooseFiberMemory(x, y, side, seed);
 }
 
-function drawPressureDent(x, y, seed) {
+function resolvedNoteDate(item) {
+  return shortDate(item.resolvedAt || item.createdAt);
+}
+
+function drawResolvedStickyNote(item, y, index) {
+  const note = resolvedNoteCenter(item, y, index);
+  drawStickyTape(ropeX, y, note.x, note.y, note.side, note.seed);
   ctx.save();
-  ctx.globalAlpha = 0.72;
-  ctx.fillStyle = 'rgba(79, 58, 38, 0.13)';
+  ctx.translate(note.x, note.y);
+  ctx.rotate(note.side * (0.045 + noise(note.seed + 4) * 0.035));
+  drawStickyNotePaper(58, 38, note.seed);
+  ctx.fillStyle = 'rgba(69, 46, 28, 0.78)';
+  ctx.font = `700 12px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(resolvedNoteDate(item), 0, -3);
+  ctx.font = `700 8px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
+  ctx.fillStyle = 'rgba(91, 64, 39, 0.52)';
+  ctx.fillText('解开', 0, 12);
+  ctx.restore();
+}
+
+function drawStickyNotePaper(widthTag, heightTag, seed) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(72, 48, 24, 0.18)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
   ctx.beginPath();
-  ctx.ellipse(x, y + 1, 28 + noise(seed + 1) * 3, 15 + noise(seed + 2) * 2, (noise(seed + 3) - 0.5) * 0.18, 0, Math.PI * 2);
+  const corners = [
+    [-widthTag * 0.5, -heightTag * 0.5 + 2],
+    [widthTag * 0.5 - 2, -heightTag * 0.5],
+    [widthTag * 0.5, heightTag * 0.5 - 4],
+    [-widthTag * 0.5 + 3, heightTag * 0.5],
+  ];
+  corners.forEach(([x, y], index) => {
+    const px = x + (noise(seed + index * 17) - 0.5) * 1.6;
+    const py = y + (noise(seed + index * 19) - 0.5) * 1.4;
+    if (index === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.closePath();
+  ctx.fillStyle = '#dbc28a';
   ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(112, 84, 49, 0.34)';
+  ctx.lineWidth = 1.1;
+  ctx.stroke();
 
-  drawHandLine(x - 10, y - 27, x + 7, y + 25, 'rgba(84, 61, 38, 0.34)', 1.1, seed + 21);
-  drawHandLine(x + 9, y - 25, x - 8, y + 23, 'rgba(246, 229, 190, 0.22)', 0.72, seed + 27);
-  drawHandLine(x - 18, y - 9, x + 19, y - 4, 'rgba(65, 47, 31, 0.2)', 0.72, seed + 31);
-  drawHandLine(x - 15, y + 10, x + 17, y + 8, 'rgba(249, 232, 195, 0.18)', 0.62, seed + 37);
+  ctx.fillStyle = 'rgba(244, 224, 173, 0.5)';
+  ctx.beginPath();
+  ctx.moveTo(widthTag * 0.32, heightTag * 0.5 - 2);
+  ctx.lineTo(widthTag * 0.5 - 3, heightTag * 0.28);
+  ctx.lineTo(widthTag * 0.5 - 1, heightTag * 0.5 - 4);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
-function drawLooseFiberMemory(x, y, side, seed) {
+function drawStickyTape(anchorX, anchorY, noteX, noteY, side, seed) {
+  drawHandLine(anchorX + side * 2, anchorY - 4, noteX - side * 22, noteY - 16, 'rgba(92, 67, 40, 0.18)', 0.75, seed + 21);
   ctx.save();
-  for (let i = 0; i < 10; i += 1) {
-    const sx = x + side * (7 + noise(seed + i * 5) * 22);
-    const sy = y - 25 + noise(seed + i * 7) * 52;
-    const ex = sx + side * (10 + noise(seed + i * 11) * 16);
-    const ey = sy + (noise(seed + i * 13) - 0.5) * 9;
-    drawHandLine(sx, sy, ex, ey, `rgba(95, 71, 46, ${0.1 + noise(seed + i * 17) * 0.1})`, 0.48, seed + i * 23);
-  }
+  ctx.translate(noteX - side * 2, noteY - 19);
+  ctx.rotate(side * (0.08 + noise(seed + 5) * 0.025));
+  ctx.fillStyle = 'rgba(241, 220, 176, 0.7)';
+  ctx.strokeStyle = 'rgba(127, 96, 57, 0.22)';
+  ctx.lineWidth = 0.8;
+  ctx.fillRect(-22, -5, 44, 10);
+  ctx.strokeRect(-22, -5, 44, 10);
+  drawHandLine(-18, -1, 17, 0, 'rgba(126, 94, 55, 0.12)', 0.45, seed + 31);
+  drawHandLine(-16, 3, 14, 2, 'rgba(255, 245, 214, 0.26)', 0.45, seed + 37);
   ctx.restore();
 }
 
@@ -878,12 +912,15 @@ function drawTimelineHighlight(item, y, index) {
   const isBadge = item.type === 'badge';
   const isResolved = item.status === 'resolved';
   const side = isBadge ? itemSide(index + 1) : itemSide(index);
+  const resolvedCenter = isResolved ? resolvedNoteCenter(item, y, index) : null;
   const centerX = isBadge
     ? ropeX + side * (48 + noise(seed + 5) * 10)
-    : ropeX;
-  const centerY = isBadge ? y + 46 : y;
-  const radiusX = isBadge ? 54 : isResolved ? 46 : 74;
-  const radiusY = isBadge ? 44 : isResolved ? 40 : 54;
+    : isResolved
+      ? resolvedCenter.x
+      : ropeX;
+  const centerY = isBadge ? y + 46 : isResolved ? resolvedCenter.y : y;
+  const radiusX = isBadge ? 54 : isResolved ? 44 : 74;
+  const radiusY = isBadge ? 44 : isResolved ? 34 : 54;
 
   ctx.save();
   ctx.globalAlpha = 0.82;
@@ -1541,9 +1578,12 @@ function hitTest(x, y) {
       if (Math.abs(x - badgeX) <= 50 && Math.abs(y - badgeY) <= 46) return item;
       continue;
     }
-    const radiusX = item.status === 'resolved' ? 36 : 68;
-    const radiusY = item.status === 'resolved' ? 46 : 58;
-    if (Math.abs(x - ropeX) <= radiusX && Math.abs(y - screenY) <= radiusY) return item;
+    const note = item.status === 'resolved' ? resolvedNoteCenter(item, screenY, index) : null;
+    const hitX = note ? note.x : ropeX;
+    const hitY = note ? note.y : screenY;
+    const radiusX = item.status === 'resolved' ? 48 : 68;
+    const radiusY = item.status === 'resolved' ? 38 : 58;
+    if (Math.abs(x - hitX) <= radiusX && Math.abs(y - hitY) <= radiusY) return item;
   }
   return null;
 }
