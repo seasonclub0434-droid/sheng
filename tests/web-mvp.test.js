@@ -9,6 +9,9 @@ const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'web/app.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8');
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
+const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
+const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
+const assetVersion = 'badge-copy-1';
 
 function test(name, fn) {
   try {
@@ -37,8 +40,8 @@ test('github pages root serves the browser preview', () => {
   assert.ok(pagesHtml.includes('<title>绳话</title>'));
   assert.ok(pagesHtml.includes('id="ropeCanvas"'));
   assert.ok(pagesHtml.includes('id="timelineToggle"'));
-  assert.ok(pagesHtml.includes('href="./web/styles.css?v=settings-reset-empty-1"'));
-  assert.ok(pagesHtml.includes('src="./web/app.js?v=settings-reset-empty-1"'));
+  assert.ok(pagesHtml.includes(`href="./web/styles.css?v=${assetVersion}"`));
+  assert.ok(pagesHtml.includes(`src="./web/app.js?v=${assetVersion}"`));
   assert.ok(!pagesHtml.includes('href="./styles.css'));
   assert.ok(!pagesHtml.includes('src="./app.js'));
   assert.ok(pkg.includes('"serve:web": "python3 -m http.server 4173 --directory ."'));
@@ -189,8 +192,8 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes("record-timeline-item ${cssClass}${isSelected ? ' selected' : ''}"));
   assert.ok(css.includes('.record-timeline-item.selected'));
   assert.ok(css.includes('#a8322c'));
-  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });
 
 test('browser preview keeps the rope natural while selected items use red ink rings', () => {
@@ -205,13 +208,18 @@ test('browser preview keeps the rope natural while selected items use red ink ri
   assert.ok(js.includes("'rgba(248, 235, 202, 0.24)'"));
   assert.ok(js.includes("'rgba(92, 70, 47, 0.18)'"));
   assert.ok(!js.includes("const ROPE_BODY = '#9f3d3a'"));
-  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });
 
 test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('const REWARD_BADGE_NODES'));
   assert.ok(js.includes('function computeRewardBadges('));
+  assert.ok(js.includes('subtitleOptions'));
+  assert.ok(js.includes('function pickBadgeSubtitle('));
+  assert.ok(js.includes('hash = (hash * 31 + seed.charCodeAt(i)) >>> 0'));
+  assert.ok(js.includes('subtitle: pickBadgeSubtitle(node, createdAt)'));
+  assert.ok(!js.includes('subtitle: node.subtitle'));
   assert.ok(js.includes('function drawRewardBadge('));
   assert.ok(js.includes('function drawBadgeHanger('));
   assert.ok(js.includes('function drawBadgeRing('));
@@ -223,8 +231,15 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('百日旧徽'));
   assert.ok(js.includes('平安旧夹'));
   assert.ok(js.includes('drawRewardBadge(item, screenY, index)'));
-  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
+  assert.ok(badgeMechanismDoc.includes('# 绳话勋章系统机制'));
+  assert.ok(badgeMechanismDoc.includes('七日旧章'));
+  assert.ok(badgeMechanismDoc.includes('满月铜章'));
+  assert.ok(badgeMechanismDoc.includes('百日旧徽'));
+  assert.ok(badgeMechanismDoc.includes('第一枚和章'));
+  assert.ok(badgeMechanismDoc.includes('平安旧夹'));
+  assert.ok(badgeMechanismDoc.includes('稳定随机文案'));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });
 
 test('browser preview removes rope dust effects and uses rough kraft paper texture', () => {
@@ -235,8 +250,8 @@ test('browser preview removes rope dust effects and uses rough kraft paper textu
   assert.ok(!js.includes('drawFrayedFibers'));
   assert.ok(!js.includes('drawOldWeb'));
   assert.ok(js.includes("const PAPER = '#caa36f'"));
-  assert.ok(html.includes('styles.css?v=settings-reset-empty-1'));
-  assert.ok(html.includes('app.js?v=settings-reset-empty-1'));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
   assert.ok(js.includes('function drawPaperMottling('));
   assert.ok(js.includes('function drawKraftFibers('));
   assert.ok(js.includes('function drawPaperStains('));

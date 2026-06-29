@@ -14,12 +14,60 @@ const HIGHLIGHT_INK = {
   scratch: 'rgba(105, 25, 24, 0.28)',
 };
 const REWARD_BADGE_NODES = [
-  { id: 'days-7', kind: 'days', threshold: 7, title: '七日旧章', mark: '7', subtitle: '一起走过第一周', tone: 'brass' },
-  { id: 'days-30', kind: 'days', threshold: 30, title: '满月铜章', mark: '30', subtitle: '一个月的小旧页', tone: 'copper' },
-  { id: 'days-100', kind: 'days', threshold: 100, title: '百日旧徽', mark: '100', subtitle: '百日绳记', tone: 'wax' },
-  { id: 'resolved-1', kind: 'resolved', threshold: 1, title: '第一枚和章', mark: '和', subtitle: '第一次把结解开', tone: 'sage' },
-  { id: 'resolved-10', kind: 'resolved', threshold: 10, title: '十结铜扣', mark: '10', subtitle: '第十次和好', tone: 'ink' },
-  { id: 'peace-30', kind: 'peace', threshold: 30, title: '平安旧夹', mark: '安', subtitle: '安静相守三十天', tone: 'sage' },
+  {
+    id: 'days-7',
+    kind: 'days',
+    threshold: 7,
+    title: '七日旧章',
+    mark: '7',
+    subtitleOptions: ['一起走过第一周', '第一圈旧线轻轻收好', '七天的风被夹进纸页', '这根绳子开始有了温度'],
+    tone: 'brass',
+  },
+  {
+    id: 'days-30',
+    kind: 'days',
+    threshold: 30,
+    title: '满月铜章',
+    mark: '30',
+    subtitleOptions: ['一个月的小旧页', '满月时把心事压成铜色', '三十天的日光落在绳上', '第一本月历悄悄合页'],
+    tone: 'copper',
+  },
+  {
+    id: 'days-100',
+    kind: 'days',
+    threshold: 100,
+    title: '百日旧徽',
+    mark: '100',
+    subtitleOptions: ['百日绳记', '一百天的褶皱都算数', '把一百个早晚夹成旧徽', '绳子记得你们走到这里'],
+    tone: 'wax',
+  },
+  {
+    id: 'resolved-1',
+    kind: 'resolved',
+    threshold: 1,
+    title: '第一枚和章',
+    mark: '和',
+    subtitleOptions: ['第一次把结解开', '把那句柔软的话留在这里', '第一个结变成了浅浅印记', '愿意回头，就是第一枚徽章'],
+    tone: 'sage',
+  },
+  {
+    id: 'resolved-10',
+    kind: 'resolved',
+    threshold: 10,
+    title: '十结铜扣',
+    mark: '10',
+    subtitleOptions: ['第十次和好', '十个结都没有把绳子拧断', '铜扣收住了十次认真靠近', '这一次也被好好解开了'],
+    tone: 'ink',
+  },
+  {
+    id: 'peace-30',
+    kind: 'peace',
+    threshold: 30,
+    title: '平安旧夹',
+    mark: '安',
+    subtitleOptions: ['安静相守三十天', '三十天没有新结，纸页很轻', '把平稳的日子夹成旧票根', '绳子在这段时间里慢慢松开'],
+    tone: 'sage',
+  },
 ];
 
 const canvas = document.querySelector('#ropeCanvas');
@@ -162,6 +210,17 @@ function daysBetween(start, end = Date.now()) {
   return Math.floor((endTime - startTime) / DAY_MS);
 }
 
+function pickBadgeSubtitle(node, createdAt) {
+  const options = node.subtitleOptions || (node.subtitle ? [node.subtitle] : []);
+  if (!options.length) return '绳子自动记下的一枚旧徽章。';
+  const seed = `${node.id}:${node.kind}:${node.threshold}:${createdAt}`;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return options[hash % options.length];
+}
+
 function sortByTime(items) {
   return items.slice().sort((a, b) => {
     const diff = toTime(a.createdAt) - toTime(b.createdAt);
@@ -219,42 +278,45 @@ function computeRewardBadges(sourceState) {
   return REWARD_BADGE_NODES.flatMap((node) => {
     if (node.kind === 'days') {
       if (relationshipDays < node.threshold) return [];
+      const createdAt = new Date(toTime(relationshipStartedAt) + node.threshold * DAY_MS).toISOString();
       return [{
         id: `badge-${node.id}`,
         type: 'badge',
         title: node.title,
         mark: node.mark,
-        subtitle: node.subtitle,
+        subtitle: pickBadgeSubtitle(node, createdAt),
         tone: node.tone,
-        createdAt: new Date(toTime(relationshipStartedAt) + node.threshold * DAY_MS).toISOString(),
+        createdAt,
       }];
     }
 
     if (node.kind === 'resolved') {
       if (resolvedKnots.length < node.threshold) return [];
       const source = resolvedKnots[node.threshold - 1];
+      const createdAt = source.resolvedAt || source.createdAt;
       return [{
         id: `badge-${node.id}`,
         type: 'badge',
         title: node.title,
         mark: node.mark,
-        subtitle: node.subtitle,
+        subtitle: pickBadgeSubtitle(node, createdAt),
         tone: node.tone,
-        createdAt: source.resolvedAt || source.createdAt,
+        createdAt,
       }];
     }
 
     if (node.kind === 'peace') {
       const peaceStart = knotEvents.at(-1)?.createdAt || relationshipStartedAt;
       if (openKnots.length || daysBetween(peaceStart) < node.threshold) return [];
+      const createdAt = new Date(toTime(peaceStart) + node.threshold * DAY_MS).toISOString();
       return [{
         id: `badge-${node.id}`,
         type: 'badge',
         title: node.title,
         mark: node.mark,
-        subtitle: node.subtitle,
+        subtitle: pickBadgeSubtitle(node, createdAt),
         tone: node.tone,
-        createdAt: new Date(toTime(peaceStart) + node.threshold * DAY_MS).toISOString(),
+        createdAt,
       }];
     }
 
