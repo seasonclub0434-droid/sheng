@@ -5,6 +5,6 @@
   "scripts": {
     "test": "node tests/timeline.test.js && node tests/web-mvp.test.js",
     "check": "node --check miniprogram/utils/timeline.js && node --check miniprogram/services/rope-store.js && node --check miniprogram/pages/index/index.js && node --check miniprogram/app.js && node --check cloudfunctions/login/index.js && node --check web/app.js",
-    "serve:web": "python3 -m http.server 4173 --directory web"
+    "serve:web": "python3 -m http.server 4173 --directory ."
   }
 }

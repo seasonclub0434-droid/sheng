@@ -5,7 +5,8 @@
 ## 当前版本
 
 - 微信原生小程序项目骨架
-- 浏览器可预览前端原型：`web/index.html`
+- GitHub Pages 静态入口：`index.html`
+- 浏览器可预览前端原型：`web/index.html`（根目录入口复用这套资源）
 - Canvas 2D 首页时间线
 - 点击绳子空白处打结
 - 点击未解结发起「想解」
@@ -72,4 +73,12 @@ npm run check
 npm run serve:web
 ```
 
-然后打开 `http://127.0.0.1:4173`。浏览器版内置演示数据，支持滚动绳子、打结、身份切换、发起解结、确认解结和本地保存。
+然后打开 `http://127.0.0.1:4173`。浏览器版内置演示数据，支持滚动绳子、记绳、解结、绳历、绳本、自动徽章和本地保存。
+
+## GitHub Pages
+
+当前仓库适配 GitHub Pages 的 `Deploy from a branch` + `main` + `/(root)` 配置。发布后访问仓库 Pages 地址即可打开静态预览页，例如：
+
+```text
+https://seasonclub0434-droid.github.io/sheng/
+```

@@ -3,9 +3,12 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
+const pagesHtmlPath = path.join(root, 'index.html');
+const pagesHtml = fs.existsSync(pagesHtmlPath) ? fs.readFileSync(pagesHtmlPath, 'utf8') : '';
 const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'web/app.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8');
+const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 
 function test(name, fn) {
   try {
@@ -29,6 +32,17 @@ function cssBlock(selector, firstDeclaration = '') {
   assert.notStrictEqual(end, -1);
   return css.slice(start, end);
 }
+
+test('github pages root serves the browser preview', () => {
+  assert.ok(pagesHtml.includes('<title>绳话</title>'));
+  assert.ok(pagesHtml.includes('id="ropeCanvas"'));
+  assert.ok(pagesHtml.includes('id="timelineToggle"'));
+  assert.ok(pagesHtml.includes('href="./web/styles.css?v=timeline-select-topbar-1"'));
+  assert.ok(pagesHtml.includes('src="./web/app.js?v=timeline-select-topbar-1"'));
+  assert.ok(!pagesHtml.includes('href="./styles.css'));
+  assert.ok(!pagesHtml.includes('src="./app.js'));
+  assert.ok(pkg.includes('"serve:web": "python3 -m http.server 4173 --directory ."'));
+});
 
 test('browser preview does not expose two-person mode controls', () => {
   assert.ok(!html.includes('mode-switch'));
