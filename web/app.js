@@ -15,8 +15,49 @@ const HIGHLIGHT_INK = {
 };
 const REWARD_BADGE_NODES = [
   {
+    id: 'days-1',
+    kind: 'days',
+    family: 'checkin',
+    threshold: 1,
+    title: '初页旧签',
+    mark: '1',
+    subtitleOptions: ['第一页被轻轻翻开', '第一天的纸页还带着暖意', '把开始这件事夹进绳里', '第一道日光落在绳上'],
+    tone: 'paper',
+  },
+  {
+    id: 'days-2',
+    kind: 'days',
+    family: 'checkin',
+    threshold: 2,
+    title: '两日并肩章',
+    mark: '2',
+    subtitleOptions: ['第二天也并肩留在这里', '两页纸靠得很近', '第一段并肩的小折痕', '绳子记住第二次日落'],
+    tone: 'brass',
+  },
+  {
+    id: 'days-3',
+    kind: 'days',
+    family: 'checkin',
+    threshold: 3,
+    title: '三日墨夹',
+    mark: '3',
+    subtitleOptions: ['三天的墨迹慢慢干了', '第三页开始有了手帐味', '小小三日，被旧夹收好', '这根绳子开始认得你们'],
+    tone: 'paper',
+  },
+  {
+    id: 'days-5',
+    kind: 'days',
+    family: 'checkin',
+    threshold: 5,
+    title: '五日旧票',
+    mark: '5',
+    subtitleOptions: ['第五天像一张旧票根', '五个早晚被压成纸纹', '小段旅程有了第一张票', '把五天装进一枚旧票签'],
+    tone: 'copper',
+  },
+  {
     id: 'days-7',
     kind: 'days',
+    family: 'checkin',
     threshold: 7,
     title: '七日旧章',
     mark: '7',
@@ -24,8 +65,19 @@ const REWARD_BADGE_NODES = [
     tone: 'brass',
   },
   {
+    id: 'days-14',
+    kind: 'days',
+    family: 'checkin',
+    threshold: 14,
+    title: '双周线夹',
+    mark: '14',
+    subtitleOptions: ['两周被细线轻轻夹住', '十四天的纸边有了旧色', '把第二周也收进手帐', '绳子多了一段安稳的长度'],
+    tone: 'sage',
+  },
+  {
     id: 'days-30',
     kind: 'days',
+    family: 'checkin',
     threshold: 30,
     title: '满月铜章',
     mark: '30',
@@ -35,6 +87,7 @@ const REWARD_BADGE_NODES = [
   {
     id: 'days-100',
     kind: 'days',
+    family: 'checkin',
     threshold: 100,
     title: '百日旧徽',
     mark: '100',
@@ -42,8 +95,19 @@ const REWARD_BADGE_NODES = [
     tone: 'wax',
   },
   {
+    id: 'first-knot',
+    kind: 'knot',
+    family: 'checkin',
+    threshold: 1,
+    title: '第一枚绳结',
+    mark: '记',
+    subtitleOptions: ['第一次把心事系在绳上', '第一枚绳结有了自己的页脚', '从这里开始，绳子也会听你们说话', '第一次记下不必完美的那天'],
+    tone: 'paper',
+  },
+  {
     id: 'resolved-1',
     kind: 'resolved',
+    family: 'repair',
     threshold: 1,
     title: '第一枚和章',
     mark: '和',
@@ -53,6 +117,7 @@ const REWARD_BADGE_NODES = [
   {
     id: 'resolved-10',
     kind: 'resolved',
+    family: 'repair',
     threshold: 10,
     title: '十结铜扣',
     mark: '10',
@@ -60,8 +125,19 @@ const REWARD_BADGE_NODES = [
     tone: 'ink',
   },
   {
+    id: 'peace-1',
+    kind: 'peace',
+    family: 'checkin',
+    threshold: 1,
+    title: '一日平安签',
+    mark: '安',
+    subtitleOptions: ['第一天平稳地过去了', '没有新结的一页很轻', '把今天的安静夹起来', '绳子松松地垂了一整天'],
+    tone: 'sage',
+  },
+  {
     id: 'peace-30',
     kind: 'peace',
+    family: 'checkin',
     threshold: 30,
     title: '平安旧夹',
     mark: '安',
@@ -221,6 +297,19 @@ function pickBadgeSubtitle(node, createdAt) {
   return options[hash % options.length];
 }
 
+function createRewardBadge(node, createdAt) {
+  return {
+    id: `badge-${node.id}`,
+    type: 'badge',
+    family: node.family || (node.kind === 'resolved' ? 'repair' : 'checkin'),
+    title: node.title,
+    mark: node.mark,
+    subtitle: pickBadgeSubtitle(node, createdAt),
+    tone: node.tone,
+    createdAt,
+  };
+}
+
 function sortByTime(items) {
   return items.slice().sort((a, b) => {
     const diff = toTime(a.createdAt) - toTime(b.createdAt);
@@ -279,45 +368,27 @@ function computeRewardBadges(sourceState) {
     if (node.kind === 'days') {
       if (relationshipDays < node.threshold) return [];
       const createdAt = new Date(toTime(relationshipStartedAt) + node.threshold * DAY_MS).toISOString();
-      return [{
-        id: `badge-${node.id}`,
-        type: 'badge',
-        title: node.title,
-        mark: node.mark,
-        subtitle: pickBadgeSubtitle(node, createdAt),
-        tone: node.tone,
-        createdAt,
-      }];
+      return [createRewardBadge(node, createdAt)];
+    }
+
+    if (node.kind === 'knot') {
+      if (knotEvents.length < node.threshold) return [];
+      const source = knotEvents[node.threshold - 1];
+      return [createRewardBadge(node, source.createdAt)];
     }
 
     if (node.kind === 'resolved') {
       if (resolvedKnots.length < node.threshold) return [];
       const source = resolvedKnots[node.threshold - 1];
       const createdAt = source.resolvedAt || source.createdAt;
-      return [{
-        id: `badge-${node.id}`,
-        type: 'badge',
-        title: node.title,
-        mark: node.mark,
-        subtitle: pickBadgeSubtitle(node, createdAt),
-        tone: node.tone,
-        createdAt,
-      }];
+      return [createRewardBadge(node, createdAt)];
     }
 
     if (node.kind === 'peace') {
       const peaceStart = knotEvents.at(-1)?.createdAt || relationshipStartedAt;
       if (openKnots.length || daysBetween(peaceStart) < node.threshold) return [];
       const createdAt = new Date(toTime(peaceStart) + node.threshold * DAY_MS).toISOString();
-      return [{
-        id: `badge-${node.id}`,
-        type: 'badge',
-        title: node.title,
-        mark: node.mark,
-        subtitle: pickBadgeSubtitle(node, createdAt),
-        tone: node.tone,
-        createdAt,
-      }];
+      return [createRewardBadge(node, createdAt)];
     }
 
     return [];
@@ -857,6 +928,7 @@ function drawRewardBadge(item, y, index) {
   const badgeY = y + 46;
   const tilt = side * (0.05 + noise(seed + 8) * 0.045);
   const palette = badgePalette(item.tone);
+  const isRepair = item.family === 'repair';
 
   drawBadgeHanger(ropeX, y, badgeX, badgeY, side, seed, palette);
 
@@ -864,22 +936,30 @@ function drawRewardBadge(item, y, index) {
   ctx.translate(badgeX, badgeY + (noise(seed + 3) - 0.5) * 3);
   ctx.rotate(tilt);
 
-  const widthTag = item.mark.length > 2 ? 74 : 62;
-  const heightTag = 50;
-  drawAgedBadgePlate(widthTag, heightTag, palette, seed);
+  const widthTag = isRepair ? 58 : item.mark.length > 2 ? 76 : 66;
+  const heightTag = isRepair ? 58 : 50;
+  if (isRepair) drawRepairBadgeSeal(widthTag, heightTag, palette, seed);
+  else drawCheckinBadgePlate(widthTag, heightTag, palette, seed);
 
   ctx.fillStyle = palette.ink;
-  ctx.font = `700 ${item.mark.length > 2 ? 17 : 22}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
+  ctx.font = `700 ${item.mark.length > 2 ? 16 : isRepair ? 21 : 22}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(item.mark, 0, -3);
+  ctx.fillText(item.mark, 0, isRepair ? -5 : -4);
 
-  ctx.font = `700 10px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
+  ctx.font = `700 9px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
   ctx.fillStyle = palette.fadedInk;
-  ctx.fillText(item.title.slice(0, 4), 0, 15);
+  ctx.fillText(badgeFamilyLabel(item), 0, isRepair ? 15 : 13);
+
+  ctx.font = `700 8px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
+  ctx.fillText(item.title.slice(0, 4), 0, isRepair ? 25 : 22);
 
   drawBadgeAging(widthTag, heightTag, seed, palette);
   ctx.restore();
+}
+
+function badgeFamilyLabel(item) {
+  return item.family === 'repair' ? '解结' : '打卡';
 }
 
 function drawBadgeHanger(anchorX, anchorY, badgeX, badgeY, side, seed, palette) {
@@ -930,6 +1010,15 @@ function drawBadgeHanger(anchorX, anchorY, badgeX, badgeY, side, seed, palette) 
 
 function badgePalette(tone) {
   const palettes = {
+    paper: {
+      fill: '#c2a879',
+      edge: '#7c603a',
+      shadow: 'rgba(72, 49, 25, 0.24)',
+      highlight: 'rgba(246, 226, 181, 0.44)',
+      ink: '#4b3420',
+      fadedInk: 'rgba(75, 52, 32, 0.72)',
+      oxide: 'rgba(112, 82, 47, 0.16)',
+    },
     brass: {
       fill: '#b98d45',
       edge: '#70502a',
@@ -977,6 +1066,99 @@ function badgePalette(tone) {
     },
   };
   return palettes[tone] || palettes.brass;
+}
+
+function drawCheckinBadgePlate(widthTag, heightTag, palette, seed) {
+  ctx.save();
+  ctx.shadowColor = palette.shadow;
+  ctx.shadowBlur = 7;
+  ctx.shadowOffsetY = 4;
+  ctx.beginPath();
+  const points = [
+    [-widthTag * 0.5 + 8, -heightTag * 0.5],
+    [widthTag * 0.5 - 5, -heightTag * 0.5 + 2],
+    [widthTag * 0.5, -heightTag * 0.16],
+    [widthTag * 0.5 - 6, heightTag * 0.5],
+    [-widthTag * 0.5 + 4, heightTag * 0.5 - 1],
+    [-widthTag * 0.5, heightTag * 0.06],
+  ];
+  points.forEach(([x, y], index) => {
+    const px = x + (noise(seed + index * 17) - 0.5) * 2.4;
+    const py = y + (noise(seed + index * 19) - 0.5) * 2;
+    if (index === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.closePath();
+  ctx.fillStyle = palette.fill;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = palette.edge;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.strokeStyle = palette.highlight;
+  ctx.lineWidth = 0.9;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(-widthTag * 0.36, -heightTag * 0.34);
+  ctx.lineTo(widthTag * 0.34, -heightTag * 0.34 + (noise(seed + 7) - 0.5) * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = 'rgba(69, 45, 25, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(-widthTag * 0.34, -heightTag * 0.22, 4.6, 3.9, -0.18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(247, 229, 187, 0.34)';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  for (let i = 0; i < 3; i += 1) {
+    drawHandLine(
+      -widthTag * 0.36 + i * 7,
+      heightTag * 0.26 + noise(seed + i) * 2,
+      widthTag * 0.28 + i * 2,
+      heightTag * 0.22 + (noise(seed + i + 10) - 0.5) * 3,
+      `rgba(73, 48, 28, ${0.11 + i * 0.025})`,
+      0.55,
+      seed + i * 29
+    );
+  }
+  ctx.restore();
+}
+
+function drawRepairBadgeSeal(widthTag, heightTag, palette, seed) {
+  ctx.save();
+  ctx.shadowColor = palette.shadow;
+  ctx.shadowBlur = 9;
+  ctx.shadowOffsetY = 4;
+  ctx.beginPath();
+  for (let i = 0; i <= 28; i += 1) {
+    const angle = (Math.PI * 2 * i) / 28;
+    const ripple = 1 + Math.sin(angle * 5 + seed) * 0.035 + (noise(seed + i * 13) - 0.5) * 0.07;
+    const x = Math.cos(angle) * widthTag * 0.48 * ripple;
+    const y = Math.sin(angle) * heightTag * 0.48 * ripple;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = palette.fill;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = palette.edge;
+  ctx.lineWidth = 2.4;
+  ctx.stroke();
+
+  ctx.strokeStyle = palette.highlight;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.ellipse(-1, -3, widthTag * 0.32, heightTag * 0.28, -0.18, 0, Math.PI * 2);
+  ctx.stroke();
+
+  drawHandLine(-widthTag * 0.28, heightTag * 0.24, widthTag * 0.28, -heightTag * 0.2, palette.edge, 1.1, seed + 31);
+  drawHandLine(-widthTag * 0.24, -heightTag * 0.18, widthTag * 0.3, heightTag * 0.2, palette.highlight, 0.75, seed + 37);
+  drawHandLine(-widthTag * 0.34, heightTag * 0.02, widthTag * 0.34, heightTag * 0.04, 'rgba(49, 31, 22, 0.24)', 0.72, seed + 43);
+  ctx.restore();
 }
 
 function drawBadgeRing(x, y, side, seed, palette) {
@@ -1266,7 +1448,7 @@ function notebookItems() {
 }
 
 function notebookKind(item) {
-  if (item.type === 'badge') return '徽章';
+  if (item.type === 'badge') return `${badgeFamilyLabel(item)}徽章`;
   return item.status === 'resolved' ? '印记' : '绳结';
 }
 
@@ -1480,7 +1662,7 @@ function openBadgeDetail(badge) {
   selectedEventId = '';
   resolveMode = '';
   detailTitle.textContent = badge.title;
-  detailMeta.textContent = `${formatDate(badge.createdAt)} 夹上`;
+  detailMeta.textContent = `${formatDate(badge.createdAt)} 夹上 · ${badgeFamilyLabel(badge)}徽章`;
   detailContent.textContent = badge.subtitle || '这是绳子自动记住的一枚旧徽章。';
   resolutionBlock.innerHTML = '<div class="line-note">到这个日子，绳子替你们把这段路夹了起来。</div>';
   resolutionBlock.classList.remove('hidden');

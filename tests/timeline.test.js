@@ -59,9 +59,25 @@ test('computeMilestones creates automatic relationship badges', () => {
 
   assert.deepStrictEqual(
     milestones.map((item) => item.title),
-    ['相伴100天', '解开10个结', '和平30天']
+    [
+      '初页旧签',
+      '两日并肩章',
+      '三日墨夹',
+      '五日旧票',
+      '七日旧章',
+      '双周线夹',
+      '满月铜章',
+      '百日旧徽',
+      '第一枚绳结',
+      '第一枚和章',
+      '十结铜扣',
+      '一日平安签',
+      '平安旧夹',
+    ]
   );
   assert.ok(milestones.every((item) => item.type === 'ornament'));
+  assert.ok(milestones.some((item) => item.family === 'checkin'));
+  assert.ok(milestones.some((item) => item.family === 'repair'));
 });
 
 test('computeMilestones omits peace badge when an open knot exists', () => {
@@ -71,7 +87,8 @@ test('computeMilestones omits peace badge when an open knot exists', () => {
     now: NOW,
   });
 
-  assert.ok(!milestones.some((item) => item.title === '和平30天'));
+  assert.ok(!milestones.some((item) => item.id === 'ornament-peace-1'));
+  assert.ok(!milestones.some((item) => item.id === 'ornament-peace-30'));
 });
 
 test('layoutTimelineItems preserves time order and minimum spacing', () => {

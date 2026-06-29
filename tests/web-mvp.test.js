@@ -11,7 +11,7 @@ const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8');
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'badge-copy-1';
+const assetVersion = 'badge-families-1';
 
 function test(name, fn) {
   try {
@@ -215,6 +215,8 @@ test('browser preview keeps the rope natural while selected items use red ink ri
 test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('const REWARD_BADGE_NODES'));
   assert.ok(js.includes('function computeRewardBadges('));
+  assert.ok(js.includes("family: 'checkin'"));
+  assert.ok(js.includes("family: 'repair'"));
   assert.ok(js.includes('subtitleOptions'));
   assert.ok(js.includes('function pickBadgeSubtitle('));
   assert.ok(js.includes('hash = (hash * 31 + seed.charCodeAt(i)) >>> 0'));
@@ -224,14 +226,28 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('function drawBadgeHanger('));
   assert.ok(js.includes('function drawBadgeRing('));
   assert.ok(js.includes('function drawBadgeAging('));
+  assert.ok(js.includes('function drawCheckinBadgePlate('));
+  assert.ok(js.includes('function drawRepairBadgeSeal('));
+  assert.ok(js.includes("item.family === 'repair'"));
+  assert.ok(js.includes('badgeFamilyLabel(item)'));
   assert.ok(js.includes('const badgeY = y + 46'));
   assert.ok(js.includes("type: 'badge'"));
+  assert.ok(js.includes('初页旧签'));
+  assert.ok(js.includes('两日并肩章'));
+  assert.ok(js.includes('三日墨夹'));
+  assert.ok(js.includes('五日旧票'));
+  assert.ok(js.includes('第一枚绳结'));
   assert.ok(js.includes('七日旧章'));
   assert.ok(js.includes('满月铜章'));
   assert.ok(js.includes('百日旧徽'));
+  assert.ok(js.includes('一日平安签'));
   assert.ok(js.includes('平安旧夹'));
   assert.ok(js.includes('drawRewardBadge(item, screenY, index)'));
   assert.ok(badgeMechanismDoc.includes('# 绳话勋章系统机制'));
+  assert.ok(badgeMechanismDoc.includes('打卡型'));
+  assert.ok(badgeMechanismDoc.includes('解结型'));
+  assert.ok(badgeMechanismDoc.includes('初页旧签'));
+  assert.ok(badgeMechanismDoc.includes('第一枚绳结'));
   assert.ok(badgeMechanismDoc.includes('七日旧章'));
   assert.ok(badgeMechanismDoc.includes('满月铜章'));
   assert.ok(badgeMechanismDoc.includes('百日旧徽'));

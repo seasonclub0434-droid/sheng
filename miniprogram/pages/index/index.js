@@ -683,37 +683,84 @@ Page({
     const side = this.itemSide(index);
     const x = this.ropeX + side * 68;
     const seed = toTime(item.createdAt) / 100000;
-    const colors = {
-      cream: ['#ead8ad', '#8d7150'],
-      sage: ['#c7d0b3', '#64735c'],
-      blue: ['#c3d2d5', '#5d777d'],
-    }[item.tone || 'cream'];
+    const palettes = {
+      paper: ['#c2a879', '#7c603a', 'rgba(246, 226, 181, 0.44)'],
+      brass: ['#b98d45', '#70502a', 'rgba(245, 213, 139, 0.42)'],
+      copper: ['#a96742', '#633922', 'rgba(235, 169, 110, 0.38)'],
+      wax: ['#9d4f46', '#63302c', 'rgba(245, 173, 153, 0.34)'],
+      sage: ['#9a9b76', '#5c5d42', 'rgba(223, 222, 163, 0.34)'],
+      ink: ['#6b6258', '#38322d', 'rgba(197, 184, 166, 0.3)'],
+    };
+    const colors = palettes[item.tone || 'paper'] || palettes.paper;
+    const isRepair = item.family === 'repair';
 
     this.drawHandLine(ctx, this.ropeX, y - 5, x, y - 22, 'rgba(82, 68, 51, 0.45)', 1.1, seed + 2);
     ctx.save();
     ctx.fillStyle = colors[0];
     ctx.strokeStyle = colors[1];
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    for (let i = 0; i <= 8; i += 1) {
-      const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 8;
-      const radius = 23 + (i % 2 ? -3 : 2) + (noise(seed + i) - 0.5) * 2;
-      const px = x + Math.cos(angle) * radius;
-      const py = y + Math.sin(angle) * radius;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+    ctx.lineWidth = isRepair ? 2.2 : 1.9;
+
+    if (isRepair) {
+      ctx.beginPath();
+      for (let i = 0; i <= 24; i += 1) {
+        const angle = (Math.PI * 2 * i) / 24;
+        const ripple = 1 + Math.sin(angle * 5 + seed) * 0.04 + (noise(seed + i * 9) - 0.5) * 0.08;
+        const px = x + Math.cos(angle) * 25 * ripple;
+        const py = y + Math.sin(angle) * 25 * ripple;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.globalAlpha = 0.93;
+      ctx.fill();
+      ctx.globalAlpha = 0.78;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = colors[2];
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(x - 1, y - 4, 15, 12, -0.18, 0, Math.PI * 2);
+      ctx.stroke();
+      this.drawHandLine(ctx, x - 15, y + 12, x + 16, y - 11, colors[1], 0.85, seed + 41);
+      this.drawHandLine(ctx, x - 13, y - 11, x + 15, y + 10, colors[2], 0.65, seed + 47);
+    } else {
+      const width = item.mark && item.mark.length > 2 ? 58 : 50;
+      const height = 38;
+      const points = [
+        [x - width / 2 + 7, y - height / 2],
+        [x + width / 2 - 4, y - height / 2 + 2],
+        [x + width / 2, y - 5],
+        [x + width / 2 - 5, y + height / 2],
+        [x - width / 2 + 4, y + height / 2 - 1],
+        [x - width / 2, y + 3],
+      ];
+      ctx.beginPath();
+      points.forEach((point, pointIndex) => {
+        const px = point[0] + (noise(seed + pointIndex * 11) - 0.5) * 2;
+        const py = point[1] + (noise(seed + pointIndex * 17) - 0.5) * 1.8;
+        if (pointIndex === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.closePath();
+      ctx.globalAlpha = 0.93;
+      ctx.fill();
+      ctx.globalAlpha = 0.78;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = 'rgba(69, 45, 25, 0.18)';
+      ctx.beginPath();
+      ctx.ellipse(x - width * 0.32, y - height * 0.2, 3.8, 3.1, -0.18, 0, Math.PI * 2);
+      ctx.fill();
+      this.drawHandLine(ctx, x - width * 0.28, y + 11, x + width * 0.28, y + 8, colors[2], 0.62, seed + 33);
     }
-    ctx.closePath();
-    ctx.globalAlpha = 0.92;
-    ctx.fill();
-    ctx.globalAlpha = 0.78;
-    ctx.stroke();
-    ctx.globalAlpha = 1;
+
     ctx.fillStyle = colors[1];
-    ctx.font = '11px sans-serif';
+    ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(item.title.replace('100', '100'), x, y - 2, 54);
+    ctx.fillText(item.mark || item.title.slice(0, 2), x, y - 5, 44);
+    ctx.font = '9px sans-serif';
+    ctx.fillText(isRepair ? '解结' : '打卡', x, y + 12, 40);
     ctx.restore();
   },
 
