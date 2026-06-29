@@ -196,7 +196,7 @@ let pendingAnchorY = 180;
 let selectedEventId = '';
 let selectedTimelineId = '';
 let resolveMode = '';
-let autoScrollTop = true;
+let shouldScrollToLatest = true;
 let activeKnotAnimation = null;
 let animationFrame = 0;
 let lastStatsSignature = '';
@@ -404,9 +404,9 @@ function updateCanvasSize() {
 function render() {
   if (!width || !height) return;
   layoutTimelineItems();
-  if (autoScrollTop) {
-    scrollY = 0;
-    autoScrollTop = false;
+  if (shouldScrollToLatest) {
+    scrollY = maxScrollY;
+    shouldScrollToLatest = false;
   }
   drawPaper();
   drawRope();
@@ -820,27 +820,55 @@ function drawKnot(item, y, index) {
 }
 
 function drawMark(item, y, index) {
+  drawReleasedKnotTrace(item, y, index);
+}
+
+function drawReleasedKnotTrace(item, y, index) {
   const x = ropeX;
   const seed = toTime(item.createdAt) / 100000;
   const side = itemSide(index);
-  const cx = x + side * 31;
+
+  drawPressureDent(x, y, seed);
+
   ctx.save();
-  ctx.globalAlpha = 0.55;
-  for (let ring = 0; ring < 3; ring += 1) {
-    ctx.beginPath();
-    const rx = 22 + ring * 3 + noise(seed + ring) * 2;
-    const ry = 20 + ring * 2 + noise(seed + ring * 4) * 2;
-    for (let i = 0; i <= 16; i += 1) {
-      const angle = -Math.PI * 0.72 + (Math.PI * 1.42 * i) / 16;
-      const px = cx + Math.cos(angle) * rx + (noise(seed + ring * 20 + i) - 0.5) * 2.2;
-      const py = y + Math.sin(angle) * ry + (noise(seed + ring * 30 + i) - 0.5) * 2.2;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    }
-    ctx.strokeStyle = `rgba(110, 107, 99, ${0.18 - ring * 0.035})`;
-    ctx.lineWidth = 0.9;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+  ctx.translate(x, y);
+  ctx.rotate(side * (0.02 + noise(seed + 4) * 0.018));
+  ctx.globalAlpha = 0.34;
+  const buildReleasedLoopPath = (path) => {
+    path.moveTo(side * -5, -25);
+    path.bezierCurveTo(side * -32, -19, side * -35, 15, side * -5, 22);
+    path.bezierCurveTo(side * 20, 28, side * 33, 3, side * 16, -13);
+    path.bezierCurveTo(side * 7, -21, side * -2, -21, side * -12, -15);
+  };
+  ropeStroke(buildReleasedLoopPath, 4.3);
+  ctx.restore();
+
+  drawLooseFiberMemory(x, y, side, seed);
+}
+
+function drawPressureDent(x, y, seed) {
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  ctx.fillStyle = 'rgba(79, 58, 38, 0.13)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 1, 28 + noise(seed + 1) * 3, 15 + noise(seed + 2) * 2, (noise(seed + 3) - 0.5) * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawHandLine(x - 10, y - 27, x + 7, y + 25, 'rgba(84, 61, 38, 0.34)', 1.1, seed + 21);
+  drawHandLine(x + 9, y - 25, x - 8, y + 23, 'rgba(246, 229, 190, 0.22)', 0.72, seed + 27);
+  drawHandLine(x - 18, y - 9, x + 19, y - 4, 'rgba(65, 47, 31, 0.2)', 0.72, seed + 31);
+  drawHandLine(x - 15, y + 10, x + 17, y + 8, 'rgba(249, 232, 195, 0.18)', 0.62, seed + 37);
+  ctx.restore();
+}
+
+function drawLooseFiberMemory(x, y, side, seed) {
+  ctx.save();
+  for (let i = 0; i < 10; i += 1) {
+    const sx = x + side * (7 + noise(seed + i * 5) * 22);
+    const sy = y - 25 + noise(seed + i * 7) * 52;
+    const ex = sx + side * (10 + noise(seed + i * 11) * 16);
+    const ey = sy + (noise(seed + i * 13) - 0.5) * 9;
+    drawHandLine(sx, sy, ex, ey, `rgba(95, 71, 46, ${0.1 + noise(seed + i * 17) * 0.1})`, 0.48, seed + i * 23);
   }
   ctx.restore();
 }
@@ -852,12 +880,10 @@ function drawTimelineHighlight(item, y, index) {
   const side = isBadge ? itemSide(index + 1) : itemSide(index);
   const centerX = isBadge
     ? ropeX + side * (48 + noise(seed + 5) * 10)
-    : isResolved
-      ? ropeX + side * 31
-      : ropeX;
+    : ropeX;
   const centerY = isBadge ? y + 46 : y;
-  const radiusX = isBadge ? 54 : isResolved ? 38 : 74;
-  const radiusY = isBadge ? 44 : isResolved ? 38 : 54;
+  const radiusX = isBadge ? 54 : isResolved ? 46 : 74;
+  const radiusY = isBadge ? 44 : isResolved ? 40 : 54;
 
   ctx.save();
   ctx.globalAlpha = 0.82;
@@ -1334,7 +1360,7 @@ function resetPreviewState() {
   activeKnotAnimation = null;
   lastStatsSignature = '';
   lastTimelineSignature = '__reset__';
-  autoScrollTop = true;
+  shouldScrollToLatest = true;
   closeModal();
   toggleSettingsDock(false);
   render();
@@ -1593,6 +1619,7 @@ function saveNote() {
   };
   saveState();
   closeModal();
+  shouldScrollToLatest = true;
   render();
   requestRenderLoop();
 }

@@ -8,10 +8,11 @@ const pagesHtml = fs.existsSync(pagesHtmlPath) ? fs.readFileSync(pagesHtmlPath, 
 const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'web/app.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8');
+const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.js'), 'utf8');
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'chronological-rope-1';
+const assetVersion = 'latest-trace-1';
 
 function test(name, fn) {
   try {
@@ -264,6 +265,34 @@ test('browser preview keeps knots, marks, and badges in chronological rope order
   assert.ok(!js.includes('function displayPriority('));
   assert.ok(!js.includes('previousPriority'));
   assert.ok(!js.includes('cursor += 176'));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
+});
+
+test('browser preview opens at the latest rope entries instead of the top', () => {
+  assert.ok(js.includes('let shouldScrollToLatest = true'));
+  assert.ok(js.includes('if (shouldScrollToLatest)'));
+  assert.ok(js.includes('scrollY = maxScrollY'));
+  assert.ok(js.includes('shouldScrollToLatest = false'));
+  assert.ok(js.includes('shouldScrollToLatest = true'));
+  assert.ok(!js.includes('autoScrollTop'));
+  assert.ok(miniPage.includes('shouldScrollToLatest: true'));
+  assert.ok(miniPage.includes('if (this.shouldScrollToLatest)'));
+  assert.ok(miniPage.includes('this.scrollY = this.maxScrollY'));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
+});
+
+test('browser preview renders resolved knots as released rope traces', () => {
+  assert.ok(js.includes('function drawReleasedKnotTrace('));
+  assert.ok(js.includes('drawReleasedKnotTrace(item, y, index)'));
+  assert.ok(js.includes('function drawPressureDent('));
+  assert.ok(js.includes('function drawLooseFiberMemory('));
+  assert.ok(js.includes('buildReleasedLoopPath'));
+  assert.ok(js.includes('ropeStroke(buildReleasedLoopPath'));
+  assert.ok(miniPage.includes('this.drawReleasedKnotTrace(ctx, item, y, index)'));
+  assert.ok(miniPage.includes('drawPressureDent(ctx,'));
+  assert.ok(miniPage.includes('drawLooseFiberMemory(ctx,'));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });

@@ -65,6 +65,7 @@ Page({
   touchStart: null,
   moved: false,
   pendingAnchorY: 180,
+  shouldScrollToLatest: true,
 
   onLoad(options) {
     const info = wx.getSystemInfoSync();
@@ -117,6 +118,7 @@ Page({
       events: state.events,
       statusText: this.buildStatusText(state.events, relationshipStartedAt),
     });
+    this.shouldScrollToLatest = true;
     this.render();
   },
 
@@ -239,6 +241,7 @@ Page({
         noteText: '',
         statusText: this.buildStatusText(events, this.session.rope.relationshipStartedAt),
       });
+      this.shouldScrollToLatest = true;
       this.render();
     } catch (error) {
       console.error(error);
@@ -389,7 +392,12 @@ Page({
     this.layoutItems = items;
     this.contentHeight = Math.max(height + 80, lastItem ? lastItem.y + 172 : height + 80);
     this.maxScrollY = Math.max(0, this.contentHeight - height + 38);
-    this.scrollY = Math.max(0, Math.min(this.scrollY, this.maxScrollY));
+    if (this.shouldScrollToLatest) {
+      this.scrollY = this.maxScrollY;
+      this.shouldScrollToLatest = false;
+    } else {
+      this.scrollY = Math.max(0, Math.min(this.scrollY, this.maxScrollY));
+    }
 
     const ctx = this.ctx;
     ctx.clearRect(0, 0, width, height);
@@ -654,27 +662,60 @@ Page({
   },
 
   drawMark(ctx, item, y, index) {
+    this.drawReleasedKnotTrace(ctx, item, y, index);
+  },
+
+  drawReleasedKnotTrace(ctx, item, y, index) {
     const x = this.ropeX;
     const seed = toTime(item.createdAt) / 100000;
     const side = this.itemSide(index);
-    const cx = x + side * 31;
+
+    this.drawPressureDent(ctx, x, y, seed);
+
     ctx.save();
-    ctx.globalAlpha = 0.55;
-    for (let ring = 0; ring < 3; ring += 1) {
-      ctx.beginPath();
-      const rx = 22 + ring * 3 + noise(seed + ring) * 2;
-      const ry = 20 + ring * 2 + noise(seed + ring * 4) * 2;
-      for (let i = 0; i <= 16; i += 1) {
-        const angle = -Math.PI * 0.72 + (Math.PI * 1.42 * i) / 16;
-        const px = cx + Math.cos(angle) * rx + (noise(seed + ring * 20 + i) - 0.5) * 2.2;
-        const py = y + Math.sin(angle) * ry + (noise(seed + ring * 30 + i) - 0.5) * 2.2;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.strokeStyle = `rgba(110, 107, 99, ${0.18 - ring * 0.035})`;
-      ctx.lineWidth = 0.9;
-      ctx.lineCap = 'round';
-      ctx.stroke();
+    ctx.translate(x, y);
+    ctx.rotate(side * (0.02 + noise(seed + 4) * 0.018));
+    ctx.globalAlpha = 0.42;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(184, 154, 114, 0.76)';
+    ctx.lineWidth = 5.6;
+    ctx.beginPath();
+    ctx.moveTo(side * -5, -25);
+    ctx.bezierCurveTo(side * -32, -19, side * -35, 15, side * -5, 22);
+    ctx.bezierCurveTo(side * 20, 28, side * 33, 3, side * 16, -13);
+    ctx.bezierCurveTo(side * 7, -21, side * -2, -21, side * -12, -15);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(248, 235, 205, 0.36)';
+    ctx.lineWidth = 1.1;
+    ctx.stroke();
+    ctx.restore();
+
+    this.drawLooseFiberMemory(ctx, x, y, side, seed);
+  },
+
+  drawPressureDent(ctx, x, y, seed) {
+    ctx.save();
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = 'rgba(79, 58, 38, 0.13)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 1, 28 + noise(seed + 1) * 3, 15 + noise(seed + 2) * 2, (noise(seed + 3) - 0.5) * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    this.drawHandLine(ctx, x - 10, y - 27, x + 7, y + 25, 'rgba(84, 61, 38, 0.34)', 1.1, seed + 21);
+    this.drawHandLine(ctx, x + 9, y - 25, x - 8, y + 23, 'rgba(246, 229, 190, 0.22)', 0.72, seed + 27);
+    this.drawHandLine(ctx, x - 18, y - 9, x + 19, y - 4, 'rgba(65, 47, 31, 0.2)', 0.72, seed + 31);
+    this.drawHandLine(ctx, x - 15, y + 10, x + 17, y + 8, 'rgba(249, 232, 195, 0.18)', 0.62, seed + 37);
+    ctx.restore();
+  },
+
+  drawLooseFiberMemory(ctx, x, y, side, seed) {
+    ctx.save();
+    for (let i = 0; i < 10; i += 1) {
+      const sx = x + side * (7 + noise(seed + i * 5) * 22);
+      const sy = y - 25 + noise(seed + i * 7) * 52;
+      const ex = sx + side * (10 + noise(seed + i * 11) * 16);
+      const ey = sy + (noise(seed + i * 13) - 0.5) * 9;
+      this.drawHandLine(ctx, sx, sy, ex, ey, `rgba(95, 71, 46, ${0.1 + noise(seed + i * 17) * 0.1})`, 0.48, seed + i * 23);
     }
     ctx.restore();
   },
