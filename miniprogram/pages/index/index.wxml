@@ -1,0 +1,92 @@
+<view class="page">
+  <canvas
+    id="ropeCanvas"
+    canvas-id="ropeCanvas"
+    type="2d"
+    class="rope-canvas"
+    style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+    bindtouchstart="onCanvasTouchStart"
+    bindtouchmove="onCanvasTouchMove"
+    bindtouchend="onCanvasTouchEnd"
+  ></canvas>
+
+  <view class="topbar" style="padding-top: {{safeTop}}px;">
+    <view class="brand">
+      <view class="brand-title">绳话</view>
+      <view class="brand-subtitle">{{statusText}}</view>
+    </view>
+    <button class="share-button" open-type="share">邀请</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="floating-note loading-note">正在翻开这本手帐</view>
+  <view wx:if="{{!loading && events.length === 0}}" class="floating-note empty-note">今天有什么没说完的事？</view>
+
+  <view wx:if="{{showNote}}" class="modal-mask" catchtouchmove="noop">
+    <view class="paper-card note-card">
+      <view class="card-title">写成一个结</view>
+      <textarea
+        class="note-input"
+        maxlength="500"
+        auto-focus
+        value="{{noteText}}"
+        placeholder="发生了什么"
+        placeholder-class="input-placeholder"
+        bindinput="onNoteInput"
+      ></textarea>
+      <view class="card-actions">
+        <button class="text-button" bindtap="closeNote">先不写</button>
+        <button class="ink-button" loading="{{saving}}" bindtap="submitKnot">完成</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showDetail}}" class="modal-mask" catchtouchmove="noop">
+    <view class="paper-card detail-card">
+      <view class="card-title">{{selectedState.title}}</view>
+      <view class="card-meta">{{selectedState.meta}}</view>
+      <view class="detail-content">{{selectedState.content}}</view>
+
+      <view wx:if="{{selectedState.isResolved}}" class="resolution-lines">
+        <view wx:if="{{selectedState.requesterLine}}" class="line-note">{{selectedState.requesterLine}}</view>
+        <view wx:if="{{selectedState.accepterLine}}" class="line-note line-note-right">{{selectedState.accepterLine}}</view>
+      </view>
+
+      <view wx:if="{{selectedState.hasRequest && !selectedState.isResolved}}" class="pending-box">
+        <view wx:if="{{selectedState.isRequester}}">已递出想解开的心意，等对方轻轻点头。</view>
+        <view wx:else>对方想把这个结解开。</view>
+        <view wx:if="{{selectedState.requesterLine}}" class="pending-line">{{selectedState.requesterLine}}</view>
+      </view>
+
+      <view wx:if="{{resolveMode}}" class="resolve-form">
+        <textarea
+          class="resolve-input"
+          maxlength="80"
+          value="{{resolveText}}"
+          placeholder="留一句和解的话"
+          placeholder-class="input-placeholder"
+          bindinput="onResolveInput"
+        ></textarea>
+      </view>
+
+      <view class="card-actions">
+        <button class="text-button" bindtap="closeDetail">收起</button>
+        <button
+          wx:if="{{selectedState.canRequest && !resolveMode}}"
+          class="ink-button"
+          bindtap="openResolveRequest"
+        >想解</button>
+        <button
+          wx:if="{{selectedState.canAccept && !resolveMode}}"
+          class="ink-button"
+          bindtap="openResolveAccept"
+        >好</button>
+        <button
+          wx:if="{{resolveMode}}"
+          class="ink-button"
+          loading="{{saving}}"
+          bindtap="submitResolve"
+        >写好</button>
+      </view>
+    </view>
+  </view>
+</view>

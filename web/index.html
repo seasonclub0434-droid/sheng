@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>绳话</title>
+    <link rel="stylesheet" href="./styles.css?v=timeline-select-topbar-1" />
+  </head>
+  <body>
+    <main class="workspace">
+      <section class="phone kraft-paper" aria-label="绳话预览">
+        <canvas id="ropeCanvas" class="rope-canvas"></canvas>
+
+        <div id="statsBar" class="stats-bar" aria-live="polite"></div>
+
+        <button id="timelineToggle" class="timeline-toggle" type="button" aria-expanded="false" aria-controls="recordTimelineDock" aria-label="打开绳历">
+          <span class="timeline-toggle-mark">绳历</span>
+        </button>
+
+        <aside id="recordTimelineDock" class="record-timeline-dock" aria-label="记录时间轴" aria-hidden="true">
+          <button id="timelineClose" class="record-timeline-title" type="button" aria-label="收起绳历">绳历</button>
+          <div id="recordTimelineList" class="record-timeline-list" role="list"></div>
+        </aside>
+
+        <section id="exchangeDock" class="exchange-dock" aria-label="记绳操作">
+          <div id="exchangeTray" class="exchange-tray" aria-hidden="true">
+            <button id="writeKnotAction" class="exchange-action write-action" type="button">
+              <span class="action-label">写一个结</span>
+              <span class="action-hint">把没说完的话系上</span>
+            </button>
+            <button id="resolveKnotAction" class="exchange-action resolve-action" type="button">
+              <span class="action-label">解一个结</span>
+              <span class="action-hint">翻开最近的未解</span>
+            </button>
+            <button id="notebookAction" class="exchange-action notebook-action" type="button">
+              <span class="action-label">翻绳本</span>
+              <span class="action-hint">回看已解的结和挂上的徽章</span>
+            </button>
+          </div>
+          <button id="exchangeButton" class="exchange-button" type="button" aria-expanded="false" aria-controls="exchangeTray">
+            <span class="exchange-mark">记绳</span>
+            <span class="exchange-sub">翻开纸签</span>
+          </button>
+        </section>
+
+        <div id="modalLayer" class="modal-layer hidden" role="presentation">
+          <section id="noteCard" class="paper-card hidden" aria-label="写成一个结">
+            <div class="card-title">写成一个结</div>
+            <textarea id="noteInput" class="note-input" maxlength="500" placeholder="发生了什么"></textarea>
+            <div class="card-actions">
+              <button id="cancelNote" class="text-button" type="button">先不写</button>
+              <button id="saveNote" class="ink-button" type="button">完成</button>
+            </div>
+          </section>
+
+          <section id="detailCard" class="paper-card hidden" aria-label="绳结详情">
+            <div id="detailTitle" class="card-title"></div>
+            <div id="detailMeta" class="card-meta"></div>
+            <div id="detailContent" class="detail-content"></div>
+            <div id="resolutionBlock" class="resolution-lines hidden"></div>
+            <div id="resolveForm" class="resolve-form hidden">
+              <textarea id="resolveInput" class="resolve-input" maxlength="80" placeholder="留一句和解的话"></textarea>
+            </div>
+            <div class="card-actions">
+              <button id="closeDetail" class="text-button" type="button">收起</button>
+              <button id="resolveAction" class="ink-button hidden" type="button"></button>
+              <button id="submitResolve" class="ink-button hidden" type="button">写好</button>
+            </div>
+          </section>
+
+          <section id="notebookCard" class="paper-card hidden" aria-label="绳本">
+            <div class="card-title">绳本</div>
+            <div class="card-meta">解开的结、留下的印记和自动挂上的徽章</div>
+            <div id="notebookList" class="notebook-list" role="list"></div>
+            <div class="card-actions">
+              <button id="closeNotebook" class="ink-button" type="button">收好</button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js?v=timeline-select-topbar-1"></script>
+  </body>
+</html>

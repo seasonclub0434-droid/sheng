@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "绳话",
+    "navigationBarBackgroundColor": "#f5eedf",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5eedf",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
