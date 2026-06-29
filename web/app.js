@@ -318,37 +318,17 @@ function sortByTime(items) {
   });
 }
 
-function displayPriority(item) {
-  if (item && item.type === 'knot' && item.status !== 'resolved') return 0;
-  if (item && item.type === 'badge') return 1;
-  if (item && item.type === 'knot' && item.status === 'resolved') return 2;
-  return 1;
-}
-
 function sortForDisplay(items) {
-  return items.slice().sort((a, b) => {
-    const priorityDiff = displayPriority(a) - displayPriority(b);
-    if (priorityDiff !== 0) return priorityDiff;
-
-    const diff = toTime(a.createdAt) - toTime(b.createdAt);
-    if (diff !== 0) return diff;
-    return String(a.id).localeCompare(String(b.id));
-  });
+  return sortByTime(items);
 }
 
 function layoutTimelineItems() {
   const items = sortForDisplay(state.events.concat(computeRewardBadges(state)));
   let cursor = 150;
-  let previousPriority = null;
   layoutItems = items.map((item) => {
-    const priority = displayPriority(item);
-    if (previousPriority !== null && priority !== previousPriority) {
-      cursor += 176;
-    }
     const preferred = Number(item.anchorY || cursor);
     const y = Math.max(preferred, cursor);
     cursor = y + 148;
-    previousPriority = priority;
     return { ...item, y };
   });
   const last = layoutItems.at(-1);

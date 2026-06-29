@@ -114,7 +114,7 @@ test('layoutTimelineItems preserves time order and minimum spacing', () => {
   }
 });
 
-test('sortForDisplay places unresolved knots before resolved marks', () => {
+test('sortForDisplay keeps knots and ornaments in chronological order', () => {
   const items = sortForDisplay([
     knot('resolved-old', 80, 'resolved'),
     knot('open-new', 2),
@@ -125,11 +125,11 @@ test('sortForDisplay places unresolved knots before resolved marks', () => {
 
   assert.deepStrictEqual(
     items.map((item) => item.id || item._id),
-    ['open-old', 'open-new', 'ornament', 'resolved-old', 'resolved-new']
+    ['resolved-old', 'ornament', 'open-old', 'resolved-new', 'open-new']
   );
 });
 
-test('layoutTimelineItems adds separation before non-open history', () => {
+test('layoutTimelineItems does not separate knots and ornaments by type', () => {
   const items = layoutTimelineItems({
     events: [knot('open', 2), knot('resolved', 20, 'resolved')],
     ornaments: [{ id: 'ornament', type: 'ornament', title: '相伴100天', createdAt: daysAgo(10) }],
@@ -140,7 +140,8 @@ test('layoutTimelineItems adds separation before non-open history', () => {
 
   assert.deepStrictEqual(
     items.map((item) => item.id),
-    ['open', 'ornament', 'resolved']
+    ['resolved', 'ornament', 'open']
   );
-  assert.strictEqual(items[1].y - items[0].y, 240);
+  assert.strictEqual(items[1].y - items[0].y, 100);
+  assert.strictEqual(items[2].y - items[1].y, 100);
 });

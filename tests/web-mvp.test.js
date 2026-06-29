@@ -11,7 +11,7 @@ const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8');
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'badge-families-1';
+const assetVersion = 'chronological-rope-1';
 
 function test(name, fn) {
   try {
@@ -254,6 +254,16 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(badgeMechanismDoc.includes('第一枚和章'));
   assert.ok(badgeMechanismDoc.includes('平安旧夹'));
   assert.ok(badgeMechanismDoc.includes('稳定随机文案'));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
+});
+
+test('browser preview keeps knots, marks, and badges in chronological rope order', () => {
+  assert.ok(js.includes('function sortForDisplay(items)'));
+  assert.ok(js.includes('return sortByTime(items);'));
+  assert.ok(!js.includes('function displayPriority('));
+  assert.ok(!js.includes('previousPriority'));
+  assert.ok(!js.includes('cursor += 176'));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });

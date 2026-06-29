@@ -93,21 +93,8 @@ function sortByTime(items) {
   });
 }
 
-function displayPriority(item) {
-  if (item && item.type === 'knot' && item.status !== 'resolved') return 0;
-  if (item && item.type === 'knot' && item.status === 'resolved') return 2;
-  return 1;
-}
-
 function sortForDisplay(items) {
-  return items.slice().sort((a, b) => {
-    const priorityDiff = displayPriority(a) - displayPriority(b);
-    if (priorityDiff !== 0) return priorityDiff;
-
-    const diff = toTime(a.createdAt) - toTime(b.createdAt);
-    if (diff !== 0) return diff;
-    return String(a.id || a._id || '').localeCompare(String(b.id || b._id || ''));
-  });
+  return sortByTime(items);
 }
 
 function computeMilestones(options) {
@@ -161,8 +148,6 @@ function layoutTimelineItems(options) {
   const ornaments = options && options.ornaments ? options.ornaments : [];
   const topPadding = options && options.topPadding != null ? options.topPadding : 132;
   const minGap = options && options.minGap != null ? options.minGap : 148;
-  const groupGap = options && options.groupGap != null ? options.groupGap : 176;
-
   const baseItems = sortForDisplay(events.concat(ornaments)).map((item) => ({
     ...item,
     id: item.id || item._id,
@@ -170,16 +155,10 @@ function layoutTimelineItems(options) {
   }));
 
   let cursor = topPadding;
-  let previousPriority = null;
   return baseItems.map((item) => {
-    const priority = displayPriority(item);
-    if (previousPriority !== null && priority !== previousPriority) {
-      cursor += groupGap;
-    }
     const preferred = Number(item.anchorY || item.y || cursor);
     const y = Math.max(preferred, cursor);
     cursor = y + minGap;
-    previousPriority = priority;
     return {
       ...item,
       y,
