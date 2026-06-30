@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./web/styles.css?v=sticky-note-1" />
+    <link rel="stylesheet" href="./web/styles.css?v=polish-notebook-medals-1" />
   </head>
   <body>
     <main class="workspace">
@@ -55,7 +55,7 @@
             </button>
             <button id="notebookAction" class="exchange-action notebook-action" type="button">
               <span class="action-label">翻绳本</span>
-              <span class="action-hint">回看已解的结和挂上的徽章</span>
+              <span class="action-hint">回看已解的结和挂上的印章</span>
             </button>
           </div>
           <button id="exchangeButton" class="exchange-button" type="button" aria-expanded="false" aria-controls="exchangeTray">
@@ -90,8 +90,14 @@
           </section>
 
           <section id="notebookCard" class="paper-card hidden" aria-label="绳本">
-            <div class="card-title">绳本</div>
-            <div class="card-meta">解开的结、留下的印记和自动挂上的徽章</div>
+            <div class="notebook-title-row">
+              <div class="card-title">绳本</div>
+              <label class="notebook-search-wrap" aria-label="搜索绳本">
+                <span class="notebook-search-icon">⌕</span>
+                <input id="notebookSearch" class="notebook-search" type="search" placeholder="搜索" />
+              </label>
+            </div>
+            <div class="card-meta">解开的结、留下的印记和印章</div>
             <div id="notebookList" class="notebook-list" role="list"></div>
             <div class="card-actions">
               <button id="closeNotebook" class="ink-button" type="button">收好</button>
@@ -101,6 +107,6 @@
       </section>
     </main>
 
-    <script type="module" src="./web/app.js?v=sticky-note-1"></script>
+    <script type="module" src="./web/app.js?v=polish-notebook-medals-1"></script>
   </body>
 </html>

@@ -173,6 +173,7 @@ const noteInput = document.querySelector('#noteInput');
 const detailCard = document.querySelector('#detailCard');
 const notebookCard = document.querySelector('#notebookCard');
 const notebookList = document.querySelector('#notebookList');
+const notebookSearch = document.querySelector('#notebookSearch');
 const detailTitle = document.querySelector('#detailTitle');
 const detailMeta = document.querySelector('#detailMeta');
 const detailContent = document.querySelector('#detailContent');
@@ -195,6 +196,7 @@ let moved = false;
 let pendingAnchorY = 180;
 let selectedEventId = '';
 let selectedTimelineId = '';
+let notebookQuery = '';
 let resolveMode = '';
 let shouldScrollToLatest = true;
 let activeKnotAnimation = null;
@@ -288,7 +290,7 @@ function daysBetween(start, end = Date.now()) {
 
 function pickBadgeSubtitle(node, createdAt) {
   const options = node.subtitleOptions || (node.subtitle ? [node.subtitle] : []);
-  if (!options.length) return '绳子自动记下的一枚旧徽章。';
+  if (!options.length) return '绳子自动记下的一枚印章。';
   const seed = `${node.id}:${node.kind}:${node.threshold}:${createdAt}`;
   let hash = 0;
   for (let i = 0; i < seed.length; i += 1) {
@@ -845,14 +847,26 @@ function drawResolvedStickyNote(item, y, index) {
   ctx.translate(note.x, note.y);
   ctx.rotate(note.side * (0.045 + noise(note.seed + 4) * 0.035));
   drawStickyNotePaper(58, 38, note.seed);
-  ctx.fillStyle = 'rgba(69, 46, 28, 0.78)';
-  ctx.font = `700 12px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(resolvedNoteDate(item), 0, -3);
+  drawHandwrittenResolvedDate(item, note.seed);
   ctx.font = `700 8px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
   ctx.fillStyle = 'rgba(91, 64, 39, 0.52)';
   ctx.fillText('解开', 0, 12);
+  ctx.restore();
+}
+
+function drawHandwrittenResolvedDate(item, seed) {
+  const dateText = resolvedNoteDate(item);
+  const handFont = getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif';
+  ctx.save();
+  ctx.rotate((noise(seed + 26) - 0.5) * 0.045);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `800 14px ${handFont}`;
+  ctx.fillStyle = 'rgba(52, 34, 23, 0.82)';
+  ctx.fillText(dateText, -0.35, -4.15);
+  ctx.fillStyle = 'rgba(96, 58, 32, 0.5)';
+  ctx.fillText(dateText, 0.55, -3.45);
+  drawHandLine(-19, 4.2, 19, 3.1 + (noise(seed + 33) - 0.5) * 1.2, 'rgba(95, 58, 34, 0.42)', 0.72, seed + 41);
   ctx.restore();
 }
 
@@ -979,24 +993,12 @@ function drawRewardBadge(item, y, index) {
   ctx.translate(badgeX, badgeY + (noise(seed + 3) - 0.5) * 3);
   ctx.rotate(tilt);
 
-  const widthTag = isRepair ? 58 : item.mark.length > 2 ? 76 : 66;
+  const widthTag = isRepair ? 58 : 62;
   const heightTag = isRepair ? 58 : 50;
   if (isRepair) drawRepairBadgeSeal(widthTag, heightTag, palette, seed);
   else drawCheckinBadgePlate(widthTag, heightTag, palette, seed);
 
-  ctx.fillStyle = palette.ink;
-  ctx.font = `700 ${item.mark.length > 2 ? 16 : isRepair ? 21 : 22}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(item.mark, 0, isRepair ? -5 : -4);
-
-  ctx.font = `700 9px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
-  ctx.fillStyle = palette.fadedInk;
-  ctx.fillText(badgeFamilyLabel(item), 0, isRepair ? 15 : 13);
-
-  ctx.font = `700 8px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
-  ctx.fillText(item.title.slice(0, 4), 0, isRepair ? 25 : 22);
-
+  drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair);
   drawBadgeAging(widthTag, heightTag, seed, palette);
   ctx.restore();
 }
@@ -1201,6 +1203,150 @@ function drawRepairBadgeSeal(widthTag, heightTag, palette, seed) {
   drawHandLine(-widthTag * 0.28, heightTag * 0.24, widthTag * 0.28, -heightTag * 0.2, palette.edge, 1.1, seed + 31);
   drawHandLine(-widthTag * 0.24, -heightTag * 0.18, widthTag * 0.3, heightTag * 0.2, palette.highlight, 0.75, seed + 37);
   drawHandLine(-widthTag * 0.34, heightTag * 0.02, widthTag * 0.34, heightTag * 0.04, 'rgba(49, 31, 22, 0.24)', 0.72, seed + 43);
+  ctx.restore();
+}
+
+function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
+  const source = `${item.id}:${item.title}:${item.family}`;
+  let motifHash = 0;
+  for (let i = 0; i < source.length; i += 1) {
+    motifHash = (motifHash * 33 + source.charCodeAt(i)) >>> 0;
+  }
+  const motif = motifHash % 6;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = palette.ink;
+  ctx.fillStyle = palette.highlight;
+  ctx.globalAlpha = isRepair ? 0.76 : 0.68;
+
+  if (isRepair) {
+    if (motif % 3 === 0) {
+      ctx.beginPath();
+      ctx.moveTo(0, 13);
+      ctx.bezierCurveTo(-24, -4, -12, -24, 0, -10);
+      ctx.bezierCurveTo(12, -24, 24, -4, 0, 13);
+      ctx.fill();
+      ctx.strokeStyle = palette.edge;
+      ctx.lineWidth = 1.15;
+      ctx.stroke();
+      drawHandLine(-14, 10, 14, -10, palette.ink, 0.82, seed + 82);
+    } else if (motif % 3 === 1) {
+      ctx.lineWidth = 1.1;
+      for (let i = -2; i <= 2; i += 1) {
+        drawHandLine(-17, i * 5, 17, i * 5 + (noise(seed + i * 7) - 0.5) * 2, palette.highlight, 0.82, seed + i + 86);
+        drawHandLine(i * 7, -14, i * 7 + 3, -5, palette.ink, 0.72, seed + i + 92);
+      }
+      ctx.beginPath();
+      ctx.ellipse(0, 0, widthTag * 0.22, heightTag * 0.16, -0.16, 0, Math.PI * 2);
+      ctx.strokeStyle = palette.edge;
+      ctx.stroke();
+    } else {
+      for (let i = 0; i < 5; i += 1) {
+        const angle = (Math.PI * 2 * i) / 5 + noise(seed + i) * 0.12;
+        ctx.save();
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.ellipse(0, -13, 5.8, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = palette.edge;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, 5.4, 0, Math.PI * 2);
+      ctx.fillStyle = palette.ink;
+      ctx.fill();
+    }
+  } else if (motif === 0) {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i += 1) {
+      const radius = i % 2 === 0 ? 17 : 7;
+      const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 10;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = palette.edge;
+    ctx.lineWidth = 0.95;
+    ctx.stroke();
+  } else if (motif === 1) {
+    ctx.lineWidth = 1.1;
+    drawHandLine(-20, 8, 20, -8, palette.ink, 0.95, seed + 101);
+    [-10, 0, 10].forEach((offset, index) => {
+      ctx.beginPath();
+      ctx.ellipse(offset - 2, -offset * 0.28, 6, 11, -0.72, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = palette.edge;
+      ctx.stroke();
+      drawHandLine(offset - 6, -offset * 0.28, offset + 3, -offset * 0.28 - 7, palette.highlight, 0.55, seed + index + 109);
+    });
+  } else if (motif === 2) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 17, 0.35 * Math.PI, 1.68 * Math.PI);
+    ctx.arc(7, -1, 13, 1.66 * Math.PI, 0.38 * Math.PI, true);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = palette.edge;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    drawHandLine(-10, 13, 14, -14, palette.highlight, 0.72, seed + 119);
+  } else if (motif === 3) {
+    for (let i = 0; i < 8; i += 1) {
+      const angle = (Math.PI * 2 * i) / 8;
+      drawHandLine(0, 0, Math.cos(angle) * 19, Math.sin(angle) * 13, palette.ink, 0.75, seed + i + 127);
+    }
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 9, 7, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (motif === 4) {
+    ctx.beginPath();
+    ctx.moveTo(-18, -8);
+    ctx.lineTo(0, -17);
+    ctx.lineTo(18, -8);
+    ctx.lineTo(13, 16);
+    ctx.lineTo(0, 9);
+    ctx.lineTo(-13, 16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = palette.edge;
+    ctx.lineWidth = 0.95;
+    ctx.stroke();
+    drawHandLine(-13, -6, 12, -5, palette.highlight, 0.7, seed + 137);
+  } else {
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 19, 12, -0.12, 0, Math.PI * 2);
+    ctx.strokeStyle = palette.ink;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, 5.2, 0, Math.PI * 2);
+    ctx.fill();
+    for (let i = -1; i <= 1; i += 1) {
+      drawHandLine(-16, i * 6, 16, i * 5 + (noise(seed + i + 149) - 0.5) * 2, palette.highlight, 0.55, seed + i + 151);
+    }
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = palette.oxide;
+  for (let i = 0; i < 5; i += 1) {
+    ctx.beginPath();
+    ctx.ellipse(
+      -widthTag * 0.22 + noise(seed + i + 163) * widthTag * 0.44,
+      -heightTag * 0.2 + noise(seed + i + 173) * heightTag * 0.42,
+      1.2 + noise(seed + i + 181) * 1.8,
+      0.8 + noise(seed + i + 191) * 1.5,
+      noise(seed + i + 199) * Math.PI,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -1427,7 +1573,7 @@ function timelineItems() {
 }
 
 function updateRecordTimeline() {
-  const items = timelineItems().slice(-8);
+  const items = timelineItems();
   const signature = items
     .map((item) => `${item.id}:${item.type}:${item.status || ''}:${item.createdAt}:${item.resolvedAt || ''}`)
     .join('|');
@@ -1435,7 +1581,7 @@ function updateRecordTimeline() {
   if (signature === lastTimelineSignature) return;
 
   if (!items.length) {
-    recordTimelineList.innerHTML = '<div class="record-timeline-empty">还没有记录</div>';
+    recordTimelineList.innerHTML = '<div class="record-timeline-empty"><span>还没有</span><span>记录</span></div>';
     lastTimelineSignature = signature;
     return;
   }
@@ -1444,7 +1590,7 @@ function updateRecordTimeline() {
     .map((item) => {
       const isBadge = item.type === 'badge';
       const isResolved = item.status === 'resolved';
-      const kind = item.type === 'badge' ? '徽章' : isResolved ? '印记' : '绳结';
+      const kind = item.type === 'badge' ? '印章' : isResolved ? '印记' : '绳结';
       const cssClass = isBadge ? 'badge' : isResolved ? 'resolved' : 'open';
       const isSelected = item.id === selectedTimelineId;
       return `
@@ -1491,7 +1637,7 @@ function notebookItems() {
 }
 
 function notebookKind(item) {
-  if (item.type === 'badge') return `${badgeFamilyLabel(item)}徽章`;
+  if (item.type === 'badge') return '印章';
   return item.status === 'resolved' ? '印记' : '绳结';
 }
 
@@ -1502,14 +1648,28 @@ function notebookTitle(item) {
 }
 
 function notebookCopy(item) {
-  if (item.type === 'badge') return item.subtitle || '绳子自动记下的一枚旧徽章。';
+  if (item.type === 'badge') return item.subtitle || '绳子自动记下的一枚印章。';
   if (item.status === 'resolved' && item.resolutionLine) return `${item.content} / ${item.resolutionLine}`;
   return item.content;
 }
 
-function openNotebook() {
-  toggleExchangeTray(false);
-  const items = notebookItems();
+function notebookMatches(item, query) {
+  if (!query) return true;
+  const haystack = [
+    notebookKind(item),
+    notebookTitle(item),
+    notebookCopy(item),
+    formatDate(item.createdAt),
+    shortDate(item.createdAt),
+    item.resolvedAt ? formatDate(item.resolvedAt) : '',
+    item.resolvedAt ? shortDate(item.resolvedAt) : '',
+  ].join(' ').toLowerCase();
+  return haystack.includes(query);
+}
+
+function renderNotebookList() {
+  const query = notebookQuery.trim().toLowerCase();
+  const items = notebookItems().filter((item) => notebookMatches(item, query));
   notebookList.innerHTML = items.length
     ? items
       .map((item) => {
@@ -1525,7 +1685,14 @@ function openNotebook() {
         `;
       })
       .join('')
-    : '<div class="notebook-empty">这本绳本还没有内容。</div>';
+    : `<div class="notebook-empty">${query ? '没有找到这段绳记。' : '这本绳本还没有内容。'}</div>`;
+}
+
+function openNotebook() {
+  toggleExchangeTray(false);
+  notebookQuery = '';
+  notebookSearch.value = '';
+  renderNotebookList();
 
   modalLayer.classList.remove('hidden');
   noteCard.classList.add('hidden');
@@ -1676,8 +1843,8 @@ function openDetail(id) {
 
   const isResolved = event.status === 'resolved';
   const meta = isResolved && event.resolvedAt
-    ? `${formatDate(event.createdAt)} · ${formatDate(event.resolvedAt)} 解开`
-    : formatDate(event.createdAt);
+    ? `结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`
+    : `结下 ${formatDate(event.createdAt)}`;
 
   detailTitle.textContent = isResolved ? '一个淡淡的印记' : '一个还没解开的结';
   detailMeta.textContent = meta;
@@ -1709,9 +1876,9 @@ function openBadgeDetail(badge) {
   selectedEventId = '';
   resolveMode = '';
   detailTitle.textContent = badge.title;
-  detailMeta.textContent = `${formatDate(badge.createdAt)} 夹上 · ${badgeFamilyLabel(badge)}徽章`;
-  detailContent.textContent = badge.subtitle || '这是绳子自动记住的一枚旧徽章。';
-  resolutionBlock.innerHTML = '<div class="line-note">到这个日子，绳子替你们把这段路夹了起来。</div>';
+  detailMeta.textContent = `${formatDate(badge.createdAt)} 夹上 · 印章`;
+  detailContent.textContent = badge.subtitle || '这是绳子自动记住的一枚印章。';
+  resolutionBlock.innerHTML = '<div class="line-note">到这个日子，绳子替你们盖下一枚印章。</div>';
   resolutionBlock.classList.remove('hidden');
   resolveForm.classList.add('hidden');
   submitResolve.classList.add('hidden');
@@ -1810,6 +1977,10 @@ notebookList.addEventListener('click', (event) => {
   const button = event.target.closest('[data-notebook-id]');
   if (!button) return;
   openNotebookItem(button.dataset.notebookId);
+});
+notebookSearch.addEventListener('input', (event) => {
+  notebookQuery = event.target.value;
+  renderNotebookList();
 });
 resolveAction.addEventListener('click', () => openResolve(resolveAction.dataset.mode));
 submitResolve.addEventListener('click', writeResolve);

@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'sticky-note-1';
+const assetVersion = 'polish-notebook-medals-1';
 
 function test(name, fn) {
   try {
@@ -121,16 +121,27 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
 test('browser preview adds a notebook for reviewing resolved knots and badges', () => {
   assert.ok(html.includes('id="notebookCard"'));
   assert.ok(html.includes('id="notebookList"'));
+  assert.ok(html.includes('id="notebookSearch"'));
+  assert.ok(html.includes('placeholder="搜索"'));
+  assert.ok(html.includes('class="notebook-title-row"'));
   assert.ok(html.includes('绳本'));
   assert.ok(html.includes('收好'));
+  assert.ok(html.includes('解开的结、留下的印记和印章'));
   assert.ok(js.includes('const notebookAction'));
   assert.ok(js.includes('const notebookList'));
+  assert.ok(js.includes('const notebookSearch'));
   assert.ok(js.includes('function openNotebook('));
   assert.ok(js.includes('function notebookItems('));
+  assert.ok(js.includes('function notebookMatches('));
+  assert.ok(js.includes('function renderNotebookList('));
   assert.ok(js.includes('function openNotebookItem('));
+  assert.ok(js.includes("notebookSearch.addEventListener('input'"));
   assert.ok(js.includes('resolutionLine'));
+  assert.ok(js.includes("return '印章';"));
   assert.ok(css.includes('.notebook-list'));
   assert.ok(css.includes('.notebook-entry'));
+  assert.ok(css.includes('.notebook-title-row'));
+  assert.ok(css.includes('.notebook-search'));
 });
 
 test('browser preview keeps knot detail cards inside the phone frame', () => {
@@ -166,12 +177,17 @@ test('browser preview replaces time-flip controls with a vertical record timelin
   assert.ok(js.includes('timelineItems()'));
   assert.ok(js.includes('function focusTimelineEvent('));
   assert.ok(js.includes('recordTimelineList.addEventListener'));
-  assert.ok(js.includes("const kind = item.type === 'badge' ? '徽章'"));
+  assert.ok(js.includes("const kind = item.type === 'badge' ? '印章'"));
+  assert.ok(js.includes("recordTimelineList.innerHTML = '<div class=\"record-timeline-empty\"><span>还没有</span><span>记录</span></div>';"));
+  assert.ok(!js.includes('timelineItems().slice(-8)'));
   assert.ok(css.includes('.timeline-toggle'));
   assert.ok(css.includes('.record-timeline-dock.open'));
   assert.ok(css.includes('.record-timeline-item.badge::before'));
   assert.ok(css.includes('.record-timeline-dock'));
   assert.ok(css.includes('.record-timeline-item'));
+  assert.ok(css.includes('.record-timeline-list'));
+  assert.ok(css.includes('overflow-y: auto'));
+  assert.ok(css.includes('.record-timeline-empty span'));
   assert.ok(css.includes('writing-mode: vertical-rl'));
   assert.ok(!js.includes('相伴100天'));
   assert.ok(!js.includes('和平30天'));
@@ -229,10 +245,18 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('function drawBadgeAging('));
   assert.ok(js.includes('function drawCheckinBadgePlate('));
   assert.ok(js.includes('function drawRepairBadgeSeal('));
+  assert.ok(js.includes('function drawBadgeMotif('));
+  assert.ok(js.includes('drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair)'));
   assert.ok(js.includes("item.family === 'repair'"));
   assert.ok(js.includes('badgeFamilyLabel(item)'));
   assert.ok(js.includes('const badgeY = y + 46'));
   assert.ok(js.includes("type: 'badge'"));
+  assert.ok(!js.includes('ctx.fillText(item.mark'));
+  assert.ok(!js.includes('badgeFamilyLabel(item), 0'));
+  assert.ok(!js.includes('item.title.slice(0, 4)'));
+  assert.ok(miniPage.includes('drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair)'));
+  assert.ok(!miniPage.includes("ctx.fillText(item.mark || item.title.slice(0, 2)"));
+  assert.ok(!miniPage.includes("ctx.fillText(isRepair ? '解结' : '打卡'"));
   assert.ok(js.includes('初页旧签'));
   assert.ok(js.includes('两日并肩章'));
   assert.ok(js.includes('三日墨夹'));
@@ -289,11 +313,14 @@ test('browser preview renders resolved knots as dated sticky notes', () => {
   assert.ok(js.includes('function drawStickyNotePaper('));
   assert.ok(js.includes('function drawStickyTape('));
   assert.ok(js.includes('function resolvedNoteDate('));
-  assert.ok(js.includes('fillText(resolvedNoteDate(item)'));
+  assert.ok(js.includes('function drawHandwrittenResolvedDate('));
+  assert.ok(js.includes('drawHandwrittenResolvedDate(item, note.seed)'));
+  assert.ok(js.includes('ctx.fillText(dateText,'));
   assert.ok(js.includes('item.resolvedAt || item.createdAt'));
   assert.ok(!js.includes('drawReleasedKnotTrace'));
   assert.ok(!js.includes('drawLooseFiberMemory'));
   assert.ok(miniPage.includes('this.drawResolvedStickyNote(ctx, item, y, index)'));
+  assert.ok(miniPage.includes('this.drawHandwrittenResolvedDate(ctx, item, note.seed)'));
   assert.ok(miniPage.includes('drawStickyNotePaper(ctx,'));
   assert.ok(miniPage.includes('drawStickyTape(ctx,'));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
@@ -348,4 +375,12 @@ test('browser preview uses single-user direct resolve wording and data', () => {
   assert.ok(js.includes('event.resolutionLine = line'));
   assert.ok(!js.includes('想解'));
   assert.ok(!js.includes('对方想把这个结解开'));
+});
+
+test('browser preview labels knot and resolved dates in detail cards', () => {
+  assert.ok(js.includes('`结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`'));
+  assert.ok(js.includes('`结下 ${formatDate(event.createdAt)}`'));
+  assert.ok(js.includes('detailMeta.textContent = `${formatDate(badge.createdAt)} 夹上 · 印章`;'));
+  assert.ok(js.includes("badge.subtitle || '这是绳子自动记住的一枚印章。'"));
+  assert.ok(miniPage.includes('`结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`'));
 });

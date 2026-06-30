@@ -313,7 +313,9 @@ Page({
 
     return {
       title: isResolved ? '一个淡淡的印记' : '一个还没解开的结',
-      meta: [formatDate(event.createdAt), dustText].filter(Boolean).join(' · '),
+      meta: isResolved && event.resolvedAt
+        ? `结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`
+        : [`结下 ${formatDate(event.createdAt)}`, dustText].filter(Boolean).join(' · '),
       content: event.content,
       isResolved,
       hasRequest: Boolean(request),
@@ -698,14 +700,25 @@ Page({
     ctx.translate(note.x, note.y);
     ctx.rotate(note.side * (0.045 + noise(note.seed + 4) * 0.035));
     this.drawStickyNotePaper(ctx, 58, 38, note.seed);
-    ctx.fillStyle = 'rgba(69, 46, 28, 0.78)';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.resolvedNoteDate(item), 0, -3);
+    this.drawHandwrittenResolvedDate(ctx, item, note.seed);
     ctx.font = 'bold 8px sans-serif';
     ctx.fillStyle = 'rgba(91, 64, 39, 0.52)';
     ctx.fillText('解开', 0, 12);
+    ctx.restore();
+  },
+
+  drawHandwrittenResolvedDate(ctx, item, seed) {
+    const dateText = this.resolvedNoteDate(item);
+    ctx.save();
+    ctx.rotate((noise(seed + 26) - 0.5) * 0.045);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 14px cursive';
+    ctx.fillStyle = 'rgba(52, 34, 23, 0.82)';
+    ctx.fillText(dateText, -0.35, -4.15);
+    ctx.fillStyle = 'rgba(96, 58, 32, 0.5)';
+    ctx.fillText(dateText, 0.55, -3.45);
+    this.drawHandLine(ctx, -19, 4.2, 19, 3.1 + (noise(seed + 33) - 0.5) * 1.2, 'rgba(95, 58, 34, 0.42)', 0.72, seed + 41);
     ctx.restore();
   },
 
@@ -835,13 +848,112 @@ Page({
       this.drawHandLine(ctx, x - width * 0.28, y + 11, x + width * 0.28, y + 8, colors[2], 0.62, seed + 33);
     }
 
-    ctx.fillStyle = colors[1];
-    ctx.font = 'bold 13px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(item.mark || item.title.slice(0, 2), x, y - 5, 44);
-    ctx.font = '9px sans-serif';
-    ctx.fillText(isRepair ? '解结' : '打卡', x, y + 12, 40);
+    this.drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair);
+    ctx.restore();
+  },
+
+  drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair) {
+    const source = `${item.id}:${item.title}:${item.family}`;
+    let motifHash = 0;
+    for (let i = 0; i < source.length; i += 1) {
+      motifHash = (motifHash * 33 + source.charCodeAt(i)) >>> 0;
+    }
+    const motif = motifHash % 6;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = colors[1];
+    ctx.fillStyle = colors[2];
+    ctx.globalAlpha = isRepair ? 0.76 : 0.68;
+
+    if (isRepair && motif % 3 === 0) {
+      ctx.beginPath();
+      ctx.moveTo(x, y + 12);
+      ctx.bezierCurveTo(x - 22, y - 3, x - 11, y - 23, x, y - 9);
+      ctx.bezierCurveTo(x + 11, y - 23, x + 22, y - 3, x, y + 12);
+      ctx.fill();
+      ctx.stroke();
+      this.drawHandLine(ctx, x - 14, y + 10, x + 14, y - 10, colors[1], 0.82, seed + 82);
+    } else if (isRepair && motif % 3 === 1) {
+      for (let i = -2; i <= 2; i += 1) {
+        this.drawHandLine(ctx, x - 17, y + i * 5, x + 17, y + i * 5 + (noise(seed + i * 7) - 0.5) * 2, colors[2], 0.82, seed + i + 86);
+        this.drawHandLine(ctx, x + i * 7, y - 14, x + i * 7 + 3, y - 5, colors[1], 0.72, seed + i + 92);
+      }
+      ctx.beginPath();
+      ctx.ellipse(x, y, 13, 9, -0.16, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (isRepair) {
+      for (let i = 0; i < 5; i += 1) {
+        const angle = (Math.PI * 2 * i) / 5 + noise(seed + i) * 0.12;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.ellipse(0, -13, 5.8, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(x, y, 5.4, 0, Math.PI * 2);
+      ctx.fillStyle = colors[1];
+      ctx.fill();
+    } else if (motif === 0) {
+      ctx.beginPath();
+      for (let i = 0; i < 10; i += 1) {
+        const radius = i % 2 === 0 ? 17 : 7;
+        const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 10;
+        const px = x + Math.cos(angle) * radius;
+        const py = y + Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (motif === 1) {
+      this.drawHandLine(ctx, x - 20, y + 8, x + 20, y - 8, colors[1], 0.95, seed + 101);
+      [-10, 0, 10].forEach((offset, index) => {
+        ctx.beginPath();
+        ctx.ellipse(x + offset - 2, y - offset * 0.28, 6, 11, -0.72, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        this.drawHandLine(ctx, x + offset - 6, y - offset * 0.28, x + offset + 3, y - offset * 0.28 - 7, colors[2], 0.55, seed + index + 109);
+      });
+    } else if (motif === 2) {
+      ctx.beginPath();
+      ctx.arc(x, y, 17, 0.35 * Math.PI, 1.68 * Math.PI);
+      ctx.arc(x + 7, y - 1, 13, 1.66 * Math.PI, 0.38 * Math.PI, true);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      this.drawHandLine(ctx, x - 10, y + 13, x + 14, y - 14, colors[2], 0.72, seed + 119);
+    } else {
+      for (let i = 0; i < 8; i += 1) {
+        const angle = (Math.PI * 2 * i) / 8;
+        this.drawHandLine(ctx, x, y, x + Math.cos(angle) * 19, y + Math.sin(angle) * 13, colors[1], 0.75, seed + i + 127);
+      }
+      ctx.beginPath();
+      ctx.ellipse(x, y, 9, 7, -0.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(64, 42, 25, 0.14)';
+    for (let i = 0; i < 5; i += 1) {
+      ctx.beginPath();
+      ctx.ellipse(
+        x - 13 + noise(seed + i + 163) * 26,
+        y - 12 + noise(seed + i + 173) * 24,
+        1.2 + noise(seed + i + 181) * 1.8,
+        0.8 + noise(seed + i + 191) * 1.5,
+        noise(seed + i + 199) * Math.PI,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
     ctx.restore();
   },
 
