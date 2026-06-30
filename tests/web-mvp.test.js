@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'polish-notebook-medals-1';
+const assetVersion = 'seal-variety-1';
 
 function test(name, fn) {
   try {
@@ -246,7 +246,7 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('function drawCheckinBadgePlate('));
   assert.ok(js.includes('function drawRepairBadgeSeal('));
   assert.ok(js.includes('function drawBadgeMotif('));
-  assert.ok(js.includes('drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair)'));
+  assert.ok(js.includes('drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair, visual.motif)'));
   assert.ok(js.includes("item.family === 'repair'"));
   assert.ok(js.includes('badgeFamilyLabel(item)'));
   assert.ok(js.includes('const badgeY = y + 46'));
@@ -254,7 +254,7 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(!js.includes('ctx.fillText(item.mark'));
   assert.ok(!js.includes('badgeFamilyLabel(item), 0'));
   assert.ok(!js.includes('item.title.slice(0, 4)'));
-  assert.ok(miniPage.includes('drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair)'));
+  assert.ok(miniPage.includes('drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair, visual.motif)'));
   assert.ok(!miniPage.includes("ctx.fillText(item.mark || item.title.slice(0, 2)"));
   assert.ok(!miniPage.includes("ctx.fillText(isRepair ? '解结' : '打卡'"));
   assert.ok(js.includes('初页旧签'));
@@ -267,7 +267,7 @@ test('browser preview adds aged reward badges hanging from the rope', () => {
   assert.ok(js.includes('百日旧徽'));
   assert.ok(js.includes('一日平安签'));
   assert.ok(js.includes('平安旧夹'));
-  assert.ok(js.includes('drawRewardBadge(item, screenY, index)'));
+  assert.ok(js.includes('drawRewardBadge(item, screenY, index, badgeVariants.get(item.id))'));
   assert.ok(badgeMechanismDoc.includes('# 绳话勋章系统机制'));
   assert.ok(badgeMechanismDoc.includes('打卡型'));
   assert.ok(badgeMechanismDoc.includes('解结型'));
@@ -291,6 +291,40 @@ test('browser preview keeps knots, marks, and badges in chronological rope order
   assert.ok(!js.includes('cursor += 176'));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
+});
+
+test('browser preview diversifies visible reward seals by color, motif, and hanger ink', () => {
+  assert.ok(js.includes('const BADGE_TONES = ['));
+  assert.ok(js.includes("'indigo'"));
+  assert.ok(js.includes("'rose'"));
+  assert.ok(js.includes("'verdigris'"));
+  assert.ok(js.includes("'plum'"));
+  assert.ok(js.includes("'ochre'"));
+  assert.ok(js.includes("'lapis'"));
+  assert.ok(js.includes('const BADGE_MOTIFS = ['));
+  assert.ok(js.includes("'pinwheel'"));
+  assert.ok(js.includes("'knotLoop'"));
+  assert.ok(js.includes("'stitchedOval'"));
+  assert.ok(js.includes("'seedCluster'"));
+  assert.ok(js.includes('function assignVisibleBadgeVariants('));
+  assert.ok(js.includes('function pickUnusedBadgeOption('));
+  assert.ok(js.includes('const usedTones = new Set()'));
+  assert.ok(js.includes('const usedMotifs = new Set()'));
+  assert.ok(js.includes('usedTones.has(variant.tone)'));
+  assert.ok(js.includes('usedMotifs.has(variant.motif)'));
+  assert.ok(js.includes('const badgeVariants = assignVisibleBadgeVariants(layoutItems, scrollY, height)'));
+  assert.ok(js.includes('const palette = badgePalette(visual.tone)'));
+  assert.ok(js.includes('ctx.strokeStyle = palette.cord'));
+  assert.ok(js.includes('ctx.strokeStyle = palette.cordHighlight'));
+  assert.ok(js.includes('ctx.strokeStyle = palette.ringShadow'));
+  assert.ok(!js.includes("ctx.strokeStyle = 'rgba(67, 45, 28, 0.42)'"));
+  assert.ok(!js.includes("ctx.strokeStyle = 'rgba(224, 196, 143, 0.44)'"));
+  assert.ok(miniPage.includes('buildVisibleOrnamentVisuals(items, height)'));
+  assert.ok(miniPage.includes('const BADGE_TONES'));
+  assert.ok(miniPage.includes('const BADGE_MOTIFS'));
+  assert.ok(miniPage.includes('drawOrnament(ctx, item, index, screenY, ornamentVisuals[item.id])'));
+  assert.ok(miniPage.includes('this.drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair, visual.motif)'));
+  assert.ok(miniPage.includes('colors.cord'));
 });
 
 test('browser preview opens at the latest rope entries instead of the top', () => {

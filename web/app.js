@@ -13,6 +13,42 @@ const HIGHLIGHT_INK = {
   tether: 'rgba(176, 37, 31, 0.38)',
   scratch: 'rgba(105, 25, 24, 0.28)',
 };
+const BADGE_TONES = [
+  'paper',
+  'brass',
+  'copper',
+  'wax',
+  'sage',
+  'ink',
+  'indigo',
+  'rose',
+  'verdigris',
+  'plum',
+  'ochre',
+  'lapis',
+  'clay',
+  'moss',
+  'wine',
+  'smoke',
+];
+const BADGE_MOTIFS = [
+  'star',
+  'leafSprig',
+  'crescent',
+  'sunburst',
+  'ticketShield',
+  'eyelet',
+  'pinwheel',
+  'knotLoop',
+  'stitchedOval',
+  'seedCluster',
+  'diamondFold',
+  'ribbonLoop',
+  'comet',
+  'windowFrame',
+  'scallopFlower',
+  'mendedLoop',
+];
 const REWARD_BADGE_NODES = [
   {
     id: 'days-1',
@@ -288,6 +324,15 @@ function daysBetween(start, end = Date.now()) {
   return Math.floor((endTime - startTime) / DAY_MS);
 }
 
+function hashText(value) {
+  let hash = 0;
+  const seed = String(value);
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 33 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
 function pickBadgeSubtitle(node, createdAt) {
   const options = node.subtitleOptions || (node.subtitle ? [node.subtitle] : []);
   if (!options.length) return '绳子自动记下的一枚印章。';
@@ -337,6 +382,67 @@ function layoutTimelineItems() {
   contentHeight = Math.max(height + 80, last ? last.y + 180 : height + 80);
   maxScrollY = Math.max(0, contentHeight - height + 48);
   scrollY = Math.max(0, Math.min(scrollY, maxScrollY));
+}
+
+function badgeBaseVariant(item, badgeOrdinal) {
+  const seed = hashText(`${item.id}:${item.createdAt}:${item.title}`);
+  const toneIndex = (seed + badgeOrdinal * 5) % BADGE_TONES.length;
+  const motifIndex = (seed + badgeOrdinal * 7) % BADGE_MOTIFS.length;
+  return {
+    tone: BADGE_TONES[toneIndex],
+    motif: BADGE_MOTIFS[motifIndex],
+    toneIndex,
+    motifIndex,
+  };
+}
+
+function pickUnusedBadgeOption(options, used, preferredIndex) {
+  for (let offset = 0; offset < options.length; offset += 1) {
+    const index = (preferredIndex + offset) % options.length;
+    const value = options[index];
+    if (!used.has(value)) return { value, index };
+  }
+  const index = preferredIndex % options.length;
+  return { value: options[index], index };
+}
+
+function assignVisibleBadgeVariants(items, scrollOffset, viewportHeight) {
+  const variants = new Map();
+  const visibleBadges = [];
+  let badgeOrdinal = 0;
+
+  items.forEach((item, index) => {
+    if (item.type !== 'badge') return;
+    const variant = badgeBaseVariant(item, badgeOrdinal);
+    variants.set(item.id, variant);
+    const screenY = item.y - scrollOffset;
+    if (screenY > -120 && screenY < viewportHeight + 120) {
+      visibleBadges.push({ item, index, badgeOrdinal, screenY });
+    }
+    badgeOrdinal += 1;
+  });
+
+  const usedTones = new Set();
+  const usedMotifs = new Set();
+  visibleBadges
+    .sort((a, b) => a.screenY - b.screenY || a.index - b.index)
+    .forEach(({ item, badgeOrdinal }, visibleIndex) => {
+      const variant = variants.get(item.id);
+      if (usedTones.has(variant.tone)) {
+        const picked = pickUnusedBadgeOption(BADGE_TONES, usedTones, variant.toneIndex + visibleIndex + badgeOrdinal + 1);
+        variant.tone = picked.value;
+        variant.toneIndex = picked.index;
+      }
+      if (usedMotifs.has(variant.motif)) {
+        const picked = pickUnusedBadgeOption(BADGE_MOTIFS, usedMotifs, variant.motifIndex + visibleIndex + badgeOrdinal + 1);
+        variant.motif = picked.value;
+        variant.motifIndex = picked.index;
+      }
+      usedTones.add(variant.tone);
+      usedMotifs.add(variant.motif);
+    });
+
+  return variants;
 }
 
 function computeRewardBadges(sourceState) {
@@ -412,11 +518,12 @@ function render() {
   }
   drawPaper();
   drawRope();
+  const badgeVariants = assignVisibleBadgeVariants(layoutItems, scrollY, height);
   layoutItems.forEach((item, index) => {
     const screenY = item.y - scrollY;
     if (screenY < -120 || screenY > height + 120) return;
     if (item.id === selectedTimelineId && isRecordTimelineOpen()) drawTimelineHighlight(item, screenY, index);
-    if (item.type === 'badge') drawRewardBadge(item, screenY, index);
+    if (item.type === 'badge') drawRewardBadge(item, screenY, index, badgeVariants.get(item.id));
     else if (item.status === 'resolved') drawMark(item, screenY, index);
     else drawKnot(item, screenY, index);
   });
@@ -978,13 +1085,14 @@ function drawTimelineHighlight(item, y, index) {
   ctx.restore();
 }
 
-function drawRewardBadge(item, y, index) {
+function drawRewardBadge(item, y, index, variant) {
   const side = itemSide(index + 1);
   const seed = toTime(item.createdAt) / 100000;
   const badgeX = ropeX + side * (48 + noise(seed + 5) * 10);
   const badgeY = y + 46;
   const tilt = side * (0.05 + noise(seed + 8) * 0.045);
-  const palette = badgePalette(item.tone);
+  const visual = variant || badgeBaseVariant(item, index);
+  const palette = badgePalette(visual.tone);
   const isRepair = item.family === 'repair';
 
   drawBadgeHanger(ropeX, y, badgeX, badgeY, side, seed, palette);
@@ -998,7 +1106,7 @@ function drawRewardBadge(item, y, index) {
   if (isRepair) drawRepairBadgeSeal(widthTag, heightTag, palette, seed);
   else drawCheckinBadgePlate(widthTag, heightTag, palette, seed);
 
-  drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair);
+  drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair, visual.motif);
   drawBadgeAging(widthTag, heightTag, seed, palette);
   ctx.restore();
 }
@@ -1015,7 +1123,7 @@ function drawBadgeHanger(anchorX, anchorY, badgeX, badgeY, side, seed, palette) 
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.strokeStyle = 'rgba(67, 45, 28, 0.42)';
+  ctx.strokeStyle = palette.cord;
   ctx.lineWidth = 2.1;
   ctx.beginPath();
   ctx.moveTo(anchorX + side * 2, ringY + 7);
@@ -1029,7 +1137,7 @@ function drawBadgeHanger(anchorX, anchorY, badgeX, badgeY, side, seed, palette) 
   );
   ctx.stroke();
 
-  ctx.strokeStyle = 'rgba(224, 196, 143, 0.44)';
+  ctx.strokeStyle = palette.cordHighlight;
   ctx.lineWidth = 0.9;
   ctx.beginPath();
   ctx.moveTo(anchorX - side * 3, ringY + 8);
@@ -1063,6 +1171,9 @@ function badgePalette(tone) {
       ink: '#4b3420',
       fadedInk: 'rgba(75, 52, 32, 0.72)',
       oxide: 'rgba(112, 82, 47, 0.16)',
+      cord: 'rgba(119, 86, 51, 0.48)',
+      cordHighlight: 'rgba(245, 219, 174, 0.42)',
+      ringShadow: 'rgba(86, 57, 30, 0.26)',
     },
     brass: {
       fill: '#b98d45',
@@ -1072,6 +1183,9 @@ function badgePalette(tone) {
       ink: '#4a321c',
       fadedInk: 'rgba(74, 50, 28, 0.72)',
       oxide: 'rgba(61, 91, 72, 0.2)',
+      cord: 'rgba(136, 96, 37, 0.5)',
+      cordHighlight: 'rgba(249, 220, 136, 0.4)',
+      ringShadow: 'rgba(93, 62, 18, 0.3)',
     },
     copper: {
       fill: '#a96742',
@@ -1081,6 +1195,9 @@ function badgePalette(tone) {
       ink: '#3b2418',
       fadedInk: 'rgba(59, 36, 24, 0.74)',
       oxide: 'rgba(63, 111, 97, 0.22)',
+      cord: 'rgba(126, 68, 42, 0.5)',
+      cordHighlight: 'rgba(240, 169, 111, 0.38)',
+      ringShadow: 'rgba(82, 40, 24, 0.31)',
     },
     wax: {
       fill: '#9d4f46',
@@ -1090,6 +1207,9 @@ function badgePalette(tone) {
       ink: '#f4e0bf',
       fadedInk: 'rgba(246, 224, 191, 0.72)',
       oxide: 'rgba(62, 44, 33, 0.18)',
+      cord: 'rgba(111, 45, 44, 0.5)',
+      cordHighlight: 'rgba(246, 176, 156, 0.34)',
+      ringShadow: 'rgba(73, 24, 25, 0.32)',
     },
     sage: {
       fill: '#9a9b76',
@@ -1099,6 +1219,9 @@ function badgePalette(tone) {
       ink: '#3f3e2a',
       fadedInk: 'rgba(63, 62, 42, 0.7)',
       oxide: 'rgba(80, 109, 89, 0.2)',
+      cord: 'rgba(83, 91, 63, 0.5)',
+      cordHighlight: 'rgba(224, 223, 166, 0.34)',
+      ringShadow: 'rgba(48, 56, 38, 0.3)',
     },
     ink: {
       fill: '#6b6258',
@@ -1108,6 +1231,129 @@ function badgePalette(tone) {
       ink: '#efe0bd',
       fadedInk: 'rgba(239, 224, 189, 0.72)',
       oxide: 'rgba(77, 101, 88, 0.18)',
+      cord: 'rgba(57, 51, 46, 0.52)',
+      cordHighlight: 'rgba(203, 191, 174, 0.32)',
+      ringShadow: 'rgba(34, 29, 26, 0.36)',
+    },
+    indigo: {
+      fill: '#68728f',
+      edge: '#343d5e',
+      shadow: 'rgba(38, 44, 71, 0.3)',
+      highlight: 'rgba(191, 201, 231, 0.3)',
+      ink: '#f1e5c7',
+      fadedInk: 'rgba(239, 229, 199, 0.68)',
+      oxide: 'rgba(55, 74, 92, 0.2)',
+      cord: 'rgba(54, 63, 97, 0.5)',
+      cordHighlight: 'rgba(191, 203, 232, 0.32)',
+      ringShadow: 'rgba(32, 39, 66, 0.34)',
+    },
+    rose: {
+      fill: '#b87972',
+      edge: '#74413f',
+      shadow: 'rgba(83, 42, 39, 0.28)',
+      highlight: 'rgba(245, 194, 182, 0.32)',
+      ink: '#4c2c2b',
+      fadedInk: 'rgba(76, 44, 43, 0.68)',
+      oxide: 'rgba(104, 69, 54, 0.18)',
+      cord: 'rgba(129, 67, 64, 0.48)',
+      cordHighlight: 'rgba(247, 197, 185, 0.32)',
+      ringShadow: 'rgba(82, 42, 40, 0.3)',
+    },
+    verdigris: {
+      fill: '#6f9a8c',
+      edge: '#3b645c',
+      shadow: 'rgba(35, 73, 67, 0.28)',
+      highlight: 'rgba(187, 232, 211, 0.28)',
+      ink: '#283f39',
+      fadedInk: 'rgba(40, 63, 57, 0.7)',
+      oxide: 'rgba(86, 126, 108, 0.24)',
+      cord: 'rgba(54, 101, 91, 0.5)',
+      cordHighlight: 'rgba(188, 232, 212, 0.3)',
+      ringShadow: 'rgba(34, 72, 66, 0.32)',
+    },
+    plum: {
+      fill: '#80627a',
+      edge: '#4d344b',
+      shadow: 'rgba(57, 36, 56, 0.29)',
+      highlight: 'rgba(220, 189, 211, 0.3)',
+      ink: '#efe0c7',
+      fadedInk: 'rgba(239, 224, 199, 0.68)',
+      oxide: 'rgba(82, 61, 76, 0.2)',
+      cord: 'rgba(79, 51, 77, 0.5)',
+      cordHighlight: 'rgba(220, 190, 211, 0.3)',
+      ringShadow: 'rgba(52, 32, 51, 0.33)',
+    },
+    ochre: {
+      fill: '#c19a4c',
+      edge: '#755622',
+      shadow: 'rgba(78, 53, 18, 0.27)',
+      highlight: 'rgba(246, 221, 145, 0.36)',
+      ink: '#51370e',
+      fadedInk: 'rgba(81, 55, 14, 0.68)',
+      oxide: 'rgba(107, 86, 41, 0.18)',
+      cord: 'rgba(135, 94, 34, 0.5)',
+      cordHighlight: 'rgba(247, 222, 146, 0.36)',
+      ringShadow: 'rgba(81, 55, 19, 0.29)',
+    },
+    lapis: {
+      fill: '#596f93',
+      edge: '#30466b',
+      shadow: 'rgba(34, 48, 78, 0.3)',
+      highlight: 'rgba(182, 203, 233, 0.3)',
+      ink: '#ede0c1',
+      fadedInk: 'rgba(237, 224, 193, 0.7)',
+      oxide: 'rgba(54, 79, 108, 0.22)',
+      cord: 'rgba(49, 69, 103, 0.5)',
+      cordHighlight: 'rgba(184, 205, 234, 0.3)',
+      ringShadow: 'rgba(30, 42, 70, 0.34)',
+    },
+    clay: {
+      fill: '#b06f55',
+      edge: '#6d3f31',
+      shadow: 'rgba(70, 36, 27, 0.29)',
+      highlight: 'rgba(235, 179, 145, 0.32)',
+      ink: '#42281f',
+      fadedInk: 'rgba(66, 40, 31, 0.68)',
+      oxide: 'rgba(100, 63, 45, 0.2)',
+      cord: 'rgba(117, 60, 45, 0.5)',
+      cordHighlight: 'rgba(237, 181, 147, 0.32)',
+      ringShadow: 'rgba(72, 37, 27, 0.31)',
+    },
+    moss: {
+      fill: '#7f8759',
+      edge: '#4c552f',
+      shadow: 'rgba(44, 54, 27, 0.29)',
+      highlight: 'rgba(206, 218, 151, 0.31)',
+      ink: '#313820',
+      fadedInk: 'rgba(49, 56, 32, 0.68)',
+      oxide: 'rgba(77, 103, 74, 0.22)',
+      cord: 'rgba(72, 86, 43, 0.5)',
+      cordHighlight: 'rgba(208, 219, 153, 0.31)',
+      ringShadow: 'rgba(39, 49, 25, 0.32)',
+    },
+    wine: {
+      fill: '#8e4f59',
+      edge: '#5a2932',
+      shadow: 'rgba(66, 25, 33, 0.29)',
+      highlight: 'rgba(232, 161, 172, 0.31)',
+      ink: '#f1dfc1',
+      fadedInk: 'rgba(241, 223, 193, 0.68)',
+      oxide: 'rgba(82, 46, 52, 0.2)',
+      cord: 'rgba(96, 40, 50, 0.5)',
+      cordHighlight: 'rgba(233, 163, 174, 0.31)',
+      ringShadow: 'rgba(64, 24, 31, 0.33)',
+    },
+    smoke: {
+      fill: '#8b8172',
+      edge: '#554c41',
+      shadow: 'rgba(56, 48, 40, 0.28)',
+      highlight: 'rgba(216, 203, 184, 0.31)',
+      ink: '#372f28',
+      fadedInk: 'rgba(55, 47, 40, 0.68)',
+      oxide: 'rgba(91, 82, 70, 0.18)',
+      cord: 'rgba(86, 76, 65, 0.5)',
+      cordHighlight: 'rgba(217, 204, 185, 0.31)',
+      ringShadow: 'rgba(48, 41, 35, 0.32)',
     },
   };
   return palettes[tone] || palettes.brass;
@@ -1206,14 +1452,8 @@ function drawRepairBadgeSeal(widthTag, heightTag, palette, seed) {
   ctx.restore();
 }
 
-function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
-  const source = `${item.id}:${item.title}:${item.family}`;
-  let motifHash = 0;
-  for (let i = 0; i < source.length; i += 1) {
-    motifHash = (motifHash * 33 + source.charCodeAt(i)) >>> 0;
-  }
-  const motif = motifHash % 6;
-
+function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair, motifName) {
+  const motif = motifName || BADGE_MOTIFS[hashText(`${item.id}:${item.title}:${item.family}`) % BADGE_MOTIFS.length];
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
@@ -1221,46 +1461,7 @@ function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
   ctx.fillStyle = palette.highlight;
   ctx.globalAlpha = isRepair ? 0.76 : 0.68;
 
-  if (isRepair) {
-    if (motif % 3 === 0) {
-      ctx.beginPath();
-      ctx.moveTo(0, 13);
-      ctx.bezierCurveTo(-24, -4, -12, -24, 0, -10);
-      ctx.bezierCurveTo(12, -24, 24, -4, 0, 13);
-      ctx.fill();
-      ctx.strokeStyle = palette.edge;
-      ctx.lineWidth = 1.15;
-      ctx.stroke();
-      drawHandLine(-14, 10, 14, -10, palette.ink, 0.82, seed + 82);
-    } else if (motif % 3 === 1) {
-      ctx.lineWidth = 1.1;
-      for (let i = -2; i <= 2; i += 1) {
-        drawHandLine(-17, i * 5, 17, i * 5 + (noise(seed + i * 7) - 0.5) * 2, palette.highlight, 0.82, seed + i + 86);
-        drawHandLine(i * 7, -14, i * 7 + 3, -5, palette.ink, 0.72, seed + i + 92);
-      }
-      ctx.beginPath();
-      ctx.ellipse(0, 0, widthTag * 0.22, heightTag * 0.16, -0.16, 0, Math.PI * 2);
-      ctx.strokeStyle = palette.edge;
-      ctx.stroke();
-    } else {
-      for (let i = 0; i < 5; i += 1) {
-        const angle = (Math.PI * 2 * i) / 5 + noise(seed + i) * 0.12;
-        ctx.save();
-        ctx.rotate(angle);
-        ctx.beginPath();
-        ctx.ellipse(0, -13, 5.8, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = palette.edge;
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-        ctx.restore();
-      }
-      ctx.beginPath();
-      ctx.arc(0, 0, 5.4, 0, Math.PI * 2);
-      ctx.fillStyle = palette.ink;
-      ctx.fill();
-    }
-  } else if (motif === 0) {
+  if (motif === 'star') {
     ctx.beginPath();
     for (let i = 0; i < 10; i += 1) {
       const radius = i % 2 === 0 ? 17 : 7;
@@ -1275,7 +1476,7 @@ function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
     ctx.strokeStyle = palette.edge;
     ctx.lineWidth = 0.95;
     ctx.stroke();
-  } else if (motif === 1) {
+  } else if (motif === 'leafSprig') {
     ctx.lineWidth = 1.1;
     drawHandLine(-20, 8, 20, -8, palette.ink, 0.95, seed + 101);
     [-10, 0, 10].forEach((offset, index) => {
@@ -1286,7 +1487,7 @@ function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
       ctx.stroke();
       drawHandLine(offset - 6, -offset * 0.28, offset + 3, -offset * 0.28 - 7, palette.highlight, 0.55, seed + index + 109);
     });
-  } else if (motif === 2) {
+  } else if (motif === 'crescent') {
     ctx.beginPath();
     ctx.arc(0, 0, 17, 0.35 * Math.PI, 1.68 * Math.PI);
     ctx.arc(7, -1, 13, 1.66 * Math.PI, 0.38 * Math.PI, true);
@@ -1296,7 +1497,7 @@ function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
     ctx.lineWidth = 1;
     ctx.stroke();
     drawHandLine(-10, 13, 14, -14, palette.highlight, 0.72, seed + 119);
-  } else if (motif === 3) {
+  } else if (motif === 'sunburst') {
     for (let i = 0; i < 8; i += 1) {
       const angle = (Math.PI * 2 * i) / 8;
       drawHandLine(0, 0, Math.cos(angle) * 19, Math.sin(angle) * 13, palette.ink, 0.75, seed + i + 127);
@@ -1304,7 +1505,7 @@ function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
     ctx.beginPath();
     ctx.ellipse(0, 0, 9, 7, -0.2, 0, Math.PI * 2);
     ctx.fill();
-  } else if (motif === 4) {
+  } else if (motif === 'ticketShield') {
     ctx.beginPath();
     ctx.moveTo(-18, -8);
     ctx.lineTo(0, -17);
@@ -1318,7 +1519,7 @@ function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
     ctx.lineWidth = 0.95;
     ctx.stroke();
     drawHandLine(-13, -6, 12, -5, palette.highlight, 0.7, seed + 137);
-  } else {
+  } else if (motif === 'eyelet') {
     ctx.beginPath();
     ctx.ellipse(0, 0, 19, 12, -0.12, 0, Math.PI * 2);
     ctx.strokeStyle = palette.ink;
@@ -1330,6 +1531,123 @@ function drawBadgeMotif(item, widthTag, heightTag, palette, seed, isRepair) {
     for (let i = -1; i <= 1; i += 1) {
       drawHandLine(-16, i * 6, 16, i * 5 + (noise(seed + i + 149) - 0.5) * 2, palette.highlight, 0.55, seed + i + 151);
     }
+  } else if (motif === 'pinwheel') {
+    for (let i = 0; i < 4; i += 1) {
+      ctx.save();
+      ctx.rotate((Math.PI / 2) * i + (noise(seed + i + 201) - 0.5) * 0.08);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(16, -4, 18, -17);
+      ctx.quadraticCurveTo(5, -13, 0, 0);
+      ctx.fill();
+      ctx.strokeStyle = palette.edge;
+      ctx.lineWidth = 0.85;
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, 4.8, 0, Math.PI * 2);
+    ctx.fillStyle = palette.ink;
+    ctx.fill();
+  } else if (motif === 'knotLoop') {
+    ctx.strokeStyle = palette.ink;
+    ctx.lineWidth = 2.1;
+    ctx.beginPath();
+    ctx.ellipse(-7, 0, 13, 8, -0.62, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(8, 0, 13, 8, 0.62, 0, Math.PI * 2);
+    ctx.stroke();
+    drawHandLine(-18, 0, 18, 0, palette.highlight, 0.85, seed + 221);
+  } else if (motif === 'stitchedOval') {
+    ctx.strokeStyle = palette.ink;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 20, 13, -0.1, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 9; i += 1) {
+      const angle = (Math.PI * 2 * i) / 9;
+      const x = Math.cos(angle) * 20;
+      const y = Math.sin(angle) * 13;
+      drawHandLine(x - 2.4, y - 2.4, x + 2.4, y + 2.4, palette.highlight, 0.75, seed + i + 231);
+    }
+  } else if (motif === 'seedCluster') {
+    for (let i = 0; i < 9; i += 1) {
+      const x = -13 + (i % 3) * 13 + (noise(seed + i + 241) - 0.5) * 2;
+      const y = -8 + Math.floor(i / 3) * 8 + (noise(seed + i + 251) - 0.5) * 2;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 3.8, 2.4, noise(seed + i + 261) * Math.PI, 0, Math.PI * 2);
+      ctx.fillStyle = i % 2 ? palette.highlight : palette.ink;
+      ctx.fill();
+    }
+  } else if (motif === 'diamondFold') {
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(18, 0);
+    ctx.lineTo(0, 18);
+    ctx.lineTo(-18, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = palette.edge;
+    ctx.lineWidth = 0.95;
+    ctx.stroke();
+    drawHandLine(0, -17, 0, 17, palette.ink, 0.7, seed + 271);
+    drawHandLine(-17, 0, 17, 0, palette.highlight, 0.7, seed + 277);
+  } else if (motif === 'ribbonLoop') {
+    ctx.beginPath();
+    ctx.ellipse(-9, -2, 11, 8, -0.28, 0, Math.PI * 2);
+    ctx.ellipse(10, -2, 11, 8, 0.28, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = palette.edge;
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+    drawHandLine(-4, 7, -10, 18, palette.ink, 0.85, seed + 281);
+    drawHandLine(5, 7, 12, 18, palette.highlight, 0.85, seed + 287);
+  } else if (motif === 'comet') {
+    ctx.beginPath();
+    ctx.arc(-7, -1, 8.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = palette.edge;
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+    for (let i = 0; i < 4; i += 1) {
+      drawHandLine(2, -8 + i * 5, 22, -14 + i * 7, i % 2 ? palette.highlight : palette.ink, 0.75, seed + i + 291);
+    }
+  } else if (motif === 'windowFrame') {
+    ctx.strokeStyle = palette.ink;
+    ctx.lineWidth = 1.35;
+    ctx.strokeRect(-17, -13, 34, 26);
+    drawHandLine(0, -13, 0, 13, palette.highlight, 0.85, seed + 301);
+    drawHandLine(-17, 0, 17, 0, palette.highlight, 0.85, seed + 307);
+    ctx.fillStyle = palette.oxide;
+    ctx.fillRect(-13, -9, 8, 6);
+    ctx.fillRect(5, 3, 8, 6);
+  } else if (motif === 'scallopFlower') {
+    for (let i = 0; i < 6; i += 1) {
+      ctx.save();
+      ctx.rotate((Math.PI * 2 * i) / 6);
+      ctx.beginPath();
+      ctx.ellipse(0, -12, 5.8, 10.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = palette.edge;
+      ctx.lineWidth = 0.75;
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, 4.8, 0, Math.PI * 2);
+    ctx.fillStyle = palette.ink;
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(0, 13);
+    ctx.bezierCurveTo(-24, -4, -12, -24, 0, -10);
+    ctx.bezierCurveTo(12, -24, 24, -4, 0, 13);
+    ctx.fill();
+    ctx.strokeStyle = palette.edge;
+    ctx.lineWidth = 1.15;
+    ctx.stroke();
+    drawHandLine(-14, 10, 14, -10, palette.ink, 0.82, seed + 317);
   }
 
   ctx.globalAlpha = 1;
@@ -1355,7 +1673,7 @@ function drawBadgeRing(x, y, side, seed, palette) {
   ctx.translate(x, y);
   ctx.rotate(side * 0.12);
 
-  ctx.strokeStyle = 'rgba(69, 47, 28, 0.3)';
+  ctx.strokeStyle = palette.ringShadow;
   ctx.lineWidth = 8.6;
   ctx.beginPath();
   ctx.ellipse(0, 0, 16, 11, side * 0.1, 0, Math.PI * 2);

@@ -13,6 +13,42 @@ const ROPE_LIGHT = 'rgba(248, 235, 205, 0.58)';
 const ROPE_EDGE = '#b89a72';
 const INK = '#342d27';
 const PAPER = '#f5eedf';
+const BADGE_TONES = [
+  'paper',
+  'brass',
+  'copper',
+  'wax',
+  'sage',
+  'ink',
+  'indigo',
+  'rose',
+  'verdigris',
+  'plum',
+  'ochre',
+  'lapis',
+  'clay',
+  'moss',
+  'wine',
+  'smoke',
+];
+const BADGE_MOTIFS = [
+  'star',
+  'leafSprig',
+  'crescent',
+  'sunburst',
+  'ticketShield',
+  'eyelet',
+  'pinwheel',
+  'knotLoop',
+  'stitchedOval',
+  'seedCluster',
+  'diamondFold',
+  'ribbonLoop',
+  'comet',
+  'windowFrame',
+  'scallopFlower',
+  'mendedLoop',
+];
 
 function pointFromTouch(touch) {
   return {
@@ -24,6 +60,15 @@ function pointFromTouch(touch) {
 function noise(seed) {
   const value = Math.sin(seed * 12.9898) * 43758.5453;
   return value - Math.floor(value);
+}
+
+function hashText(value) {
+  let hash = 0;
+  const seed = String(value);
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 33 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash;
 }
 
 function formatDate(value) {
@@ -223,6 +268,67 @@ Page({
     return index % 2 === 0 ? -1 : 1;
   },
 
+  badgeBaseVariant(item, badgeOrdinal) {
+    const seed = hashText(`${item.id}:${item.createdAt}:${item.title}`);
+    const toneIndex = (seed + badgeOrdinal * 5) % BADGE_TONES.length;
+    const motifIndex = (seed + badgeOrdinal * 7) % BADGE_MOTIFS.length;
+    return {
+      tone: BADGE_TONES[toneIndex],
+      motif: BADGE_MOTIFS[motifIndex],
+      toneIndex,
+      motifIndex,
+    };
+  },
+
+  pickUnusedBadgeOption(options, used, preferredIndex) {
+    for (let offset = 0; offset < options.length; offset += 1) {
+      const index = (preferredIndex + offset) % options.length;
+      const value = options[index];
+      if (!used.has(value)) return { value, index };
+    }
+    const index = preferredIndex % options.length;
+    return { value: options[index], index };
+  },
+
+  buildVisibleOrnamentVisuals(items, height) {
+    const visuals = {};
+    const visibleOrnaments = [];
+    let ornamentOrdinal = 0;
+
+    items.forEach((item, index) => {
+      if (item.type !== 'ornament') return;
+      const visual = this.badgeBaseVariant(item, ornamentOrdinal);
+      visuals[item.id] = visual;
+      const screenY = item.y - this.scrollY;
+      if (screenY > -110 && screenY < height + 110) {
+        visibleOrnaments.push({ item, index, ornamentOrdinal, screenY });
+      }
+      ornamentOrdinal += 1;
+    });
+
+    const usedTones = new Set();
+    const usedMotifs = new Set();
+    visibleOrnaments
+      .sort((a, b) => a.screenY - b.screenY || a.index - b.index)
+      .forEach(({ item, ornamentOrdinal }, visibleIndex) => {
+        const visual = visuals[item.id];
+        if (usedTones.has(visual.tone)) {
+          const picked = this.pickUnusedBadgeOption(BADGE_TONES, usedTones, visual.toneIndex + visibleIndex + ornamentOrdinal + 1);
+          visual.tone = picked.value;
+          visual.toneIndex = picked.index;
+        }
+        if (usedMotifs.has(visual.motif)) {
+          const picked = this.pickUnusedBadgeOption(BADGE_MOTIFS, usedMotifs, visual.motifIndex + visibleIndex + ornamentOrdinal + 1);
+          visual.motif = picked.value;
+          visual.motifIndex = picked.index;
+        }
+        usedTones.add(visual.tone);
+        usedMotifs.add(visual.motif);
+      });
+
+    return visuals;
+  },
+
   closeNote() {
     this.setData({ showNote: false, noteText: '' });
   },
@@ -416,12 +522,13 @@ Page({
     ctx.clearRect(0, 0, width, height);
     this.drawPaper(ctx, width, height);
     this.drawRope(ctx, width, height);
+    const ornamentVisuals = this.buildVisibleOrnamentVisuals(items, height);
 
     items.forEach((item, index) => {
       const screenY = item.y - this.scrollY;
       if (screenY < -110 || screenY > height + 110) return;
       if (item.type === 'ornament') {
-        this.drawOrnament(ctx, item, index, screenY);
+        this.drawOrnament(ctx, item, index, screenY, ornamentVisuals[item.id]);
       } else if (item.status === 'resolved') {
         this.drawMark(ctx, item, screenY, index);
       } else {
@@ -773,25 +880,37 @@ Page({
     ctx.restore();
   },
 
-  drawOrnament(ctx, item, index, y) {
+  drawOrnament(ctx, item, index, y, visual) {
     const side = this.itemSide(index);
     const x = this.ropeX + side * 68;
     const seed = toTime(item.createdAt) / 100000;
+    visual = visual || this.badgeBaseVariant(item, index);
     const palettes = {
-      paper: ['#c2a879', '#7c603a', 'rgba(246, 226, 181, 0.44)'],
-      brass: ['#b98d45', '#70502a', 'rgba(245, 213, 139, 0.42)'],
-      copper: ['#a96742', '#633922', 'rgba(235, 169, 110, 0.38)'],
-      wax: ['#9d4f46', '#63302c', 'rgba(245, 173, 153, 0.34)'],
-      sage: ['#9a9b76', '#5c5d42', 'rgba(223, 222, 163, 0.34)'],
-      ink: ['#6b6258', '#38322d', 'rgba(197, 184, 166, 0.3)'],
+      paper: { fill: '#c2a879', edge: '#7c603a', highlight: 'rgba(246, 226, 181, 0.44)', cord: 'rgba(119, 86, 51, 0.48)', cordHighlight: 'rgba(245, 219, 174, 0.42)' },
+      brass: { fill: '#b98d45', edge: '#70502a', highlight: 'rgba(245, 213, 139, 0.42)', cord: 'rgba(136, 96, 37, 0.5)', cordHighlight: 'rgba(249, 220, 136, 0.4)' },
+      copper: { fill: '#a96742', edge: '#633922', highlight: 'rgba(235, 169, 110, 0.38)', cord: 'rgba(126, 68, 42, 0.5)', cordHighlight: 'rgba(240, 169, 111, 0.38)' },
+      wax: { fill: '#9d4f46', edge: '#63302c', highlight: 'rgba(245, 173, 153, 0.34)', cord: 'rgba(111, 45, 44, 0.5)', cordHighlight: 'rgba(246, 176, 156, 0.34)' },
+      sage: { fill: '#9a9b76', edge: '#5c5d42', highlight: 'rgba(223, 222, 163, 0.34)', cord: 'rgba(83, 91, 63, 0.5)', cordHighlight: 'rgba(224, 223, 166, 0.34)' },
+      ink: { fill: '#6b6258', edge: '#38322d', highlight: 'rgba(197, 184, 166, 0.3)', cord: 'rgba(57, 51, 46, 0.52)', cordHighlight: 'rgba(203, 191, 174, 0.32)' },
+      indigo: { fill: '#68728f', edge: '#343d5e', highlight: 'rgba(191, 201, 231, 0.3)', cord: 'rgba(54, 63, 97, 0.5)', cordHighlight: 'rgba(191, 203, 232, 0.32)' },
+      rose: { fill: '#b87972', edge: '#74413f', highlight: 'rgba(245, 194, 182, 0.32)', cord: 'rgba(129, 67, 64, 0.48)', cordHighlight: 'rgba(247, 197, 185, 0.32)' },
+      verdigris: { fill: '#6f9a8c', edge: '#3b645c', highlight: 'rgba(187, 232, 211, 0.28)', cord: 'rgba(54, 101, 91, 0.5)', cordHighlight: 'rgba(188, 232, 212, 0.3)' },
+      plum: { fill: '#80627a', edge: '#4d344b', highlight: 'rgba(220, 189, 211, 0.3)', cord: 'rgba(79, 51, 77, 0.5)', cordHighlight: 'rgba(220, 190, 211, 0.3)' },
+      ochre: { fill: '#c19a4c', edge: '#755622', highlight: 'rgba(246, 221, 145, 0.36)', cord: 'rgba(135, 94, 34, 0.5)', cordHighlight: 'rgba(247, 222, 146, 0.36)' },
+      lapis: { fill: '#596f93', edge: '#30466b', highlight: 'rgba(182, 203, 233, 0.3)', cord: 'rgba(49, 69, 103, 0.5)', cordHighlight: 'rgba(184, 205, 234, 0.3)' },
+      clay: { fill: '#b06f55', edge: '#6d3f31', highlight: 'rgba(235, 179, 145, 0.32)', cord: 'rgba(117, 60, 45, 0.5)', cordHighlight: 'rgba(237, 181, 147, 0.32)' },
+      moss: { fill: '#7f8759', edge: '#4c552f', highlight: 'rgba(206, 218, 151, 0.31)', cord: 'rgba(72, 86, 43, 0.5)', cordHighlight: 'rgba(208, 219, 153, 0.31)' },
+      wine: { fill: '#8e4f59', edge: '#5a2932', highlight: 'rgba(232, 161, 172, 0.31)', cord: 'rgba(96, 40, 50, 0.5)', cordHighlight: 'rgba(233, 163, 174, 0.31)' },
+      smoke: { fill: '#8b8172', edge: '#554c41', highlight: 'rgba(216, 203, 184, 0.31)', cord: 'rgba(86, 76, 65, 0.5)', cordHighlight: 'rgba(217, 204, 185, 0.31)' },
     };
-    const colors = palettes[item.tone || 'paper'] || palettes.paper;
+    const colors = palettes[visual.tone || item.tone || 'paper'] || palettes.paper;
     const isRepair = item.family === 'repair';
 
-    this.drawHandLine(ctx, this.ropeX, y - 5, x, y - 22, 'rgba(82, 68, 51, 0.45)', 1.1, seed + 2);
+    this.drawHandLine(ctx, this.ropeX, y - 5, x, y - 22, colors.cord, 1.1, seed + 2);
+    this.drawHandLine(ctx, this.ropeX - side * 2, y - 3, x + side * 9, y - 20, colors.cordHighlight, 0.58, seed + 8);
     ctx.save();
-    ctx.fillStyle = colors[0];
-    ctx.strokeStyle = colors[1];
+    ctx.fillStyle = colors.fill;
+    ctx.strokeStyle = colors.edge;
     ctx.lineWidth = isRepair ? 2.2 : 1.9;
 
     if (isRepair) {
@@ -810,15 +929,15 @@ Page({
       ctx.globalAlpha = 0.78;
       ctx.stroke();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = colors[2];
+      ctx.strokeStyle = colors.highlight;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.ellipse(x - 1, y - 4, 15, 12, -0.18, 0, Math.PI * 2);
       ctx.stroke();
-      this.drawHandLine(ctx, x - 15, y + 12, x + 16, y - 11, colors[1], 0.85, seed + 41);
-      this.drawHandLine(ctx, x - 13, y - 11, x + 15, y + 10, colors[2], 0.65, seed + 47);
+      this.drawHandLine(ctx, x - 15, y + 12, x + 16, y - 11, colors.edge, 0.85, seed + 41);
+      this.drawHandLine(ctx, x - 13, y - 11, x + 15, y + 10, colors.highlight, 0.65, seed + 47);
     } else {
-      const width = item.mark && item.mark.length > 2 ? 58 : 50;
+      const width = 50;
       const height = 38;
       const points = [
         [x - width / 2 + 7, y - height / 2],
@@ -845,40 +964,36 @@ Page({
       ctx.beginPath();
       ctx.ellipse(x - width * 0.32, y - height * 0.2, 3.8, 3.1, -0.18, 0, Math.PI * 2);
       ctx.fill();
-      this.drawHandLine(ctx, x - width * 0.28, y + 11, x + width * 0.28, y + 8, colors[2], 0.62, seed + 33);
+      this.drawHandLine(ctx, x - width * 0.28, y + 11, x + width * 0.28, y + 8, colors.highlight, 0.62, seed + 33);
     }
 
-    this.drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair);
+    this.drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair, visual.motif);
     ctx.restore();
   },
 
-  drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair) {
-    const source = `${item.id}:${item.title}:${item.family}`;
-    let motifHash = 0;
-    for (let i = 0; i < source.length; i += 1) {
-      motifHash = (motifHash * 33 + source.charCodeAt(i)) >>> 0;
-    }
-    const motif = motifHash % 6;
+  drawOrnamentMotif(ctx, item, x, y, colors, seed, isRepair, motifName) {
+    const motif = motifName || BADGE_MOTIFS[hashText(`${item.id}:${item.title}:${item.family}`) % BADGE_MOTIFS.length];
+    const motifIndex = Math.max(0, BADGE_MOTIFS.indexOf(motif));
 
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = colors[1];
-    ctx.fillStyle = colors[2];
+    ctx.strokeStyle = colors.edge;
+    ctx.fillStyle = colors.highlight;
     ctx.globalAlpha = isRepair ? 0.76 : 0.68;
 
-    if (isRepair && motif % 3 === 0) {
+    if (isRepair && motifIndex % 3 === 0) {
       ctx.beginPath();
       ctx.moveTo(x, y + 12);
       ctx.bezierCurveTo(x - 22, y - 3, x - 11, y - 23, x, y - 9);
       ctx.bezierCurveTo(x + 11, y - 23, x + 22, y - 3, x, y + 12);
       ctx.fill();
       ctx.stroke();
-      this.drawHandLine(ctx, x - 14, y + 10, x + 14, y - 10, colors[1], 0.82, seed + 82);
-    } else if (isRepair && motif % 3 === 1) {
+      this.drawHandLine(ctx, x - 14, y + 10, x + 14, y - 10, colors.edge, 0.82, seed + 82);
+    } else if (isRepair && motifIndex % 3 === 1) {
       for (let i = -2; i <= 2; i += 1) {
-        this.drawHandLine(ctx, x - 17, y + i * 5, x + 17, y + i * 5 + (noise(seed + i * 7) - 0.5) * 2, colors[2], 0.82, seed + i + 86);
-        this.drawHandLine(ctx, x + i * 7, y - 14, x + i * 7 + 3, y - 5, colors[1], 0.72, seed + i + 92);
+        this.drawHandLine(ctx, x - 17, y + i * 5, x + 17, y + i * 5 + (noise(seed + i * 7) - 0.5) * 2, colors.highlight, 0.82, seed + i + 86);
+        this.drawHandLine(ctx, x + i * 7, y - 14, x + i * 7 + 3, y - 5, colors.edge, 0.72, seed + i + 92);
       }
       ctx.beginPath();
       ctx.ellipse(x, y, 13, 9, -0.16, 0, Math.PI * 2);
@@ -897,9 +1012,9 @@ Page({
       }
       ctx.beginPath();
       ctx.arc(x, y, 5.4, 0, Math.PI * 2);
-      ctx.fillStyle = colors[1];
+      ctx.fillStyle = colors.edge;
       ctx.fill();
-    } else if (motif === 0) {
+    } else if (motifIndex === 0) {
       ctx.beginPath();
       for (let i = 0; i < 10; i += 1) {
         const radius = i % 2 === 0 ? 17 : 7;
@@ -912,27 +1027,27 @@ Page({
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-    } else if (motif === 1) {
-      this.drawHandLine(ctx, x - 20, y + 8, x + 20, y - 8, colors[1], 0.95, seed + 101);
+    } else if (motifIndex === 1) {
+      this.drawHandLine(ctx, x - 20, y + 8, x + 20, y - 8, colors.edge, 0.95, seed + 101);
       [-10, 0, 10].forEach((offset, index) => {
         ctx.beginPath();
         ctx.ellipse(x + offset - 2, y - offset * 0.28, 6, 11, -0.72, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        this.drawHandLine(ctx, x + offset - 6, y - offset * 0.28, x + offset + 3, y - offset * 0.28 - 7, colors[2], 0.55, seed + index + 109);
+        this.drawHandLine(ctx, x + offset - 6, y - offset * 0.28, x + offset + 3, y - offset * 0.28 - 7, colors.highlight, 0.55, seed + index + 109);
       });
-    } else if (motif === 2) {
+    } else if (motifIndex === 2) {
       ctx.beginPath();
       ctx.arc(x, y, 17, 0.35 * Math.PI, 1.68 * Math.PI);
       ctx.arc(x + 7, y - 1, 13, 1.66 * Math.PI, 0.38 * Math.PI, true);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-      this.drawHandLine(ctx, x - 10, y + 13, x + 14, y - 14, colors[2], 0.72, seed + 119);
+      this.drawHandLine(ctx, x - 10, y + 13, x + 14, y - 14, colors.highlight, 0.72, seed + 119);
     } else {
       for (let i = 0; i < 8; i += 1) {
         const angle = (Math.PI * 2 * i) / 8;
-        this.drawHandLine(ctx, x, y, x + Math.cos(angle) * 19, y + Math.sin(angle) * 13, colors[1], 0.75, seed + i + 127);
+        this.drawHandLine(ctx, x, y, x + Math.cos(angle) * 19, y + Math.sin(angle) * 13, colors.edge, 0.75, seed + i + 127);
       }
       ctx.beginPath();
       ctx.ellipse(x, y, 9, 7, -0.2, 0, Math.PI * 2);
