@@ -241,10 +241,7 @@ Page({
       return;
     }
 
-    if (Math.abs(point.x - this.ropeX) <= 54) {
-      this.pendingAnchorY = Math.max(120, this.scrollY + point.y);
-      this.setData({ showNote: true, noteText: '' });
-    }
+    // Blank rope taps are intentionally inert; writing starts from the journal action.
   },
 
   findHitItem(x, y) {

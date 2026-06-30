@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'timeline-canvas-highlight-1';
+const assetVersion = 'no-rope-tap-write-1';
 
 function test(name, fn) {
   try {
@@ -83,6 +83,17 @@ test('browser preview keeps the home screen clean with a journal rope control', 
   assert.ok(!js.includes('eventList.addEventListener'));
   assert.ok(!js.includes('resetDemo'));
   assert.ok(!js.includes('statusText'));
+});
+
+test('browser preview only starts writing from the journal action, not blank rope taps', () => {
+  assert.ok(js.includes('function openWriteFromExchange()'));
+  assert.ok(js.includes('pendingAnchorY = nextVisibleAnchorY();'));
+  assert.ok(js.includes('writeKnotAction.addEventListener'));
+  assert.ok(js.includes('openNote();'));
+  assert.ok(!js.includes('if (Math.abs(point.x - ropeX) <= 54)'));
+  assert.ok(!js.includes('pendingAnchorY = Math.max(130, scrollY + point.y);'));
+  assert.ok(!miniPage.includes('if (Math.abs(point.x - this.ropeX) <= 54)'));
+  assert.ok(!miniPage.includes("this.setData({ showNote: true, noteText: '' });"));
 });
 
 test('browser preview adds a left settings drawer with confirmed reset', () => {

@@ -2096,10 +2096,7 @@ function handleTap(point) {
     return;
   }
 
-  if (Math.abs(point.x - ropeX) <= 54) {
-    pendingAnchorY = Math.max(130, scrollY + point.y);
-    openNote();
-  }
+  // Blank rope taps are intentionally inert; writing starts from the journal tray.
 }
 
 function openNote() {
