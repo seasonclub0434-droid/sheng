@@ -2084,6 +2084,10 @@ function canvasPoint(event) {
 function handleTap(point) {
   const hit = hitTest(point.x, point.y);
   if (hit) {
+    if (isRecordTimelineOpen()) {
+      focusTimelineEvent(hit.id);
+      return;
+    }
     if (hit.type === 'badge') {
       openBadgeDetail(hit);
       return;

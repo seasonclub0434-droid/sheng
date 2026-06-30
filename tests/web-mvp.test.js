@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'seal-variety-1';
+const assetVersion = 'timeline-canvas-highlight-1';
 
 function test(name, fn) {
   try {
@@ -197,6 +197,8 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes('let selectedTimelineId'));
   assert.ok(js.includes('function isRecordTimelineOpen('));
   assert.ok(js.includes("if (item.id === selectedTimelineId && isRecordTimelineOpen())"));
+  assert.ok(js.includes("if (isRecordTimelineOpen()) {\n      focusTimelineEvent(hit.id);\n      return;\n    }"));
+  assert.ok(js.indexOf('if (isRecordTimelineOpen())') < js.indexOf("if (hit.type === 'badge')"));
   assert.ok(js.includes('const isSelectedAgain = selectedTimelineId === id'));
   assert.ok(js.includes("selectedTimelineId = isSelectedAgain ? '' : id"));
   assert.ok(js.includes("if (!selectedTimelineId)"));
