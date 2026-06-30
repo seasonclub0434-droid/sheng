@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'no-rope-tap-write-1';
+const assetVersion = 'notebook-search-records-1';
 
 function test(name, fn) {
   try {
@@ -153,6 +153,16 @@ test('browser preview adds a notebook for reviewing resolved knots and badges', 
   assert.ok(css.includes('.notebook-entry'));
   assert.ok(css.includes('.notebook-title-row'));
   assert.ok(css.includes('.notebook-search'));
+});
+
+test('browser preview notebook search only returns written or resolved records', () => {
+  assert.ok(js.includes("if (query && item.type === 'badge') return false;"));
+  assert.ok(js.indexOf("if (query && item.type === 'badge') return false;") < js.indexOf('const haystack = ['));
+  assert.ok(js.includes('notebookTitle(item),'));
+  assert.ok(js.includes('notebookCopy(item),'));
+  assert.ok(js.includes("const items = notebookItems().filter((item) => notebookMatches(item, query));"));
+  assert.ok(html.includes(`styles.css?v=${assetVersion}`));
+  assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });
 
 test('browser preview keeps knot detail cards inside the phone frame', () => {

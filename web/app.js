@@ -1973,6 +1973,7 @@ function notebookCopy(item) {
 
 function notebookMatches(item, query) {
   if (!query) return true;
+  if (query && item.type === 'badge') return false;
   const haystack = [
     notebookKind(item),
     notebookTitle(item),
