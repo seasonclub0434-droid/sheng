@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-scene-paper-1';
+const assetVersion = 'pull-scene-solid-rope-1';
 
 function test(name, fn) {
   try {
@@ -209,6 +209,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-mode.home-pull-centering .cabinet-stack'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::before'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil-line-b'));
+  assert.ok(css.includes('drop-shadow(0 12px 13px rgba(55, 32, 13, 0.34))'));
+  assert.ok(css.includes('radial-gradient(ellipse at 18% 10%, rgba(238, 209, 151, 0.2), transparent 24%)'));
   assert.ok(css.includes('animation: focusWoodBackingFade'));
   assert.ok(css.includes('.home-mode.home-pull-centering .cabinet-slots'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile:not(.focus-rope-tile)'));
