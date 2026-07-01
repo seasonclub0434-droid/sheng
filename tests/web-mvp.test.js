@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'stable-cabinet-rows-1';
+const assetVersion = 'shelf-label-controls-1';
 
 function test(name, fn) {
   try {
@@ -177,13 +177,20 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-coil::before'));
   assert.ok(css.includes('.rope-coil::after'));
   assert.ok(css.includes('.rope-note'));
-  assert.ok(cssBlock('.rope-note').includes('bottom: -34px'));
+  assert.ok(cssBlock('.rope-note').includes('bottom: -25px'));
+  assert.ok(cssBlock('.rope-note').includes('rgba(229, 236, 205, 0.92)'));
   assert.ok(css.includes('.rope-name-input'));
   assert.ok(css.includes('.add-rope-action'));
   assert.ok(cssBlock('.add-rope-action').includes('position: absolute'));
   assert.ok(cssBlock('.add-rope-action').includes('bottom: 22px'));
   assert.ok(cssBlock('.add-rope-action').includes('width: 50px'));
+  assert.ok(cssBlock('.add-rope-action').includes('opacity: 0.84'));
   assert.ok(css.includes('.add-rope-plus'));
+  assert.ok(css.includes('.home-mode .settings-toggle'));
+  assert.ok(css.includes('left: calc(50% - 72px)'));
+  assert.ok(css.includes('.home-mode .home-search-toggle'));
+  assert.ok(css.includes('left: calc(50% + 72px)'));
+  assert.ok(css.includes('writing-mode: horizontal-tb'));
   assert.ok(css.includes('.phone.rope-mode .settings-toggle'));
   assert.ok(css.includes('.back-home-action::before'));
   assert.ok(css.includes('.global-search-dock'));
