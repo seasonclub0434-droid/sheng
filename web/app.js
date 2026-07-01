@@ -250,6 +250,8 @@ let shouldScrollToLatest = true;
 let shouldTimelineListScrollLatest = false;
 let activeKnotAnimation = null;
 let animationFrame = 0;
+let searchStabilizeFrame = 0;
+let searchHomeRestingX = 0;
 let lastStatsSignature = '';
 let lastTimelineSignature = '';
 let statsHideTimer = 0;
@@ -591,9 +593,39 @@ function updateFloatingDockBounds(rect = phone.getBoundingClientRect()) {
   const searchLeft = Math.round(rect.right - 12 - searchWidth);
   const searchTop = Math.round(rect.top + 112);
   const searchHeight = Math.max(260, Math.min(520, Math.round(rect.height - 230)));
-  phone.style.setProperty('--global-search-left', `${searchLeft}px`);
-  phone.style.setProperty('--global-search-top', `${searchTop}px`);
-  phone.style.setProperty('--global-search-height', `${searchHeight}px`);
+  document.documentElement.style.setProperty('--global-search-left', `${searchLeft}px`);
+  document.documentElement.style.setProperty('--global-search-top', `${searchTop}px`);
+  document.documentElement.style.setProperty('--global-search-height', `${searchHeight}px`);
+}
+
+function rememberHomeRestingPosition() {
+  if (!globalSearchDock.classList.contains('open')) {
+    searchHomeRestingX = homePage.getBoundingClientRect().x;
+  }
+}
+
+function clearSearchHomeStabilizer() {
+  if (searchStabilizeFrame) {
+    cancelAnimationFrame(searchStabilizeFrame);
+    searchStabilizeFrame = 0;
+  }
+  homePage.classList.remove('search-stabilized');
+  homePage.style.removeProperty('--search-home-offset');
+}
+
+function stabilizeHomeAfterSearchOpen(homeXBefore) {
+  if (searchStabilizeFrame) cancelAnimationFrame(searchStabilizeFrame);
+  searchStabilizeFrame = requestAnimationFrame(() => {
+    const homeXAfter = homePage.getBoundingClientRect().x;
+    const offset = Math.round(homeXBefore - homeXAfter);
+    if (Math.abs(offset) > 1) {
+      homePage.style.setProperty('--search-home-offset', `${offset}px`);
+      homePage.classList.add('search-stabilized');
+    } else {
+      clearSearchHomeStabilizer();
+    }
+    searchStabilizeFrame = 0;
+  });
 }
 
 function updateCanvasSize() {
@@ -2014,6 +2046,7 @@ function renderHome() {
   }).join('');
 
   ropeShelf.innerHTML = `<div class="cabinet-stack">${shelfRows}</div>`;
+  rememberHomeRestingPosition();
 }
 
 function globalSearchItems(query) {
@@ -2096,6 +2129,7 @@ function toggleRecordTimeline(forceOpen) {
 
 function toggleGlobalSearch(forceOpen) {
   const isOpen = forceOpen == null ? !globalSearchDock.classList.contains('open') : forceOpen;
+  const homeXBefore = searchHomeRestingX || homePage.getBoundingClientRect().x;
   if (isOpen) {
     updateFloatingDockBounds();
     toggleSettingsDock(false);
@@ -2104,12 +2138,16 @@ function toggleGlobalSearch(forceOpen) {
     renderGlobalSearchList();
   }
   globalSearchDock.classList.toggle('open', isOpen);
-  phone.classList.toggle('search-open', isOpen);
   homeSearchToggle.classList.remove('open');
   homeSearchToggle.setAttribute('aria-expanded', String(isOpen));
   globalSearchDock.setAttribute('aria-hidden', String(!isOpen));
   homeSearchToggle.blur();
-  if (!isOpen) globalSearchInput.blur();
+  if (isOpen) stabilizeHomeAfterSearchOpen(homeXBefore);
+  else {
+    clearSearchHomeStabilizer();
+    globalSearchInput.blur();
+    requestAnimationFrame(rememberHomeRestingPosition);
+  }
 }
 
 function toggleSettingsDock(forceOpen) {

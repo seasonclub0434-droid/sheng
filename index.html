@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./web/styles.css?v=search-compensated-1" />
+    <link rel="stylesheet" href="./web/styles.css?v=search-stabilized-2" />
   </head>
   <body>
     <main class="workspace">
@@ -64,20 +64,6 @@
           <div class="record-timeline-body">
             <div class="drawer-hint timeline-hint">点日期会圈住绳上的位置，再点一次取消。</div>
             <div id="recordTimelineList" class="record-timeline-list" role="list"></div>
-          </div>
-        </aside>
-
-        <aside id="globalSearchDock" class="record-timeline-dock global-search-dock" aria-label="全局搜索" aria-hidden="true">
-          <div class="dock-rail">
-            <span class="record-timeline-title">搜索</span>
-            <button id="globalSearchClose" class="dock-close" type="button" aria-label="收起搜索">×</button>
-          </div>
-          <div class="global-search-body">
-            <label class="global-search-box" aria-label="全局搜索">
-              <span>⌕</span>
-              <input id="globalSearchInput" type="search" placeholder="搜所有绳" />
-            </label>
-            <div id="globalSearchList" class="global-search-list" role="list"></div>
           </div>
         </aside>
 
@@ -143,8 +129,22 @@
           </section>
         </div>
       </section>
+
+      <aside id="globalSearchDock" class="record-timeline-dock global-search-dock" aria-label="全局搜索" aria-hidden="true">
+        <div class="dock-rail">
+          <span class="record-timeline-title">搜索</span>
+          <button id="globalSearchClose" class="dock-close" type="button" aria-label="收起搜索">×</button>
+        </div>
+        <div class="global-search-body">
+          <label class="global-search-box" aria-label="全局搜索">
+            <span>⌕</span>
+            <input id="globalSearchInput" type="search" placeholder="搜所有绳" />
+          </label>
+          <div id="globalSearchList" class="global-search-list" role="list"></div>
+        </div>
+      </aside>
     </main>
 
-    <script type="module" src="./web/app.js?v=search-compensated-1"></script>
+    <script type="module" src="./web/app.js?v=search-stabilized-2"></script>
   </body>
 </html>

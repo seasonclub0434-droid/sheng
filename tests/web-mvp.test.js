@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'search-compensated-1';
+const assetVersion = 'search-stabilized-2';
 
 function test(name, fn) {
   try {
@@ -94,6 +94,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('id="backHomeAction"'));
   assert.ok(html.includes('id="homeSearchToggle"'));
   assert.ok(html.includes('id="globalSearchDock"'));
+  assert.ok(html.includes('</section>\n\n      <aside id="globalSearchDock"'));
   assert.ok(html.includes('id="globalSearchInput"'));
   assert.ok(html.includes('placeholder="搜所有绳"'));
   assert.ok(pagesHtml.includes('id="homePage"'));
@@ -113,13 +114,20 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('function renderGlobalSearchList('));
   assert.ok(js.includes('function updateFloatingDockBounds('));
   assert.ok(!js.includes('globalSearchInput.focus()'));
-  assert.ok(js.includes("phone.classList.toggle('search-open', isOpen)"));
+  assert.ok(js.includes("document.documentElement.style.setProperty('--global-search-left'"));
+  assert.ok(!js.includes("phone.classList.toggle('search-open'"));
+  assert.ok(js.includes('function stabilizeHomeAfterSearchOpen('));
+  assert.ok(js.includes('function clearSearchHomeStabilizer('));
+  assert.ok(js.includes('function rememberHomeRestingPosition('));
   assert.ok(js.includes('homeSearchToggle.blur();'));
   assert.ok(js.includes('saveRopeState(activeRopeId, state)'));
   assert.ok(js.includes('homeState.ropes.flatMap'));
   assert.ok(js.includes('ropeShelf.addEventListener'));
   assert.ok(js.includes('globalSearchList.addEventListener'));
   assert.ok(css.includes('.home-page'));
+  assert.ok(cssBlock('.home-page').includes('position: relative'));
+  assert.ok(!cssBlock('.home-page').includes('position: absolute'));
+  assert.ok(css.includes('.home-page.search-stabilized'));
   assert.ok(css.includes('.rope-shelf'));
   assert.ok(css.includes('.cabinet-row'));
   assert.ok(css.includes('.cabinet-front'));
@@ -129,7 +137,6 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-note'));
   assert.ok(css.includes('.add-rope-action'));
   assert.ok(css.includes('.global-search-dock'));
-  assert.ok(css.includes('.phone.home-mode.search-open .home-page'));
   assert.ok(css.includes('position: fixed'));
   assert.ok(css.includes('--global-search-left'));
   assert.ok(css.includes('.global-search-entry'));
