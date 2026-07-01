@@ -2393,7 +2393,7 @@ function playHomePullTransition(button, ropeId) {
     if (!transitionPrepared || !completePrimedRopeTransition(ropeId)) {
       enterRope(ropeId);
     }
-  }, 2840);
+  }, 3300);
 }
 
 function goHome() {

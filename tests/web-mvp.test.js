@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-tail-image-rope-1';
+const assetVersion = 'pull-tail-bridge-4';
 const pullRopeAssetPath = path.join(root, 'web/assets/pull-rope-full-v1.png');
 
 function test(name, fn) {
@@ -89,6 +89,7 @@ test('browser preview keeps the home screen clean with a journal rope control', 
 test('browser preview adds a cabinet-style rope home with isolated rope states and global search', () => {
   const defaultRopesStart = js.indexOf('function defaultRopes(');
   assert.ok(html.includes('id="homePage"'));
+  assert.ok(html.includes('id="pullBridgeRope"'));
   assert.ok(html.includes('我的绳'));
   assert.ok(html.includes('id="ropeShelf"'));
   assert.ok(html.includes('class="rope-shelf"'));
@@ -164,6 +165,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes("phone.classList.add('home-pull-ready')"));
   assert.ok(js.includes("phone.classList.add('home-pull-revealing')"));
   assert.ok(js.includes("phone.classList.add('home-pull-drop')"));
+  assert.ok(js.includes('}, 3300);'));
   assert.ok(!js.includes('function createHomePullGhost('));
   assert.ok(js.includes('enterRope(ropeId);'));
   assert.ok(js.includes('homeSearchToggle.blur();'));
@@ -233,6 +235,11 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-mode.home-pull-centering .cabinet-slots'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile:not(.focus-rope-tile)'));
   assert.ok(css.includes('.home-mode.home-pull-revealing .rope-canvas'));
+  assert.ok(css.includes('.pull-bridge-rope'));
+  assert.ok(css.includes('.home-mode.home-pull-revealing .pull-bridge-rope'));
+  assert.ok(css.includes('animation: ropePageReveal 1540ms'));
+  assert.ok(css.includes('animation: pullBridgeRopeReveal 1540ms'));
+  assert.ok(css.includes('animation: homePullDrop 1500ms'));
   assert.ok(css.includes('.home-mode.home-pull-centering .home-page'));
   assert.ok(css.includes('.home-mode.home-pull-drop .home-page'));
   assert.ok(css.includes('will-change: transform, opacity'));
@@ -249,6 +256,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('@keyframes focusCordPagePull'));
   assert.ok(css.includes('@keyframes focusCordStemPagePull'));
   assert.ok(css.includes('@keyframes ropePageReveal'));
+  assert.ok(css.includes('transform: translate3d(0, -500px, 0) scale(0.992)'));
+  assert.ok(css.includes('transform: translate3d(0, -132px, 0) scale(0.997)'));
+  assert.ok(css.includes('@keyframes pullBridgeRopeReveal'));
+  assert.ok(css.includes('transform: translate3d(-50%, -500px, 0) scaleY(0.99)'));
   assert.ok(css.includes('@keyframes homePullDrop'));
   assert.ok(!css.includes('scale(calc(var(--pull-zoom-scale, 2.75) + 0.08)'));
   assert.ok(css.includes('.rope-note'));
