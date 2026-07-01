@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-cord-center-1';
+const assetVersion = 'pull-scene-focus-1';
 
 function test(name, fn) {
   try {
@@ -146,14 +146,18 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('function clearSearchHomeStabilizer('));
   assert.ok(js.includes('function rememberHomeRestingPosition('));
   assert.ok(js.includes('let activeHomePullAnimation = false;'));
-  assert.ok(js.includes('function createHomePullGhost('));
+  assert.ok(js.includes('function applyHomePullFocus('));
   assert.ok(js.includes('function primeRopeTransitionView('));
   assert.ok(js.includes('function playHomePullTransition('));
-  assert.ok(js.includes("phone.appendChild(ghost);"));
+  assert.ok(js.includes("homePage.style.setProperty('--pull-zoom-scale'"));
+  assert.ok(js.includes("homePage.style.setProperty('--pull-zoom-x'"));
+  assert.ok(js.includes("homePage.style.setProperty('--pull-zoom-y'"));
+  assert.ok(js.includes("button.classList.add('pulling-rope')"));
   assert.ok(js.includes("phone.classList.add('home-pull-centering')"));
   assert.ok(js.includes("phone.classList.add('home-pull-ready')"));
   assert.ok(js.includes("phone.classList.add('home-pull-revealing')"));
   assert.ok(js.includes("phone.classList.add('home-pull-drop')"));
+  assert.ok(!js.includes('function createHomePullGhost('));
   assert.ok(js.includes('enterRope(ropeId);'));
   assert.ok(js.includes('homeSearchToggle.blur();'));
   assert.ok(js.includes('saveRopeState(activeRopeId, state)'));
@@ -191,14 +195,16 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('--coil-light: #f3dfbd'));
   assert.ok(css.includes('.rope-coil::before'));
   assert.ok(css.includes('.rope-coil::after'));
-  assert.ok(css.includes('.home-pull-ghost'));
-  assert.ok(css.includes('.home-pull-ghost .rope-coil'));
+  assert.ok(!css.includes('.home-pull-ghost'));
+  assert.ok(css.includes('.rope-tile.pulling-rope:not(.pulling-rope-again) .rope-coil'));
+  assert.ok(css.includes('.rope-tile.pulling-rope.pulling-rope-again .rope-coil'));
   assert.ok(css.includes('.home-mode.home-pull-revealing .rope-canvas'));
   assert.ok(css.includes('.home-mode.home-pull-centering .home-page'));
   assert.ok(css.includes('.home-mode.home-pull-drop .home-page'));
-  assert.ok(css.includes('@keyframes homeGhostCenter'));
-  assert.ok(css.includes('@keyframes ghostCordTestPull'));
-  assert.ok(css.includes('@keyframes ghostCordPagePull'));
+  assert.ok(css.includes('@keyframes homeSceneFocus'));
+  assert.ok(css.includes('@keyframes focusCordTestPull'));
+  assert.ok(css.includes('@keyframes focusCordPagePull'));
+  assert.ok(css.includes('@keyframes ropePageReveal'));
   assert.ok(css.includes('@keyframes homePullDrop'));
   assert.ok(css.includes('.rope-note'));
   assert.ok(cssBlock('.rope-note').includes('bottom: -25px'));

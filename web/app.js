@@ -304,7 +304,6 @@ let shouldScrollToLatest = true;
 let shouldTimelineListScrollLatest = false;
 let activeKnotAnimation = null;
 let activeHomePullAnimation = false;
-let activeHomePullGhost = null;
 let animationFrame = 0;
 let searchStabilizeFrame = 0;
 let searchHomeRestingX = 0;
@@ -2314,40 +2313,23 @@ function primeRopeTransitionView(id) {
   return true;
 }
 
-function createHomePullGhost(button) {
+function applyHomePullFocus(button) {
   const sourceCord = button.querySelector('.rope-coil');
-  if (!sourceCord) return null;
+  if (!sourceCord) return false;
   const phoneRect = phone.getBoundingClientRect();
   const cordRect = sourceCord.getBoundingClientRect();
-  const ghostWidth = Math.min(116, Math.max(94, phoneRect.width * 0.24));
-  const ghostHeight = Math.min(330, Math.max(270, phoneRect.height * 0.36));
-  const sourceCenterX = cordRect.left + cordRect.width / 2 - phoneRect.left;
-  const sourceCenterY = cordRect.top + cordRect.height / 2 - phoneRect.top;
-  const startScale = Math.max(0.26, Math.min(0.44, cordRect.height / ghostHeight));
-  const startX = sourceCenterX - ghostWidth / 2;
-  const startY = sourceCenterY - ghostHeight / 2;
-  const endX = phoneRect.width / 2 - ghostWidth / 2;
-  const endY = phoneRect.height * 0.42 - ghostHeight / 2;
-
-  const ghost = document.createElement('span');
-  ghost.className = 'home-pull-ghost';
-  ghost.setAttribute('aria-hidden', 'true');
-  ghost.style.setProperty('--ghost-width', `${ghostWidth}px`);
-  ghost.style.setProperty('--ghost-height', `${ghostHeight}px`);
-  ghost.style.setProperty('--ghost-start-x', `${startX}px`);
-  ghost.style.setProperty('--ghost-start-y', `${startY}px`);
-  ghost.style.setProperty('--ghost-end-x', `${endX}px`);
-  ghost.style.setProperty('--ghost-end-y', `${endY}px`);
-  ghost.style.setProperty('--ghost-start-scale', String(startScale));
-  ghost.innerHTML = `
-    <span class="rope-coil">
-      <span class="rope-coil-line rope-coil-line-a"></span>
-      <span class="rope-coil-line rope-coil-line-b"></span>
-      <span class="rope-coil-line rope-coil-line-c"></span>
-    </span>
-  `;
-  phone.appendChild(ghost);
-  return ghost;
+  const pageRect = homePage.getBoundingClientRect();
+  const focusX = cordRect.left + cordRect.width / 2 - pageRect.left;
+  const focusY = cordRect.top + cordRect.height / 2 - pageRect.top;
+  const targetX = phoneRect.width / 2;
+  const targetY = phoneRect.height * 0.45;
+  const scale = Math.min(3.08, Math.max(2.62, phoneRect.height / Math.max(260, cordRect.height * 3.25)));
+  const zoomX = targetX - focusX * scale;
+  const zoomY = targetY - focusY * scale;
+  homePage.style.setProperty('--pull-zoom-scale', String(scale));
+  homePage.style.setProperty('--pull-zoom-x', `${Math.round(zoomX)}px`);
+  homePage.style.setProperty('--pull-zoom-y', `${Math.round(zoomY)}px`);
+  return true;
 }
 
 function clearHomePullTransition(button) {
@@ -2355,13 +2337,11 @@ function clearHomePullTransition(button) {
   phone.classList.remove('home-pull-centering', 'home-pull-ready', 'home-pull-revealing', 'home-pull-drop');
   homePage.style.removeProperty('--pull-focus-x');
   homePage.style.removeProperty('--pull-focus-y');
-  if (activeHomePullGhost) {
-    activeHomePullGhost.remove();
-    activeHomePullGhost = null;
-  }
-  if (button) {
-    button.classList.remove('pulling-rope', 'pulling-rope-again');
-  }
+  homePage.style.removeProperty('--pull-zoom-scale');
+  homePage.style.removeProperty('--pull-zoom-x');
+  homePage.style.removeProperty('--pull-zoom-y');
+  const pullingButtons = button ? [button] : Array.from(document.querySelectorAll('.pulling-rope'));
+  pullingButtons.forEach((entry) => entry.classList.remove('pulling-rope', 'pulling-rope-again'));
 }
 
 function playHomePullTransition(button, ropeId) {
@@ -2370,8 +2350,7 @@ function playHomePullTransition(button, ropeId) {
   closeFloatingDocks();
   closeModal();
 
-  activeHomePullGhost = createHomePullGhost(button);
-  if (!activeHomePullGhost) {
+  if (!applyHomePullFocus(button)) {
     activeHomePullAnimation = false;
     enterRope(ropeId);
     return;
@@ -2382,8 +2361,7 @@ function playHomePullTransition(button, ropeId) {
   window.setTimeout(() => {
     if (!activeHomePullAnimation) return;
     phone.classList.add('home-pull-ready');
-    activeHomePullGhost.classList.add('ghost-test-pull');
-  }, 720);
+  }, 760);
 
   window.setTimeout(() => {
     if (!activeHomePullAnimation) return;
@@ -2391,14 +2369,13 @@ function playHomePullTransition(button, ropeId) {
     if (primeRopeTransitionView(ropeId)) {
       phone.classList.add('home-pull-revealing');
     }
-    activeHomePullGhost.classList.add('ghost-page-pull');
     phone.classList.add('home-pull-drop');
-  }, 1150);
+  }, 1240);
 
   window.setTimeout(() => {
     clearHomePullTransition(button);
     enterRope(ropeId);
-  }, 1780);
+  }, 2080);
 }
 
 function goHome() {
