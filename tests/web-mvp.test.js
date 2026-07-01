@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'label-on-shelf-1';
+const assetVersion = 'rope-color-match-1';
 
 function test(name, fn) {
   try {
@@ -165,6 +165,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.cabinet-slots'));
   assert.ok(cssBlock('.cabinet-slots').includes('z-index: 9'));
   assert.ok(css.includes('.rope-coil'));
+  assert.ok(css.includes('--coil-body: #ddc8a6'));
+  assert.ok(css.includes('--coil-edge: #b89a72'));
+  assert.ok(css.includes('--coil-light: #f3dfbd'));
   assert.ok(css.includes('.rope-coil::before'));
   assert.ok(css.includes('.rope-coil::after'));
   assert.ok(css.includes('.rope-note'));
