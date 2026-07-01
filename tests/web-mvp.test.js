@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'control-bar-slim-1';
+const assetVersion = 'plus-lift-1';
 
 function test(name, fn) {
   try {
@@ -204,6 +204,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(cssBlock('.add-rope-action').includes('width: 50px'));
   assert.ok(cssBlock('.add-rope-action').includes('opacity: 0.84'));
   assert.ok(css.includes('.add-rope-plus'));
+  assert.ok(cssBlock('.add-rope-plus').includes('margin-top: -6px'));
+  assert.ok(cssBlock('.add-rope-plus').includes('transform: translateY(-2px)'));
   assert.ok(css.includes('.home-mode .home-control-bar .settings-toggle'));
   assert.ok(css.includes('.home-mode .home-control-bar .home-search-toggle'));
   assert.ok(css.includes('.home-mode .home-control-bar .add-rope-action'));
