@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'cabinet-top-trim-1';
+const assetVersion = 'control-bar-slim-1';
 
 function test(name, fn) {
   try {
@@ -197,7 +197,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.settings-gear-logo svg'));
   assert.ok(css.includes('.search-icon'));
   assert.ok(css.includes('.add-rope-action'));
-  assert.ok(cssBlock('.home-control-bar').includes('grid-template-columns: 42px 52px 42px'));
+  assert.ok(cssBlock('.home-control-bar').includes('grid-template-columns: 48px 50px 48px'));
+  assert.ok(cssBlock('.home-control-bar').includes('padding: 5px 14px'));
   assert.ok(cssBlock('.home-control-bar').includes('bottom: 25px'));
   assert.ok(cssBlock('.add-rope-action').includes('position: absolute'));
   assert.ok(cssBlock('.add-rope-action').includes('width: 50px'));
@@ -206,6 +207,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-mode .home-control-bar .settings-toggle'));
   assert.ok(css.includes('.home-mode .home-control-bar .home-search-toggle'));
   assert.ok(css.includes('.home-mode .home-control-bar .add-rope-action'));
+  assert.ok(css.includes('width: 38px'));
+  assert.ok(css.includes('width: 46px'));
   assert.ok(css.includes('writing-mode: horizontal-tb'));
   assert.ok(css.includes('.phone.rope-mode .settings-toggle'));
   assert.ok(css.includes('.back-home-action::before'));
