@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-scene-clean-1';
+const assetVersion = 'pull-scene-paper-1';
 
 function test(name, fn) {
   try {
@@ -206,6 +206,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-tile.pulling-rope.pulling-rope-again .rope-coil'));
   assert.ok(css.includes('.home-page::after'));
   assert.ok(css.includes('.rope-tile.focus-rope-tile'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .cabinet-stack'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::before'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil'));
+  assert.ok(css.includes('animation: focusWoodBackingFade'));
   assert.ok(css.includes('.home-mode.home-pull-centering .cabinet-slots'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile:not(.focus-rope-tile)'));
   assert.ok(css.includes('.home-mode.home-pull-revealing .rope-canvas'));
@@ -218,6 +222,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('@keyframes homeSceneFocus'));
   assert.ok(css.includes('@keyframes focusSurroundingFade'));
   assert.ok(css.includes('@keyframes focusSurroundingsVanish'));
+  assert.ok(css.includes('@keyframes focusWoodBackingFade'));
   assert.ok(css.includes('@keyframes focusCordTestPull'));
   assert.ok(css.includes('@keyframes focusCordPagePull'));
   assert.ok(css.includes('@keyframes ropePageReveal'));
