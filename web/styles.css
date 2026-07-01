@@ -138,10 +138,13 @@ button {
   content: "";
   opacity: 0;
   background:
-    radial-gradient(ellipse at 18% 10%, rgba(238, 209, 151, 0.2), transparent 24%),
-    radial-gradient(ellipse at 72% 24%, rgba(111, 70, 34, 0.16), transparent 25%),
-    radial-gradient(ellipse at 80% 88%, rgba(84, 51, 24, 0.2), transparent 34%),
-    linear-gradient(105deg, var(--paper-kraft-light), var(--paper-kraft) 46%, #b98955);
+    linear-gradient(98deg, transparent 0 19%, rgba(255, 241, 194, 0.12) 20%, rgba(72, 45, 23, 0.08) 20.7%, transparent 22% 100%),
+    repeating-linear-gradient(6deg, rgba(70, 45, 24, 0.055) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(96deg, rgba(247, 220, 166, 0.05) 0 1px, transparent 1px 13px),
+    radial-gradient(ellipse at 18% 24%, rgba(82, 49, 22, 0.08), transparent 18%),
+    radial-gradient(ellipse at 76% 38%, rgba(246, 218, 162, 0.08), transparent 22%),
+    radial-gradient(ellipse at 50% 102%, rgba(64, 42, 24, 0.14), transparent 58%),
+    linear-gradient(180deg, #caa36f, #caa36f);
 }
 
 .home-page.search-stabilized {
@@ -485,6 +488,7 @@ button {
   place-items: start center;
   background: transparent;
   border: 0;
+  -webkit-tap-highlight-color: transparent;
   transform: rotate(calc((var(--tile-index) - 2) * 0.18deg));
 }
 
@@ -498,14 +502,16 @@ button {
   pointer-events: none;
   content: "";
   background:
-    linear-gradient(90deg, #80603d 0%, #d7bd92 24%, #fff0c7 48%, #d3b78d 72%, #7c5834 100%),
-    repeating-linear-gradient(174deg, rgba(74, 50, 25, 0.28) 0 2px, transparent 2px 7px);
+    linear-gradient(90deg, #a5875f 0%, #ddc8a6 32%, #f3dfbd 52%, #d8bd95 72%, #9e7d55 100%),
+    repeating-linear-gradient(176deg, rgba(92, 65, 35, 0.24) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(92deg, rgba(248, 235, 205, 0.2) 0 1px, transparent 1px 6px);
   border-radius: 999px;
   box-shadow:
-    1.7px 2px 0 rgba(55, 33, 13, 0.2),
-    inset 1px 0 0 rgba(255, 246, 214, 0.5),
-    inset -1px 0 0 rgba(72, 45, 21, 0.2);
+    1.2px 2px 0 rgba(55, 33, 13, 0.2),
+    inset 1px 0 0 rgba(255, 246, 214, 0.42),
+    inset -1px 0 0 rgba(72, 45, 21, 0.16);
   opacity: 0.9;
+  clip-path: polygon(38% 0, 66% 0, 61% 16%, 68% 31%, 58% 48%, 66% 63%, 57% 80%, 62% 100%, 34% 100%, 27% 82%, 35% 64%, 28% 48%, 37% 31%, 30% 15%);
   transform: translateX(-50%) rotate(calc((var(--tile-index) - 2) * 0.2deg - 1.6deg));
   transform-origin: 50% 100%;
 }
@@ -608,6 +614,8 @@ button {
 
 .rope-tile.focus-rope-tile {
   z-index: 48;
+  outline: 0;
+  box-shadow: none;
 }
 
 .home-mode.home-pull-centering .rope-shelf {
@@ -636,25 +644,25 @@ button {
   width: 8px;
   height: 272px;
   background:
-    linear-gradient(90deg, #775334 0%, #d8bd92 24%, #fff1ca 48%, #d1b386 72%, #714b2c 100%),
-    repeating-linear-gradient(176deg, rgba(72, 45, 21, 0.36) 0 2px, transparent 2px 8px),
-    repeating-linear-gradient(92deg, rgba(255, 244, 210, 0.22) 0 1px, transparent 1px 6px);
+    linear-gradient(90deg, #a4875f 0%, #ddc8a6 33%, #f3dfbd 54%, #d7bd95 73%, #9c7b55 100%),
+    repeating-linear-gradient(176deg, rgba(92, 65, 35, 0.3) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(92deg, rgba(248, 235, 205, 0.26) 0 1px, transparent 1px 6px);
   box-shadow:
-    2px 7px 11px rgba(54, 31, 12, 0.24),
-    inset 1.5px 0 0 rgba(255, 246, 214, 0.66),
-    inset -1px 0 0 rgba(63, 38, 18, 0.24);
+    1.5px 6px 10px rgba(54, 31, 12, 0.22),
+    inset 1px 0 0 rgba(255, 246, 214, 0.48),
+    inset -1px 0 0 rgba(63, 38, 18, 0.18);
   opacity: 1;
   animation: focusRopeStemReveal 760ms cubic-bezier(0.16, 0.94, 0.18, 1) both;
 }
 
 .home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil {
-  --coil-body: #e6c99b;
-  --coil-edge: #87613b;
-  --coil-light: #fff3ce;
+  --coil-body: #ddc8a6;
+  --coil-edge: #b89a72;
+  --coil-light: #f3dfbd;
   opacity: 1;
   filter:
-    drop-shadow(0 12px 13px rgba(55, 32, 13, 0.34))
-    drop-shadow(0 2px 0 rgba(255, 242, 205, 0.22));
+    drop-shadow(0 11px 12px rgba(55, 32, 13, 0.28))
+    drop-shadow(0 2px 0 rgba(248, 235, 205, 0.18));
 }
 
 .home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil::before,
@@ -859,10 +867,10 @@ button {
     opacity: 0;
   }
   64% {
-    opacity: 0.72;
+    opacity: 0.82;
   }
   100% {
-    opacity: 0.9;
+    opacity: 1;
   }
 }
 
