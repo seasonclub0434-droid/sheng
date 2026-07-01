@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-scene-solid-rope-1';
+const assetVersion = 'pull-tail-connection-1';
 
 function test(name, fn) {
   try {
@@ -195,20 +195,24 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.cabinet-slots'));
   assert.ok(cssBlock('.cabinet-slots').includes('z-index: 9'));
   assert.ok(css.includes('.rope-coil'));
-  assert.ok(cssBlock('.rope-coil').includes('margin-top: 2px'));
+  assert.ok(cssBlock('.rope-coil').includes('margin-top: 14px'));
   assert.ok(css.includes('--coil-body: #ddc8a6'));
   assert.ok(css.includes('--coil-edge: #b89a72'));
   assert.ok(css.includes('--coil-light: #f3dfbd'));
   assert.ok(css.includes('.rope-coil::before'));
   assert.ok(css.includes('.rope-coil::after'));
+  assert.ok(css.includes('.rope-tile::after'));
   assert.ok(!css.includes('.home-pull-ghost'));
   assert.ok(css.includes('.rope-tile.pulling-rope:not(.pulling-rope-again) .rope-coil'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.pulling-rope:not(.pulling-rope-again)::after'));
   assert.ok(css.includes('.rope-tile.pulling-rope.pulling-rope-again .rope-coil'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.pulling-rope.pulling-rope-again::after'));
   assert.ok(css.includes('.home-page::after'));
   assert.ok(css.includes('.rope-tile.focus-rope-tile'));
   assert.ok(css.includes('.home-mode.home-pull-centering .cabinet-stack'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::before'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil-line-b'));
   assert.ok(css.includes('drop-shadow(0 12px 13px rgba(55, 32, 13, 0.34))'));
   assert.ok(css.includes('radial-gradient(ellipse at 18% 10%, rgba(238, 209, 151, 0.2), transparent 24%)'));
@@ -226,8 +230,11 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('@keyframes focusSurroundingFade'));
   assert.ok(css.includes('@keyframes focusSurroundingsVanish'));
   assert.ok(css.includes('@keyframes focusWoodBackingFade'));
+  assert.ok(css.includes('@keyframes focusRopeStemReveal'));
   assert.ok(css.includes('@keyframes focusCordTestPull'));
+  assert.ok(css.includes('@keyframes focusCordStemTestPull'));
   assert.ok(css.includes('@keyframes focusCordPagePull'));
+  assert.ok(css.includes('@keyframes focusCordStemPagePull'));
   assert.ok(css.includes('@keyframes ropePageReveal'));
   assert.ok(css.includes('@keyframes homePullDrop'));
   assert.ok(!css.includes('scale(calc(var(--pull-zoom-scale, 2.75) + 0.08)'));
