@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'home-icon-controls-4';
+const assetVersion = 'settings-logo-gear-1';
 
 function test(name, fn) {
   try {
@@ -93,7 +93,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('class="rope-shelf"'));
   assert.ok(html.includes('id="addRopeAction"'));
   assert.ok(html.includes('class="home-control-bar"'));
-  assert.ok(html.includes('gear-icon'));
+  assert.ok(html.includes('settings-gear-logo'));
+  assert.ok(html.includes('<svg viewBox="0 0 24 24"'));
   assert.ok(html.includes('search-icon'));
   assert.ok(html.includes('class="add-rope-plus"'));
   assert.ok(!html.includes('<span>添加</span>'));
@@ -191,7 +192,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-name-input'));
   assert.ok(css.includes('.home-control-bar'));
   assert.ok(css.includes('.control-icon'));
-  assert.ok(css.includes('.gear-icon'));
+  assert.ok(css.includes('.settings-gear-logo'));
+  assert.ok(css.includes('.settings-gear-logo svg'));
   assert.ok(css.includes('.search-icon'));
   assert.ok(css.includes('.add-rope-action'));
   assert.ok(cssBlock('.home-control-bar').includes('grid-template-columns: 42px 52px 42px'));
