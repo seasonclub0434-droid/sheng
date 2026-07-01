@@ -1923,6 +1923,25 @@ function isRecordTimelineOpen() {
   return recordTimelineDock.classList.contains('open');
 }
 
+function isSettingsDockOpen() {
+  return settingsDock.classList.contains('open');
+}
+
+function closeFloatingDocks() {
+  let closed = false;
+  if (isSettingsDockOpen()) {
+    toggleSettingsDock(false);
+    closed = true;
+  }
+  if (isRecordTimelineOpen()) {
+    selectedTimelineId = '';
+    lastTimelineSignature = '';
+    toggleRecordTimeline(false);
+    closed = true;
+  }
+  return closed;
+}
+
 function nudgeStatsBar() {
   statsBar.classList.add('scrolling');
   window.clearTimeout(statsHideTimer);
@@ -2147,12 +2166,17 @@ function canvasPoint(event) {
 
 function handleTap(point) {
   const hit = hitTest(point.x, point.y);
+  if (isSettingsDockOpen()) {
+    toggleSettingsDock(false);
+    return;
+  }
+
   if (isRecordTimelineOpen()) {
     if (hit) focusTimelineEvent(hit.id);
-    else if (selectedTimelineId) {
+    else {
       selectedTimelineId = '';
       lastTimelineSignature = '';
-      render();
+      toggleRecordTimeline(false);
     }
     return;
   }
@@ -2378,8 +2402,17 @@ submitResolve.addEventListener('click', writeResolve);
 modalLayer.addEventListener('click', (event) => {
   if (event.target === modalLayer) closeModal();
 });
+document.addEventListener('pointerdown', (event) => {
+  if (!isSettingsDockOpen() && !isRecordTimelineOpen()) return;
+  const target = event.target;
+  const insideSettings = settingsDock.contains(target) || settingsToggle.contains(target);
+  const insideTimeline = recordTimelineDock.contains(target) || timelineToggle.contains(target);
+  if (insideSettings || insideTimeline || target === canvas) return;
+  closeFloatingDocks();
+});
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
+    if (closeFloatingDocks()) return;
     toggleExchangeTray(false);
   }
 });

@@ -274,7 +274,7 @@ button {
   position: absolute;
   top: 112px;
   left: 12px;
-  z-index: 4;
+  z-index: 6;
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 8px;
@@ -544,7 +544,7 @@ button {
   top: 112px;
   right: 12px;
   bottom: 118px;
-  z-index: 4;
+  z-index: 6;
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 7px;
@@ -754,6 +754,10 @@ button {
     #fbf3dc;
   border: 1px solid rgba(91, 70, 46, 0.22);
   border-radius: 8px 7px 9px 6px;
+  pointer-events: none;
+}
+
+.exchange-dock.open .exchange-action {
   pointer-events: auto;
 }
 

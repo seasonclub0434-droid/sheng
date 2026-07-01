@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'timeline-drawer-animation-1';
+const assetVersion = 'drawer-blank-close-1';
 
 function test(name, fn) {
   try {
@@ -113,6 +113,8 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(js.includes('const settingsToggle'));
   assert.ok(js.includes('const resetConfirmPanel'));
   assert.ok(js.includes('function toggleSettingsDock('));
+  assert.ok(js.includes('function isSettingsDockOpen('));
+  assert.ok(js.includes('function closeFloatingDocks('));
   assert.ok(js.includes('function askResetConfirmation('));
   assert.ok(js.includes('function emptyState('));
   assert.ok(js.includes('function resetPreviewState('));
@@ -228,7 +230,7 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes("if (item.id === selectedTimelineId && isRecordTimelineOpen())"));
   assert.ok(js.includes("if (isRecordTimelineOpen()) {\n    if (hit) focusTimelineEvent(hit.id);"));
   assert.ok(js.indexOf('if (isRecordTimelineOpen())') < js.indexOf("if (hit.type === 'badge')"));
-  assert.ok(js.includes("else if (selectedTimelineId)"));
+  assert.ok(js.includes("else {\n      selectedTimelineId = '';"));
   assert.ok(js.includes('const isSelectedAgain = selectedTimelineId === id'));
   assert.ok(js.includes("selectedTimelineId = isSelectedAgain ? '' : id"));
   assert.ok(js.includes("if (!selectedTimelineId)"));
@@ -238,6 +240,11 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes('shouldTimelineListScrollLatest = true'));
   assert.ok(js.includes('recordTimelineList.scrollTop = recordTimelineList.scrollHeight'));
   assert.ok(js.includes("event.stopPropagation();"));
+  assert.ok(js.includes('document.addEventListener(\'pointerdown\''));
+  assert.ok(js.includes('if (insideSettings || insideTimeline || target === canvas) return;'));
+  assert.ok(js.includes('closeFloatingDocks();'));
+  assert.ok(js.includes('if (isSettingsDockOpen())'));
+  assert.ok(js.includes('toggleRecordTimeline(false);'));
   assert.ok(js.includes('const HIGHLIGHT_INK'));
   assert.ok(js.includes("stroke: 'rgba(176, 37, 31, 0.82)'"));
   assert.ok(js.includes('ctx.lineWidth = ring ? 1.15 : 2.35'));
@@ -245,6 +252,9 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes("record-timeline-item ${cssClass}${isSelected ? ' selected' : ''}"));
   assert.ok(css.includes('.record-timeline-item.selected'));
   assert.ok(css.includes('#a8322c'));
+  assert.ok(css.includes('.exchange-dock.open .exchange-action'));
+  assert.ok(css.includes('pointer-events: none'));
+  assert.ok(css.includes('pointer-events: auto'));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
 });
