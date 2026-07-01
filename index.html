@@ -4,14 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./web/styles.css?v=drawer-blank-close-1" />
+    <link rel="stylesheet" href="./web/styles.css?v=rope-home-cabinet-1" />
   </head>
   <body>
     <main class="workspace">
-      <section class="phone kraft-paper" aria-label="绳话预览">
+      <section class="phone kraft-paper home-mode" aria-label="绳话预览">
         <canvas id="ropeCanvas" class="rope-canvas"></canvas>
 
+        <section id="homePage" class="home-page" aria-label="我的绳">
+          <h1 class="home-title">我的绳</h1>
+          <div id="ropeShelf" class="rope-shelf" aria-label="绳子列表"></div>
+          <button id="addRopeAction" class="add-rope-action" type="button" aria-label="添加绳">
+            <span class="add-rope-ring" aria-hidden="true"></span>
+            <span>添加</span>
+          </button>
+        </section>
+
         <div id="statsBar" class="stats-bar" aria-live="polite"></div>
+        <button id="backHomeAction" class="back-home-action" type="button">我的绳</button>
 
         <button id="settingsToggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="settingsDock" aria-label="打开设置">
           <span class="settings-toggle-mark">设置</span>
@@ -42,6 +52,10 @@
           <span class="timeline-toggle-mark">绳历</span>
         </button>
 
+        <button id="homeSearchToggle" class="timeline-toggle home-search-toggle" type="button" aria-expanded="false" aria-controls="globalSearchDock" aria-label="打开搜索">
+          <span class="timeline-toggle-mark">搜索</span>
+        </button>
+
         <aside id="recordTimelineDock" class="record-timeline-dock" aria-label="记录时间轴" aria-hidden="true">
           <div class="dock-rail">
             <span class="record-timeline-title">绳历</span>
@@ -50,6 +64,20 @@
           <div class="record-timeline-body">
             <div class="drawer-hint timeline-hint">点日期会圈住绳上的位置，再点一次取消。</div>
             <div id="recordTimelineList" class="record-timeline-list" role="list"></div>
+          </div>
+        </aside>
+
+        <aside id="globalSearchDock" class="record-timeline-dock global-search-dock" aria-label="全局搜索" aria-hidden="true">
+          <div class="dock-rail">
+            <span class="record-timeline-title">搜索</span>
+            <button id="globalSearchClose" class="dock-close" type="button" aria-label="收起搜索">×</button>
+          </div>
+          <div class="global-search-body">
+            <label class="global-search-box" aria-label="全局搜索">
+              <span>⌕</span>
+              <input id="globalSearchInput" type="search" placeholder="搜所有绳" />
+            </label>
+            <div id="globalSearchList" class="global-search-list" role="list"></div>
           </div>
         </aside>
 
@@ -117,6 +145,6 @@
       </section>
     </main>
 
-    <script type="module" src="./web/app.js?v=drawer-blank-close-1"></script>
+    <script type="module" src="./web/app.js?v=rope-home-cabinet-1"></script>
   </body>
 </html>

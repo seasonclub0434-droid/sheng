@@ -1,5 +1,8 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const STORAGE_KEY = 'rope-talk-web-mvp-state-v1';
+const HOME_STORAGE_KEY = 'rope-talk-web-home-state-v1';
+const ROPE_STATE_PREFIX = 'rope-talk-web-rope-state-v1:';
+const DEFAULT_ROPE_ID = 'rope-default';
 const PAPER = '#caa36f';
 const ROPE_BODY = '#ddc8a6';
 const ROPE_EDGE = '#b89a72';
@@ -185,6 +188,10 @@ const REWARD_BADGE_NODES = [
 const canvas = document.querySelector('#ropeCanvas');
 const ctx = canvas.getContext('2d');
 const phone = document.querySelector('.phone');
+const homePage = document.querySelector('#homePage');
+const ropeShelf = document.querySelector('#ropeShelf');
+const addRopeAction = document.querySelector('#addRopeAction');
+const backHomeAction = document.querySelector('#backHomeAction');
 const statsBar = document.querySelector('#statsBar');
 const settingsToggle = document.querySelector('#settingsToggle');
 const settingsClose = document.querySelector('#settingsClose');
@@ -197,6 +204,11 @@ const timelineToggle = document.querySelector('#timelineToggle');
 const timelineClose = document.querySelector('#timelineClose');
 const recordTimelineDock = document.querySelector('#recordTimelineDock');
 const recordTimelineList = document.querySelector('#recordTimelineList');
+const homeSearchToggle = document.querySelector('#homeSearchToggle');
+const globalSearchDock = document.querySelector('#globalSearchDock');
+const globalSearchClose = document.querySelector('#globalSearchClose');
+const globalSearchInput = document.querySelector('#globalSearchInput');
+const globalSearchList = document.querySelector('#globalSearchList');
 const exchangeDock = document.querySelector('#exchangeDock');
 const exchangeButton = document.querySelector('#exchangeButton');
 const exchangeTray = document.querySelector('#exchangeTray');
@@ -243,6 +255,9 @@ let lastTimelineSignature = '';
 let statsHideTimer = 0;
 const currentUserId = 'preview-user';
 
+let homeState = loadHomeState();
+let activeRopeId = homeState.activeRopeId || homeState.ropes[0]?.id || DEFAULT_ROPE_ID;
+let viewMode = 'home';
 let state = loadState();
 
 function daysAgo(days) {
@@ -295,20 +310,98 @@ function emptyState() {
   };
 }
 
-function loadState() {
+function defaultRopes() {
+  return [
+    { id: DEFAULT_ROPE_ID, name: '同心绳', createdAt: daysAgo(18) },
+    { id: 'rope-daily', name: '日常绳', createdAt: daysAgo(10) },
+    { id: 'rope-travel', name: '旅行绳', createdAt: daysAgo(7) },
+    { id: 'rope-night', name: '晚安绳', createdAt: daysAgo(5) },
+    { id: 'rope-wish', name: '心愿绳', createdAt: daysAgo(3) },
+    { id: 'rope-soft', name: '柔软绳', createdAt: daysAgo(1) },
+  ];
+}
+
+function defaultHomeState() {
+  return {
+    activeRopeId: DEFAULT_ROPE_ID,
+    ropes: defaultRopes(),
+  };
+}
+
+function ropeStateKey(id) {
+  return `${ROPE_STATE_PREFIX}${id}`;
+}
+
+function demoStateForRope(rope, index) {
+  if (rope.id === DEFAULT_ROPE_ID) return demoState();
+  return {
+    relationshipStartedAt: rope.createdAt || new Date().toISOString(),
+    events: index === 1
+      ? [
+        {
+          id: 'daily-demo-note',
+          type: 'knot',
+          status: 'resolved',
+          content: '这根绳专门放日常里的小别扭，写下来以后就没那么重了。',
+          createdBy: currentUserId,
+          createdAt: daysAgo(8),
+          resolvedAt: daysAgo(7),
+          resolvedBy: currentUserId,
+          resolutionLine: '后来我们决定先问一句：你今天累不累。',
+        },
+      ]
+      : [],
+  };
+}
+
+function readStoredJson(key) {
   try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if (stored && Array.isArray(stored.events)) return stored;
+    return JSON.parse(localStorage.getItem(key) || 'null');
   } catch (error) {
     console.warn(error);
   }
-  const initial = demoState();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+  return null;
+}
+
+function loadHomeState() {
+  const stored = readStoredJson(HOME_STORAGE_KEY);
+  if (stored && Array.isArray(stored.ropes) && stored.ropes.length) return stored;
+
+  const initial = defaultHomeState();
+  const legacy = readStoredJson(STORAGE_KEY);
+  initial.ropes.forEach((rope, index) => {
+    const key = ropeStateKey(rope.id);
+    if (localStorage.getItem(key)) return;
+    const ropeState = rope.id === DEFAULT_ROPE_ID && legacy && Array.isArray(legacy.events)
+      ? legacy
+      : demoStateForRope(rope, index);
+    localStorage.setItem(key, JSON.stringify(ropeState));
+  });
+  localStorage.setItem(HOME_STORAGE_KEY, JSON.stringify(initial));
+  return initial;
+}
+
+function saveHomeState() {
+  localStorage.setItem(HOME_STORAGE_KEY, JSON.stringify(homeState));
+}
+
+function loadState() {
+  const stored = readStoredJson(ropeStateKey(activeRopeId));
+  if (stored && Array.isArray(stored.events)) return stored;
+
+  const rope = homeState.ropes.find((entry) => entry.id === activeRopeId) || homeState.ropes[0];
+  const initial = demoStateForRope(rope || { id: DEFAULT_ROPE_ID }, 0);
+  saveRopeState(activeRopeId, initial);
   return initial;
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  saveRopeState(activeRopeId, state);
+}
+
+function saveRopeState(id, nextState) {
+  localStorage.setItem(ropeStateKey(id), JSON.stringify(nextState));
+  if (id === DEFAULT_ROPE_ID) localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
 }
 
 function toTime(value) {
@@ -509,6 +602,10 @@ function updateCanvasSize() {
 
 function render() {
   if (!width || !height) return;
+  if (viewMode === 'home') {
+    renderHome();
+    return;
+  }
   layoutTimelineItems();
   if (shouldScrollToLatest) {
     scrollY = maxScrollY;
@@ -1855,6 +1952,93 @@ function updateChrome() {
   updateRecordTimeline();
 }
 
+function ropeSummary(rope) {
+  const ropeState = loadRopeStateForHome(rope.id);
+  const openCount = ropeState.events.filter((event) => event.status !== 'resolved').length;
+  const resolvedCount = ropeState.events.filter((event) => event.status === 'resolved').length;
+  return { openCount, resolvedCount };
+}
+
+function loadRopeStateForHome(id) {
+  const stored = readStoredJson(ropeStateKey(id));
+  return stored && Array.isArray(stored.events) ? stored : emptyState();
+}
+
+function renderHome() {
+  if (!ropeShelf) return;
+  phone.classList.add('home-mode');
+  phone.classList.remove('rope-mode');
+  renderGlobalSearchList();
+
+  const rows = Math.max(4, Math.ceil(homeState.ropes.length / 2));
+  const boards = Array.from({ length: rows }, (_, index) => `<span class="shelf-board shelf-board-${index + 1}"></span>`).join('');
+  const ropes = homeState.ropes
+    .map((rope, index) => {
+      const summary = ropeSummary(rope);
+      return `
+        <button class="rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${index}">
+          <span class="rope-coil" aria-hidden="true">
+            <span class="rope-coil-line rope-coil-line-a"></span>
+            <span class="rope-coil-line rope-coil-line-b"></span>
+            <span class="rope-coil-line rope-coil-line-c"></span>
+          </span>
+          <span class="rope-note">
+            <b>${escapeHtml(rope.name)}</b>
+            <span>${summary.openCount}结 · ${summary.resolvedCount}解</span>
+          </span>
+        </button>
+      `;
+    })
+    .join('');
+
+  ropeShelf.innerHTML = `${boards}<div class="rope-grid">${ropes}</div>`;
+}
+
+function globalSearchItems(query) {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [];
+  return homeState.ropes.flatMap((rope) => {
+    const ropeState = loadRopeStateForHome(rope.id);
+    return ropeState.events
+      .filter((event) => event.type === 'knot')
+      .filter((event) => {
+        const haystack = [
+          rope.name,
+          event.content,
+          event.resolutionLine || '',
+          formatDate(event.createdAt),
+          shortDate(event.createdAt),
+          event.resolvedAt ? formatDate(event.resolvedAt) : '',
+          event.resolvedAt ? shortDate(event.resolvedAt) : '',
+        ].join(' ').toLowerCase();
+        return haystack.includes(needle);
+      })
+      .map((event) => ({ rope, event }));
+  });
+}
+
+function renderGlobalSearchList() {
+  if (!globalSearchList || !globalSearchInput) return;
+  const query = globalSearchInput.value.trim();
+  const items = globalSearchItems(query);
+  if (!query) {
+    globalSearchList.innerHTML = '<div class="global-search-empty">写下关键词，会从每根绳里一起找。</div>';
+    return;
+  }
+
+  globalSearchList.innerHTML = items.length
+    ? items
+      .map(({ rope, event }) => `
+        <button class="global-search-entry" type="button" data-rope-id="${escapeHtml(rope.id)}" data-event-id="${escapeHtml(event.id)}">
+          <span class="global-search-rope">${escapeHtml(rope.name)}</span>
+          <span class="global-search-copy">${escapeHtml(event.content)}</span>
+          <span class="global-search-date">${escapeHtml(shortDate(event.createdAt))}</span>
+        </button>
+      `)
+      .join('')
+    : '<div class="global-search-empty">没有找到这段绳记。</div>';
+}
+
 function nextVisibleAnchorY() {
   const visibleAnchor = scrollY + Math.min(Math.max(height * 0.42, 210), height - 230);
   const lastAnchor = state.events.reduce((max, event) => Math.max(max, Number(event.anchorY || 0)), 0);
@@ -1866,6 +2050,7 @@ function toggleExchangeTray(forceOpen) {
   if (isOpen) {
     toggleRecordTimeline(false);
     toggleSettingsDock(false);
+    toggleGlobalSearch(false);
   }
   exchangeDock.classList.toggle('open', isOpen);
   exchangeButton.setAttribute('aria-expanded', String(isOpen));
@@ -1876,6 +2061,7 @@ function toggleRecordTimeline(forceOpen) {
   const isOpen = forceOpen == null ? !recordTimelineDock.classList.contains('open') : forceOpen;
   if (isOpen) {
     toggleSettingsDock(false);
+    toggleGlobalSearch(false);
     toggleExchangeTray(false);
     shouldTimelineListScrollLatest = true;
   }
@@ -1886,11 +2072,27 @@ function toggleRecordTimeline(forceOpen) {
   render();
 }
 
+function toggleGlobalSearch(forceOpen) {
+  const isOpen = forceOpen == null ? !globalSearchDock.classList.contains('open') : forceOpen;
+  if (isOpen) {
+    toggleSettingsDock(false);
+    toggleRecordTimeline(false);
+    toggleExchangeTray(false);
+    renderGlobalSearchList();
+  }
+  globalSearchDock.classList.toggle('open', isOpen);
+  homeSearchToggle.classList.toggle('open', isOpen);
+  homeSearchToggle.setAttribute('aria-expanded', String(isOpen));
+  globalSearchDock.setAttribute('aria-hidden', String(!isOpen));
+  if (isOpen) setTimeout(() => globalSearchInput.focus(), 30);
+}
+
 function toggleSettingsDock(forceOpen) {
   const isOpen = forceOpen == null ? !settingsDock.classList.contains('open') : forceOpen;
   if (isOpen) {
     toggleExchangeTray(false);
     toggleRecordTimeline(false);
+    toggleGlobalSearch(false);
   }
   settingsDock.classList.toggle('open', isOpen);
   settingsToggle.classList.toggle('open', isOpen);
@@ -1905,7 +2107,7 @@ function askResetConfirmation() {
 
 function resetPreviewState() {
   state = emptyState();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  saveState();
   scrollY = 0;
   selectedEventId = '';
   selectedTimelineId = '';
@@ -1916,7 +2118,55 @@ function resetPreviewState() {
   shouldScrollToLatest = true;
   closeModal();
   toggleSettingsDock(false);
-  render();
+  if (viewMode === 'home') renderHome();
+  else render();
+}
+
+function activeRopeMeta() {
+  return homeState.ropes.find((rope) => rope.id === activeRopeId) || homeState.ropes[0];
+}
+
+function enterRope(id) {
+  const rope = homeState.ropes.find((entry) => entry.id === id);
+  if (!rope) return;
+  activeRopeId = id;
+  homeState.activeRopeId = id;
+  saveHomeState();
+  state = loadState();
+  viewMode = 'rope';
+  shouldScrollToLatest = true;
+  selectedEventId = '';
+  selectedTimelineId = '';
+  lastStatsSignature = '';
+  lastTimelineSignature = '';
+  closeFloatingDocks();
+  closeModal();
+  phone.classList.remove('home-mode');
+  phone.classList.add('rope-mode');
+  updateCanvasSize();
+}
+
+function goHome() {
+  viewMode = 'home';
+  closeFloatingDocks();
+  closeModal();
+  phone.classList.add('home-mode');
+  phone.classList.remove('rope-mode');
+  renderHome();
+}
+
+function addRope() {
+  const count = homeState.ropes.length + 1;
+  const rope = {
+    id: createId('rope'),
+    name: `新绳${count}`,
+    createdAt: new Date().toISOString(),
+  };
+  homeState.ropes.push(rope);
+  homeState.activeRopeId = rope.id;
+  saveHomeState();
+  saveRopeState(rope.id, emptyState());
+  renderHome();
 }
 
 function isRecordTimelineOpen() {
@@ -1925,6 +2175,10 @@ function isRecordTimelineOpen() {
 
 function isSettingsDockOpen() {
   return settingsDock.classList.contains('open');
+}
+
+function isGlobalSearchOpen() {
+  return globalSearchDock.classList.contains('open');
 }
 
 function closeFloatingDocks() {
@@ -1937,6 +2191,10 @@ function closeFloatingDocks() {
     selectedTimelineId = '';
     lastTimelineSignature = '';
     toggleRecordTimeline(false);
+    closed = true;
+  }
+  if (isGlobalSearchOpen()) {
+    toggleGlobalSearch(false);
     closed = true;
   }
   return closed;
@@ -2370,6 +2628,13 @@ document.querySelector('#cancelNote').addEventListener('click', closeModal);
 document.querySelector('#saveNote').addEventListener('click', saveNote);
 document.querySelector('#closeDetail').addEventListener('click', closeModal);
 document.querySelector('#closeNotebook').addEventListener('click', closeModal);
+ropeShelf.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-rope-id]');
+  if (!button) return;
+  enterRope(button.dataset.ropeId);
+});
+addRopeAction.addEventListener('click', addRope);
+backHomeAction.addEventListener('click', goHome);
 settingsToggle.addEventListener('click', () => toggleSettingsDock());
 settingsClose.addEventListener('click', () => toggleSettingsDock(false));
 resetPreviewAction.addEventListener('click', askResetConfirmation);
@@ -2384,6 +2649,15 @@ recordTimelineList.addEventListener('click', (event) => {
 });
 timelineToggle.addEventListener('click', () => toggleRecordTimeline());
 timelineClose.addEventListener('click', () => toggleRecordTimeline(false));
+homeSearchToggle.addEventListener('click', () => toggleGlobalSearch());
+globalSearchClose.addEventListener('click', () => toggleGlobalSearch(false));
+globalSearchInput.addEventListener('input', renderGlobalSearchList);
+globalSearchList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-rope-id][data-event-id]');
+  if (!button) return;
+  enterRope(button.dataset.ropeId);
+  openDetail(button.dataset.eventId);
+});
 exchangeButton.addEventListener('click', () => toggleExchangeTray());
 writeKnotAction.addEventListener('click', openWriteFromExchange);
 resolveKnotAction.addEventListener('click', openResolveFromExchange);
@@ -2403,11 +2677,12 @@ modalLayer.addEventListener('click', (event) => {
   if (event.target === modalLayer) closeModal();
 });
 document.addEventListener('pointerdown', (event) => {
-  if (!isSettingsDockOpen() && !isRecordTimelineOpen()) return;
+  if (!isSettingsDockOpen() && !isRecordTimelineOpen() && !isGlobalSearchOpen()) return;
   const target = event.target;
   const insideSettings = settingsDock.contains(target) || settingsToggle.contains(target);
   const insideTimeline = recordTimelineDock.contains(target) || timelineToggle.contains(target);
-  if (insideSettings || insideTimeline || target === canvas) return;
+  const insideGlobalSearch = globalSearchDock.contains(target) || homeSearchToggle.contains(target);
+  if (insideSettings || insideTimeline || insideGlobalSearch || target === canvas) return;
   closeFloatingDocks();
 });
 document.addEventListener('keydown', (event) => {
@@ -2418,4 +2693,5 @@ document.addEventListener('keydown', (event) => {
 });
 window.addEventListener('resize', updateCanvasSize);
 
+phone.classList.add('home-mode');
 updateCanvasSize();

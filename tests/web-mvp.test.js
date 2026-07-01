@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'drawer-blank-close-1';
+const assetVersion = 'rope-home-cabinet-1';
 
 function test(name, fn) {
   try {
@@ -85,6 +85,48 @@ test('browser preview keeps the home screen clean with a journal rope control', 
   assert.ok(!js.includes('statusText'));
 });
 
+test('browser preview adds a cabinet-style rope home with isolated rope states and global search', () => {
+  assert.ok(html.includes('id="homePage"'));
+  assert.ok(html.includes('我的绳'));
+  assert.ok(html.includes('id="ropeShelf"'));
+  assert.ok(html.includes('class="rope-shelf"'));
+  assert.ok(html.includes('id="addRopeAction"'));
+  assert.ok(html.includes('id="backHomeAction"'));
+  assert.ok(html.includes('id="homeSearchToggle"'));
+  assert.ok(html.includes('id="globalSearchDock"'));
+  assert.ok(html.includes('id="globalSearchInput"'));
+  assert.ok(html.includes('placeholder="搜所有绳"'));
+  assert.ok(pagesHtml.includes('id="homePage"'));
+  assert.ok(pagesHtml.includes('id="globalSearchDock"'));
+  assert.ok(js.includes('const HOME_STORAGE_KEY'));
+  assert.ok(js.includes('const ROPE_STATE_PREFIX'));
+  assert.ok(js.includes('const DEFAULT_ROPE_ID'));
+  assert.ok(js.includes('function defaultRopes('));
+  assert.ok(js.includes('function ropeStateKey('));
+  assert.ok(js.includes('function loadHomeState('));
+  assert.ok(js.includes('function saveRopeState('));
+  assert.ok(js.includes('function enterRope('));
+  assert.ok(js.includes('function goHome('));
+  assert.ok(js.includes('function addRope('));
+  assert.ok(js.includes('function renderHome('));
+  assert.ok(js.includes('function globalSearchItems('));
+  assert.ok(js.includes('function renderGlobalSearchList('));
+  assert.ok(js.includes('saveRopeState(activeRopeId, state)'));
+  assert.ok(js.includes('homeState.ropes.flatMap'));
+  assert.ok(js.includes('ropeShelf.addEventListener'));
+  assert.ok(js.includes('globalSearchList.addEventListener'));
+  assert.ok(css.includes('.home-page'));
+  assert.ok(css.includes('.rope-shelf'));
+  assert.ok(css.includes('.shelf-board'));
+  assert.ok(css.includes('.rope-coil'));
+  assert.ok(css.includes('.rope-note'));
+  assert.ok(css.includes('.add-rope-action'));
+  assert.ok(css.includes('.global-search-dock'));
+  assert.ok(css.includes('.global-search-entry'));
+  assert.ok(css.includes('.home-mode .rope-canvas'));
+  assert.ok(css.includes('.phone:not(.home-mode) .home-page'));
+});
+
 test('browser preview only starts writing from the journal action, not blank rope taps', () => {
   assert.ok(js.includes('function openWriteFromExchange()'));
   assert.ok(js.includes('pendingAnchorY = nextVisibleAnchorY();'));
@@ -121,7 +163,8 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(js.includes('state = emptyState()'));
   assert.ok(js.includes('events: []'));
   assert.ok(!js.includes('state = demoState()'));
-  assert.ok(js.includes('localStorage.setItem(STORAGE_KEY, JSON.stringify(state))'));
+  assert.ok(js.includes('saveState();'));
+  assert.ok(js.includes('localStorage.setItem(ropeStateKey(id), JSON.stringify(nextState))'));
   assert.ok(js.includes("lastTimelineSignature = '__reset__'"));
   assert.ok(js.includes('settingsToggle.addEventListener'));
   assert.ok(js.includes('resetPreviewAction.addEventListener'));
@@ -162,10 +205,13 @@ test('browser preview adds a notebook for reviewing resolved knots and badges', 
 });
 
 test('browser preview notebook search only returns written or resolved records', () => {
+  const notebookSearchStart = js.indexOf('function notebookMatches(');
+  const notebookSearchEnd = js.indexOf('function renderNotebookList(', notebookSearchStart);
+  const notebookSearchBlock = js.slice(notebookSearchStart, notebookSearchEnd);
   assert.ok(js.includes("if (query && item.type === 'badge') return false;"));
-  assert.ok(js.indexOf("if (query && item.type === 'badge') return false;") < js.indexOf('const haystack = ['));
-  assert.ok(js.includes('notebookTitle(item),'));
-  assert.ok(js.includes('notebookCopy(item),'));
+  assert.ok(notebookSearchBlock.indexOf("if (query && item.type === 'badge') return false;") < notebookSearchBlock.indexOf('const haystack = ['));
+  assert.ok(notebookSearchBlock.includes('notebookTitle(item),'));
+  assert.ok(notebookSearchBlock.includes('notebookCopy(item),'));
   assert.ok(js.includes("const items = notebookItems().filter((item) => notebookMatches(item, query));"));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
@@ -241,7 +287,7 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes('recordTimelineList.scrollTop = recordTimelineList.scrollHeight'));
   assert.ok(js.includes("event.stopPropagation();"));
   assert.ok(js.includes('document.addEventListener(\'pointerdown\''));
-  assert.ok(js.includes('if (insideSettings || insideTimeline || target === canvas) return;'));
+  assert.ok(js.includes('if (insideSettings || insideTimeline || insideGlobalSearch || target === canvas) return;'));
   assert.ok(js.includes('closeFloatingDocks();'));
   assert.ok(js.includes('if (isSettingsDockOpen())'));
   assert.ok(js.includes('toggleRecordTimeline(false);'));
