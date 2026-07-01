@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-tail-style-match-1';
+const assetVersion = 'pull-tail-continuous-rope-1';
 
 function test(name, fn) {
   try {
@@ -219,6 +219,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::before'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('width: 15px'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('height: 326px'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil-line-b'));
   assert.ok(css.includes('linear-gradient(180deg, #caa36f, #caa36f)'));
   assert.ok(css.includes('clip-path: polygon'));
