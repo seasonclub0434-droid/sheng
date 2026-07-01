@@ -141,7 +141,7 @@ button {
 .rope-shelf {
   position: relative;
   min-height: 0;
-  margin-top: 24px;
+  margin-top: 20px;
   overflow: auto;
   scrollbar-width: none;
 }
@@ -150,42 +150,101 @@ button {
   display: none;
 }
 
-.shelf-board {
-  position: absolute;
-  right: -46px;
-  left: -46px;
-  z-index: 0;
-  height: 27px;
-  background:
-    linear-gradient(90deg, rgba(94, 55, 16, 0.92), rgba(126, 77, 22, 0.98) 48%, rgba(96, 55, 14, 0.94)),
-    repeating-linear-gradient(7deg, rgba(255, 219, 147, 0.08) 0 1px, transparent 1px 9px);
-  box-shadow:
-    inset 0 2px 0 rgba(237, 177, 83, 0.12),
-    inset 0 -4px 8px rgba(52, 29, 9, 0.18),
-    0 8px 14px rgba(60, 38, 18, 0.13);
-  transform: rotate(-0.25deg);
-}
-
-.shelf-board-1 { top: 92px; }
-.shelf-board-2 { top: 204px; transform: rotate(0.35deg); }
-.shelf-board-3 { top: 316px; }
-.shelf-board-4 { top: 428px; transform: rotate(0.3deg); }
-.shelf-board-5 { top: 540px; }
-.shelf-board-6 { top: 652px; transform: rotate(-0.35deg); }
-
-.rope-grid {
+.cabinet-stack {
   position: relative;
   z-index: 1;
   display: grid;
+  gap: 11px;
+  padding: 12px 0 26px;
+}
+
+.cabinet-row {
+  position: relative;
+  min-height: 126px;
+  padding: 10px 18px 24px;
+  overflow: visible;
+  background:
+    linear-gradient(180deg, rgba(75, 43, 16, 0.2), rgba(151, 104, 45, 0.08) 40%, rgba(58, 34, 14, 0.2)),
+    radial-gradient(ellipse at 50% 18%, rgba(236, 181, 101, 0.12), transparent 52%),
+    linear-gradient(96deg, rgba(88, 54, 22, 0.18), rgba(178, 126, 61, 0.08) 46%, rgba(58, 33, 12, 0.17));
+  border: 1px solid rgba(68, 43, 20, 0.18);
+  border-radius: 6px 5px 7px 5px;
+  box-shadow:
+    inset 0 10px 22px rgba(65, 39, 17, 0.16),
+    inset 0 -10px 16px rgba(231, 178, 98, 0.06);
+  transform: rotate(calc((var(--row-index) - 1.5) * 0.16deg));
+}
+
+.cabinet-row::before,
+.cabinet-row::after {
+  position: absolute;
+  top: 2px;
+  bottom: 15px;
+  z-index: 1;
+  width: 10px;
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(70, 40, 15, 0.34), rgba(180, 126, 60, 0.08)),
+    repeating-linear-gradient(180deg, rgba(241, 183, 98, 0.08) 0 1px, transparent 1px 10px);
+  border-radius: 4px;
+  box-shadow: inset -2px 0 5px rgba(55, 32, 13, 0.18);
+}
+
+.cabinet-row::before {
+  left: -5px;
+}
+
+.cabinet-row::after {
+  right: -5px;
+  transform: scaleX(-1);
+}
+
+.cabinet-back {
+  position: absolute;
+  inset: 6px 9px 30px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 24% 24%, rgba(85, 51, 21, 0.12), transparent 24%),
+    radial-gradient(circle at 72% 65%, rgba(238, 186, 104, 0.08), transparent 28%),
+    repeating-linear-gradient(91deg, rgba(80, 49, 23, 0.08) 0 1px, transparent 1px 15px);
+  border-radius: 5px;
+}
+
+.cabinet-front {
+  position: absolute;
+  right: -33px;
+  bottom: 10px;
+  left: -33px;
+  z-index: 3;
+  height: 30px;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(157, 100, 35, 0.94), rgba(90, 51, 13, 0.98)),
+    repeating-linear-gradient(8deg, rgba(255, 216, 135, 0.12) 0 1px, transparent 1px 10px),
+    radial-gradient(ellipse at 28% 42%, rgba(64, 35, 10, 0.22), transparent 16%),
+    radial-gradient(ellipse at 75% 34%, rgba(230, 166, 72, 0.13), transparent 18%);
+  border-top: 1px solid rgba(229, 166, 76, 0.2);
+  border-bottom: 1px solid rgba(53, 29, 8, 0.36);
+  box-shadow:
+    0 9px 16px rgba(55, 32, 13, 0.22),
+    inset 0 3px 0 rgba(232, 171, 86, 0.08),
+    inset 0 -6px 10px rgba(48, 28, 11, 0.22);
+  transform: rotate(-0.12deg);
+}
+
+.cabinet-slots {
+  position: relative;
+  z-index: 4;
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 26px 38px;
-  padding: 58px 0 28px;
+  gap: 30px;
 }
 
 .rope-tile {
   position: relative;
   display: grid;
-  height: 86px;
+  height: 94px;
   padding: 0;
   place-items: start center;
   background: transparent;
@@ -196,69 +255,58 @@ button {
 .rope-coil {
   position: relative;
   display: block;
-  width: 70px;
-  height: 70px;
+  z-index: 2;
+  width: 66px;
+  height: 60px;
+  margin-top: 2px;
   background:
-    radial-gradient(circle at 44% 42%, rgba(255, 244, 216, 0.28) 0 15%, transparent 16%),
-    repeating-radial-gradient(circle at 50% 50%, rgba(91, 69, 46, 0.18) 0 2px, rgba(224, 202, 167, 0.86) 3px 8px, rgba(137, 103, 68, 0.22) 9px 11px);
-  border: 1px solid rgba(83, 63, 43, 0.34);
+    radial-gradient(ellipse at 50% 62%, rgba(92, 63, 38, 0.2), transparent 55%),
+    linear-gradient(135deg, rgba(221, 200, 166, 0.22), rgba(161, 119, 75, 0.1));
   border-radius: 50%;
   box-shadow:
-    0 8px 16px rgba(70, 49, 28, 0.11),
-    inset 0 0 0 6px rgba(228, 207, 172, 0.52),
-    inset 0 0 12px rgba(101, 72, 44, 0.2);
+    0 9px 11px rgba(63, 40, 19, 0.18),
+    inset 0 0 9px rgba(250, 235, 205, 0.16);
 }
 
-.rope-coil::before,
-.rope-coil::after,
 .rope-coil-line {
   position: absolute;
   content: "";
-  border: 3px solid rgba(126, 94, 60, 0.72);
+  border: 6px solid rgba(222, 202, 168, 0.95);
   border-radius: 50%;
-  filter: drop-shadow(0 1px 0 rgba(251, 237, 205, 0.26));
-}
-
-.rope-coil::before {
-  inset: 10px 11px 13px 9px;
-  border-color: rgba(231, 211, 176, 0.92);
-  transform: rotate(-18deg);
-}
-
-.rope-coil::after {
-  inset: 20px 18px 17px 21px;
-  border-color: rgba(104, 77, 49, 0.58);
-  transform: rotate(22deg);
+  box-shadow:
+    1px 2px 0 rgba(113, 80, 48, 0.26),
+    inset 1px 1px 0 rgba(252, 239, 210, 0.32);
 }
 
 .rope-coil-line-a {
-  inset: 7px 17px 18px 7px;
-  border-width: 2px;
-  transform: rotate(36deg);
+  inset: 6px 13px 13px 4px;
+  border-color: rgba(226, 207, 175, 0.98);
+  transform: rotate(-23deg);
 }
 
 .rope-coil-line-b {
-  inset: 18px 8px 9px 17px;
-  border-color: rgba(238, 222, 190, 0.8);
-  border-width: 2px;
-  transform: rotate(-31deg);
+  inset: 15px 4px 7px 18px;
+  border-color: rgba(198, 171, 129, 0.92);
+  border-width: 5px;
+  transform: rotate(24deg);
 }
 
 .rope-coil-line-c {
-  inset: 26px 25px 23px 19px;
-  border-color: rgba(84, 62, 40, 0.4);
-  border-width: 1px;
-  transform: rotate(12deg);
+  inset: 21px 21px 15px 18px;
+  border-color: rgba(244, 229, 199, 0.92);
+  border-width: 4px;
+  transform: rotate(-8deg);
 }
 
 .rope-note {
   position: absolute;
-  top: 54px;
+  bottom: -10px;
   left: 50%;
   display: grid;
-  width: 58px;
-  min-height: 50px;
-  padding: 8px 5px 6px;
+  z-index: 6;
+  width: 66px;
+  min-height: 41px;
+  padding: 7px 5px 5px;
   place-items: center;
   color: #4b3b2e;
   font-family: var(--font-hand);
@@ -268,7 +316,7 @@ button {
     radial-gradient(circle at 82% 18%, rgba(120, 80, 38, 0.1), transparent 34%);
   border: 1px solid rgba(101, 76, 49, 0.14);
   border-radius: 4px 5px 6px 4px;
-  box-shadow: 0 8px 12px rgba(80, 55, 30, 0.12);
+  box-shadow: 0 7px 10px rgba(47, 27, 10, 0.14);
   transform: translateX(-50%) rotate(-0.7deg);
 }
 

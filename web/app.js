@@ -1971,27 +1971,38 @@ function renderHome() {
   renderGlobalSearchList();
 
   const rows = Math.max(4, Math.ceil(homeState.ropes.length / 2));
-  const boards = Array.from({ length: rows }, (_, index) => `<span class="shelf-board shelf-board-${index + 1}"></span>`).join('');
-  const ropes = homeState.ropes
-    .map((rope, index) => {
-      const summary = ropeSummary(rope);
-      return `
-        <button class="rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${index}">
-          <span class="rope-coil" aria-hidden="true">
-            <span class="rope-coil-line rope-coil-line-a"></span>
-            <span class="rope-coil-line rope-coil-line-b"></span>
-            <span class="rope-coil-line rope-coil-line-c"></span>
-          </span>
-          <span class="rope-note">
-            <b>${escapeHtml(rope.name)}</b>
-            <span>${summary.openCount}结 · ${summary.resolvedCount}解</span>
-          </span>
-        </button>
-      `;
-    })
-    .join('');
+  const shelfRows = Array.from({ length: rows }, (_, rowIndex) => {
+    const rowRopes = homeState.ropes.slice(rowIndex * 2, rowIndex * 2 + 2);
+    const slots = rowRopes
+      .map((rope, slotIndex) => {
+        const summary = ropeSummary(rope);
+        const tileIndex = rowIndex * 2 + slotIndex;
+        return `
+          <button class="rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${tileIndex}">
+            <span class="rope-coil" aria-hidden="true">
+              <span class="rope-coil-line rope-coil-line-a"></span>
+              <span class="rope-coil-line rope-coil-line-b"></span>
+              <span class="rope-coil-line rope-coil-line-c"></span>
+            </span>
+            <span class="rope-note">
+              <b>${escapeHtml(rope.name)}</b>
+              <span>${summary.openCount}结 · ${summary.resolvedCount}解</span>
+            </span>
+          </button>
+        `;
+      })
+      .join('');
 
-  ropeShelf.innerHTML = `${boards}<div class="rope-grid">${ropes}</div>`;
+    return `
+      <div class="cabinet-row" style="--row-index: ${rowIndex}">
+        <span class="cabinet-back" aria-hidden="true"></span>
+        <div class="cabinet-slots">${slots}</div>
+        <span class="cabinet-front" aria-hidden="true"></span>
+      </div>
+    `;
+  }).join('');
+
+  ropeShelf.innerHTML = `<div class="cabinet-stack">${shelfRows}</div>`;
 }
 
 function globalSearchItems(query) {
