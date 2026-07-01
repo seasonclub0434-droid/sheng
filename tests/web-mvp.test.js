@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'wood-cabinet-home-1';
+const assetVersion = 'search-compensated-1';
 
 function test(name, fn) {
   try {
@@ -111,6 +111,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('function renderHome('));
   assert.ok(js.includes('function globalSearchItems('));
   assert.ok(js.includes('function renderGlobalSearchList('));
+  assert.ok(js.includes('function updateFloatingDockBounds('));
+  assert.ok(!js.includes('globalSearchInput.focus()'));
+  assert.ok(js.includes("phone.classList.toggle('search-open', isOpen)"));
+  assert.ok(js.includes('homeSearchToggle.blur();'));
   assert.ok(js.includes('saveRopeState(activeRopeId, state)'));
   assert.ok(js.includes('homeState.ropes.flatMap'));
   assert.ok(js.includes('ropeShelf.addEventListener'));
@@ -125,6 +129,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-note'));
   assert.ok(css.includes('.add-rope-action'));
   assert.ok(css.includes('.global-search-dock'));
+  assert.ok(css.includes('.phone.home-mode.search-open .home-page'));
+  assert.ok(css.includes('position: fixed'));
+  assert.ok(css.includes('--global-search-left'));
   assert.ok(css.includes('.global-search-entry'));
   assert.ok(css.includes('.home-mode .rope-canvas'));
   assert.ok(css.includes('.phone:not(.home-mode) .home-page'));

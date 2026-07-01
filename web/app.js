@@ -586,11 +586,22 @@ function formatDate(value) {
   return `${date.getFullYear()}.${month}.${day}`;
 }
 
+function updateFloatingDockBounds(rect = phone.getBoundingClientRect()) {
+  const searchWidth = 182;
+  const searchLeft = Math.round(rect.right - 12 - searchWidth);
+  const searchTop = Math.round(rect.top + 112);
+  const searchHeight = Math.max(260, Math.min(520, Math.round(rect.height - 230)));
+  phone.style.setProperty('--global-search-left', `${searchLeft}px`);
+  phone.style.setProperty('--global-search-top', `${searchTop}px`);
+  phone.style.setProperty('--global-search-height', `${searchHeight}px`);
+}
+
 function updateCanvasSize() {
   const rect = phone.getBoundingClientRect();
   dpr = window.devicePixelRatio || 1;
   width = Math.round(rect.width);
   height = Math.round(rect.height);
+  updateFloatingDockBounds(rect);
   ropeX = Math.round(width / 2);
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);
@@ -2086,16 +2097,19 @@ function toggleRecordTimeline(forceOpen) {
 function toggleGlobalSearch(forceOpen) {
   const isOpen = forceOpen == null ? !globalSearchDock.classList.contains('open') : forceOpen;
   if (isOpen) {
+    updateFloatingDockBounds();
     toggleSettingsDock(false);
     toggleRecordTimeline(false);
     toggleExchangeTray(false);
     renderGlobalSearchList();
   }
   globalSearchDock.classList.toggle('open', isOpen);
-  homeSearchToggle.classList.toggle('open', isOpen);
+  phone.classList.toggle('search-open', isOpen);
+  homeSearchToggle.classList.remove('open');
   homeSearchToggle.setAttribute('aria-expanded', String(isOpen));
   globalSearchDock.setAttribute('aria-hidden', String(!isOpen));
-  if (isOpen) setTimeout(() => globalSearchInput.focus(), 30);
+  homeSearchToggle.blur();
+  if (!isOpen) globalSearchInput.blur();
 }
 
 function toggleSettingsDock(forceOpen) {
