@@ -8,6 +8,56 @@ const ROPE_BODY = '#ddc8a6';
 const ROPE_EDGE = '#b89a72';
 const ROPE_SHADOW = 'rgba(86, 63, 37, 0.22)';
 const ROPE_HIGHLIGHT = 'rgba(248, 235, 205, 0.58)';
+const ROPE_NOTE_PALETTES = [
+  {
+    a: 'rgba(229, 236, 205, 0.92)',
+    b: 'rgba(188, 205, 174, 0.9)',
+    spotA: 'rgba(54, 73, 45, 0.13)',
+    spotB: 'rgba(106, 118, 73, 0.14)',
+    border: 'rgba(65, 87, 55, 0.22)',
+    sub: '#65745d',
+  },
+  {
+    a: 'rgba(238, 222, 203, 0.92)',
+    b: 'rgba(214, 188, 164, 0.9)',
+    spotA: 'rgba(104, 67, 43, 0.12)',
+    spotB: 'rgba(134, 93, 61, 0.13)',
+    border: 'rgba(112, 75, 47, 0.2)',
+    sub: '#776458',
+  },
+  {
+    a: 'rgba(223, 231, 232, 0.92)',
+    b: 'rgba(185, 202, 204, 0.9)',
+    spotA: 'rgba(47, 76, 83, 0.12)',
+    spotB: 'rgba(85, 113, 116, 0.13)',
+    border: 'rgba(55, 84, 88, 0.2)',
+    sub: '#5f7477',
+  },
+  {
+    a: 'rgba(237, 224, 229, 0.92)',
+    b: 'rgba(210, 188, 198, 0.9)',
+    spotA: 'rgba(98, 55, 70, 0.11)',
+    spotB: 'rgba(126, 79, 92, 0.12)',
+    border: 'rgba(103, 67, 78, 0.2)',
+    sub: '#765f67',
+  },
+  {
+    a: 'rgba(231, 225, 201, 0.92)',
+    b: 'rgba(202, 191, 151, 0.9)',
+    spotA: 'rgba(95, 81, 40, 0.11)',
+    spotB: 'rgba(128, 111, 63, 0.12)',
+    border: 'rgba(104, 88, 50, 0.19)',
+    sub: '#746c54',
+  },
+  {
+    a: 'rgba(223, 222, 237, 0.92)',
+    b: 'rgba(189, 188, 211, 0.9)',
+    spotA: 'rgba(57, 58, 99, 0.1)',
+    spotB: 'rgba(84, 84, 126, 0.12)',
+    border: 'rgba(68, 68, 105, 0.19)',
+    sub: '#64637b',
+  },
+];
 const HIGHLIGHT_INK = {
   fill: 'rgba(176, 37, 31, 0.045)',
   badgeFill: 'rgba(176, 37, 31, 0.055)',
@@ -581,6 +631,24 @@ function computeRewardBadges(sourceState) {
 function noise(seed) {
   const value = Math.sin(seed * 12.9898) * 43758.5453;
   return value - Math.floor(value);
+}
+
+function ropeNotePaletteStyle(rope, tileIndex, usedPaletteIndexes) {
+  const seed = Math.abs(hashText(`${rope.id}:${rope.name}:${tileIndex}`));
+  let paletteIndex = seed % ROPE_NOTE_PALETTES.length;
+  while (usedPaletteIndexes.has(paletteIndex) && usedPaletteIndexes.size < ROPE_NOTE_PALETTES.length) {
+    paletteIndex = (paletteIndex + 1) % ROPE_NOTE_PALETTES.length;
+  }
+  usedPaletteIndexes.add(paletteIndex);
+  const palette = ROPE_NOTE_PALETTES[paletteIndex];
+  return [
+    `--note-paper-a: ${palette.a}`,
+    `--note-paper-b: ${palette.b}`,
+    `--note-spot-a: ${palette.spotA}`,
+    `--note-spot-b: ${palette.spotB}`,
+    `--note-border: ${palette.border}`,
+    `--note-sub: ${palette.sub}`,
+  ].join('; ');
 }
 
 function formatDate(value) {
@@ -2016,6 +2084,7 @@ function renderHome() {
   renderGlobalSearchList();
 
   const rows = Math.max(4, Math.ceil(homeState.ropes.length / 2));
+  const usedNotePaletteIndexes = new Set();
   const shelfRows = Array.from({ length: rows }, (_, rowIndex) => {
     const rowRopes = homeState.ropes.slice(rowIndex * 2, rowIndex * 2 + 2);
     const slots = Array.from({ length: 2 }, (_, slotIndex) => {
@@ -2026,6 +2095,7 @@ function renderHome() {
 
         const summary = ropeSummary(rope);
         const tileIndex = rowIndex * 2 + slotIndex;
+        const noteStyle = ropeNotePaletteStyle(rope, tileIndex, usedNotePaletteIndexes);
         return `
           <button class="cabinet-slot rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${tileIndex}" aria-label="打开${escapeHtml(rope.name)}">
             <span class="rope-coil" aria-hidden="true">
@@ -2033,7 +2103,7 @@ function renderHome() {
               <span class="rope-coil-line rope-coil-line-b"></span>
               <span class="rope-coil-line rope-coil-line-c"></span>
             </span>
-            <span class="rope-note">
+            <span class="rope-note" style="${noteStyle}">
               <b>${escapeHtml(rope.name)}</b>
               <span>${summary.openCount}结 · ${summary.resolvedCount}解</span>
             </span>
@@ -2803,6 +2873,8 @@ document.addEventListener('keydown', (event) => {
   }
 });
 window.addEventListener('resize', updateCanvasSize);
+window.addEventListener('load', updateCanvasSize);
 
 phone.classList.add('home-mode');
 updateCanvasSize();
+requestAnimationFrame(updateCanvasSize);

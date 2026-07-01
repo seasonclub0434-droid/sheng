@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'shelf-label-controls-1';
+const assetVersion = 'home-icon-controls-4';
 
 function test(name, fn) {
   try {
@@ -92,6 +92,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('id="ropeShelf"'));
   assert.ok(html.includes('class="rope-shelf"'));
   assert.ok(html.includes('id="addRopeAction"'));
+  assert.ok(html.includes('class="home-control-bar"'));
+  assert.ok(html.includes('gear-icon'));
+  assert.ok(html.includes('search-icon'));
   assert.ok(html.includes('class="add-rope-plus"'));
   assert.ok(!html.includes('<span>添加</span>'));
   assert.ok(html.includes('id="backHomeAction"'));
@@ -163,7 +166,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.empty-slot'));
   assert.ok(css.includes('.cabinet-top'));
   assert.ok(css.includes('.cabinet-bottom'));
-  assert.ok(cssBlock('.cabinet-bottom', 'right: -12px;').includes('height: 24px'));
+  assert.ok(cssBlock('.cabinet-bottom', 'right: -12px;').includes('height: 13px'));
   assert.ok(css.includes('.cabinet-front'));
   assert.ok(css.includes('.cabinet-front::before'));
   assert.ok(css.includes('.cabinet-back'));
@@ -178,18 +181,27 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-coil::after'));
   assert.ok(css.includes('.rope-note'));
   assert.ok(cssBlock('.rope-note').includes('bottom: -25px'));
-  assert.ok(cssBlock('.rope-note').includes('rgba(229, 236, 205, 0.92)'));
+  assert.ok(cssBlock('.rope-note').includes('var(--note-paper-a'));
+  assert.ok(js.includes('const ROPE_NOTE_PALETTES'));
+  assert.ok(js.includes('function ropeNotePaletteStyle'));
+  assert.ok(js.includes('usedNotePaletteIndexes'));
+  assert.ok(js.includes('while (usedPaletteIndexes.has(paletteIndex)'));
+  assert.strictEqual((js.match(/function hashText/g) || []).length, 1);
+  assert.ok(js.includes('--note-paper-a'));
   assert.ok(css.includes('.rope-name-input'));
+  assert.ok(css.includes('.home-control-bar'));
+  assert.ok(css.includes('.control-icon'));
+  assert.ok(css.includes('.gear-icon'));
+  assert.ok(css.includes('.search-icon'));
   assert.ok(css.includes('.add-rope-action'));
+  assert.ok(cssBlock('.home-control-bar').includes('grid-template-columns: 42px 52px 42px'));
   assert.ok(cssBlock('.add-rope-action').includes('position: absolute'));
-  assert.ok(cssBlock('.add-rope-action').includes('bottom: 22px'));
   assert.ok(cssBlock('.add-rope-action').includes('width: 50px'));
   assert.ok(cssBlock('.add-rope-action').includes('opacity: 0.84'));
   assert.ok(css.includes('.add-rope-plus'));
-  assert.ok(css.includes('.home-mode .settings-toggle'));
-  assert.ok(css.includes('left: calc(50% - 72px)'));
-  assert.ok(css.includes('.home-mode .home-search-toggle'));
-  assert.ok(css.includes('left: calc(50% + 72px)'));
+  assert.ok(css.includes('.home-mode .home-control-bar .settings-toggle'));
+  assert.ok(css.includes('.home-mode .home-control-bar .home-search-toggle'));
+  assert.ok(css.includes('.home-mode .home-control-bar .add-rope-action'));
   assert.ok(css.includes('writing-mode: horizontal-tb'));
   assert.ok(css.includes('.phone.rope-mode .settings-toggle'));
   assert.ok(css.includes('.back-home-action::before'));
@@ -245,6 +257,8 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(!js.includes('state = demoState()'));
   assert.ok(js.includes('saveHomeState();'));
   assert.ok(js.includes("phone.classList.add('home-mode')"));
+  assert.ok(js.includes("window.addEventListener('load', updateCanvasSize)"));
+  assert.ok(js.includes('requestAnimationFrame(updateCanvasSize)'));
   assert.ok(js.includes('localStorage.setItem(ropeStateKey(id), JSON.stringify(nextState))'));
   assert.ok(js.includes("lastTimelineSignature = '__reset__'"));
   assert.ok(js.includes('settingsToggle.addEventListener'));
