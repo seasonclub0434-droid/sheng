@@ -235,6 +235,7 @@ let selectedTimelineId = '';
 let notebookQuery = '';
 let resolveMode = '';
 let shouldScrollToLatest = true;
+let shouldTimelineListScrollLatest = false;
 let activeKnotAnimation = null;
 let animationFrame = 0;
 let lastStatsSignature = '';
@@ -406,41 +407,38 @@ function pickUnusedBadgeOption(options, used, preferredIndex) {
   return { value: options[index], index };
 }
 
-function assignVisibleBadgeVariants(items, scrollOffset, viewportHeight) {
+function assignVisibleBadgeVariants(items) {
   const variants = new Map();
-  const visibleBadges = [];
+  const recentTones = [];
+  const recentMotifs = [];
+  const pageMemory = 6;
   let badgeOrdinal = 0;
 
-  items.forEach((item, index) => {
+  items.forEach((item) => {
     if (item.type !== 'badge') return;
     const variant = badgeBaseVariant(item, badgeOrdinal);
-    variants.set(item.id, variant);
-    const screenY = item.y - scrollOffset;
-    if (screenY > -120 && screenY < viewportHeight + 120) {
-      visibleBadges.push({ item, index, badgeOrdinal, screenY });
+    const usedTones = new Set(recentTones);
+    const usedMotifs = new Set(recentMotifs);
+
+    if (usedTones.has(variant.tone)) {
+      const picked = pickUnusedBadgeOption(BADGE_TONES, usedTones, variant.toneIndex + badgeOrdinal + 1);
+      variant.tone = picked.value;
+      variant.toneIndex = picked.index;
     }
+
+    if (usedMotifs.has(variant.motif)) {
+      const picked = pickUnusedBadgeOption(BADGE_MOTIFS, usedMotifs, variant.motifIndex + badgeOrdinal + 1);
+      variant.motif = picked.value;
+      variant.motifIndex = picked.index;
+    }
+
+    variants.set(item.id, variant);
+    recentTones.push(variant.tone);
+    recentMotifs.push(variant.motif);
+    if (recentTones.length > pageMemory) recentTones.shift();
+    if (recentMotifs.length > pageMemory) recentMotifs.shift();
     badgeOrdinal += 1;
   });
-
-  const usedTones = new Set();
-  const usedMotifs = new Set();
-  visibleBadges
-    .sort((a, b) => a.screenY - b.screenY || a.index - b.index)
-    .forEach(({ item, badgeOrdinal }, visibleIndex) => {
-      const variant = variants.get(item.id);
-      if (usedTones.has(variant.tone)) {
-        const picked = pickUnusedBadgeOption(BADGE_TONES, usedTones, variant.toneIndex + visibleIndex + badgeOrdinal + 1);
-        variant.tone = picked.value;
-        variant.toneIndex = picked.index;
-      }
-      if (usedMotifs.has(variant.motif)) {
-        const picked = pickUnusedBadgeOption(BADGE_MOTIFS, usedMotifs, variant.motifIndex + visibleIndex + badgeOrdinal + 1);
-        variant.motif = picked.value;
-        variant.motifIndex = picked.index;
-      }
-      usedTones.add(variant.tone);
-      usedMotifs.add(variant.motif);
-    });
 
   return variants;
 }
@@ -518,7 +516,7 @@ function render() {
   }
   drawPaper();
   drawRope();
-  const badgeVariants = assignVisibleBadgeVariants(layoutItems, scrollY, height);
+  const badgeVariants = assignVisibleBadgeVariants(layoutItems);
   layoutItems.forEach((item, index) => {
     const screenY = item.y - scrollY;
     if (screenY < -120 || screenY > height + 120) return;
@@ -850,12 +848,18 @@ function buildKnotTailPath(path, x, y) {
   path.bezierCurveTo(x + 8, y + 26, x + 5, y + 36, x, y + 47);
 }
 
-function getKnotProgress(item) {
-  if (!activeKnotAnimation || activeKnotAnimation.id !== item.id) return 1;
+function getKnotAnimation(item) {
+  if (!activeKnotAnimation || activeKnotAnimation.id !== item.id) {
+    return { raw: 1, progress: 1, entering: false };
+  }
   const elapsed = performance.now() - activeKnotAnimation.startedAt;
   const raw = Math.min(1, elapsed / activeKnotAnimation.duration);
   if (raw >= 1) activeKnotAnimation = null;
-  return 1 - Math.pow(1 - raw, 3);
+  return {
+    raw,
+    progress: 1 - Math.pow(1 - raw, 3),
+    entering: raw < 1,
+  };
 }
 
 function ropeStroke(buildPath, width = 9.8) {
@@ -897,17 +901,19 @@ function coverRopeSegment(x, y, seed) {
 function drawKnot(item, y, index) {
   const x = ropeX;
   const seed = toTime(item.createdAt) / 100000;
-  const progress = getKnotProgress(item);
-  const scale = 0.9 + progress * 0.1;
+  const animation = getKnotAnimation(item);
+  const progress = animation.progress;
+  const scale = animation.entering ? 0.58 + progress * 0.42 : 1;
   const jitter = (noise(seed) - 0.5) * 1.8;
   const side = index % 2 === 0 ? -1 : 1;
-  const rx = 36 + noise(seed + 5) * 2;
-  const ry = 27 + noise(seed + 9) * 1.5;
+  const rx = 36 + noise(seed + 5) * 2 + (animation.entering ? (1 - progress) * 12 : 0);
+  const ry = 27 + noise(seed + 9) * 1.5 + (animation.entering ? (1 - progress) * 7 : 0);
 
   ctx.save();
-  ctx.translate(x, y + jitter);
-  ctx.scale(scale, scale);
-  ctx.rotate(side * 0.012);
+  ctx.translate(x + (animation.entering ? side * (1 - progress) * 14 : 0), y + jitter - (animation.entering ? (1 - progress) * 16 : 0));
+  ctx.globalAlpha = animation.entering ? 0.42 + progress * 0.58 : 1;
+  ctx.scale(scale, scale * (animation.entering ? 0.82 + progress * 0.18 : 1));
+  ctx.rotate(side * (0.012 + (animation.entering ? (1 - progress) * 0.12 : 0)));
 
   const loopPath = (path) => buildLoopOval(path, side, rx, ry, seed + 11);
   const frontLipPath = (path) => {
@@ -925,6 +931,48 @@ function drawKnot(item, y, index) {
   drawHandLine(side * (rx * 0.08), -ry * 0.28, side * (rx * 0.44), ry * 0.62, 'rgba(78, 58, 36, 0.16)', 0.55, seed + 37);
   drawHandLine(side * (rx * 0.72), -ry * 0.74, side * (rx * 1.08), ry * 0.1, 'rgba(78, 58, 36, 0.16)', 0.55, seed + 41);
   drawHandLine(side * (rx * 1.42), -ry * 0.22, side * (rx * 1.12), ry * 0.7, 'rgba(78, 58, 36, 0.14)', 0.5, seed + 45);
+  ctx.restore();
+
+  if (animation.entering) drawNewKnotBirthEffect(item, x, y + jitter, side, seed, animation);
+}
+
+function drawNewKnotBirthEffect(item, x, y, side, seed, animation) {
+  const raw = animation.raw;
+  ctx.save();
+
+  if (raw < 0.78) {
+    const pullAlpha = Math.max(0, 1 - raw / 0.78) * 0.62;
+    ctx.globalAlpha = pullAlpha;
+    drawHandLine(x - side * 78, y - 38, x - side * 24, y - 9, ROPE_EDGE, 2.2, seed + 501);
+    drawHandLine(x + side * 74, y + 36, x + side * 25, y + 10, ROPE_BODY, 2.1, seed + 511);
+    drawHandLine(x - side * 58, y - 28, x + side * 58, y + 26, 'rgba(248, 235, 205, 0.28)', 0.75, seed + 521);
+  }
+
+  if (raw > 0.12) {
+    const tagProgress = Math.min(1, (raw - 0.12) / 0.42);
+    const fade = raw > 0.92 ? Math.max(0, (1 - raw) / 0.08) : 1;
+    const tagX = x + side * (56 + tagProgress * 10);
+    const tagY = y - 34 + (1 - tagProgress) * 22;
+    ctx.globalAlpha = Math.min(1, tagProgress * 1.2) * fade;
+    drawHandLine(x + side * 12, y - 12, tagX - side * 21, tagY + 3, 'rgba(92, 67, 40, 0.18)', 0.75, seed + 531);
+    ctx.save();
+    ctx.translate(tagX, tagY);
+    ctx.rotate(side * (0.16 - tagProgress * 0.08));
+    drawStickyNotePaper(48, 26, seed + 541);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 10px ${getComputedStyle(document.documentElement).getPropertyValue('--font-hand') || 'serif'}`;
+    ctx.fillStyle = 'rgba(65, 42, 27, 0.72)';
+    ctx.fillText(shortDate(item.createdAt), 0, -1);
+    ctx.restore();
+  }
+
+  if (raw > 0.34 && raw < 0.96) {
+    const ringProgress = (raw - 0.34) / 0.62;
+    ctx.globalAlpha = (1 - Math.abs(ringProgress - 0.46)) * 0.52;
+    drawRoughOval(x, y, 52 + ringProgress * 18, 36 + ringProgress * 10, 'rgba(135, 78, 54, 0.3)', 1.1, seed + 551, side * 0.12);
+  }
+
   ctx.restore();
 }
 
@@ -1826,7 +1874,11 @@ function toggleExchangeTray(forceOpen) {
 
 function toggleRecordTimeline(forceOpen) {
   const isOpen = forceOpen == null ? !recordTimelineDock.classList.contains('open') : forceOpen;
-  if (isOpen) toggleSettingsDock(false);
+  if (isOpen) {
+    toggleSettingsDock(false);
+    toggleExchangeTray(false);
+    shouldTimelineListScrollLatest = true;
+  }
   recordTimelineDock.classList.toggle('open', isOpen);
   timelineToggle.classList.toggle('open', isOpen);
   timelineToggle.setAttribute('aria-expanded', String(isOpen));
@@ -1922,6 +1974,12 @@ function updateRecordTimeline() {
     })
     .join('');
   lastTimelineSignature = signature;
+  if (shouldTimelineListScrollLatest) {
+    shouldTimelineListScrollLatest = false;
+    requestAnimationFrame(() => {
+      recordTimelineList.scrollTop = recordTimelineList.scrollHeight;
+    });
+  }
 }
 
 function focusTimelineEvent(id) {
@@ -1938,6 +1996,11 @@ function focusTimelineEvent(id) {
     scrollY = Math.max(0, Math.min(maxScrollY, item.y - height * 0.46));
   }
   render();
+  requestAnimationFrame(() => {
+    const button = Array.from(recordTimelineList.querySelectorAll('[data-event-id]'))
+      .find((entry) => entry.dataset.eventId === id);
+    if (button) button.scrollIntoView({ block: 'nearest' });
+  });
 }
 
 function latestOpenKnot() {
@@ -2084,11 +2147,17 @@ function canvasPoint(event) {
 
 function handleTap(point) {
   const hit = hitTest(point.x, point.y);
-  if (hit) {
-    if (isRecordTimelineOpen()) {
-      focusTimelineEvent(hit.id);
-      return;
+  if (isRecordTimelineOpen()) {
+    if (hit) focusTimelineEvent(hit.id);
+    else if (selectedTimelineId) {
+      selectedTimelineId = '';
+      lastTimelineSignature = '';
+      render();
     }
+    return;
+  }
+
+  if (hit) {
     if (hit.type === 'badge') {
       openBadgeDetail(hit);
       return;
@@ -2142,7 +2211,7 @@ function saveNote() {
   activeKnotAnimation = {
     id: created.id,
     startedAt: performance.now(),
-    duration: 680,
+    duration: 1280,
   };
   saveState();
   closeModal();
@@ -2285,6 +2354,8 @@ confirmResetAction.addEventListener('click', resetPreviewState);
 recordTimelineList.addEventListener('click', (event) => {
   const button = event.target.closest('[data-event-id]');
   if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
   focusTimelineEvent(button.dataset.eventId);
 });
 timelineToggle.addEventListener('click', () => toggleRecordTimeline());

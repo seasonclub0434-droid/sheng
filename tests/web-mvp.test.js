@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'notebook-search-records-1';
+const assetVersion = 'timeline-drawer-animation-1';
 
 function test(name, fn) {
   try {
@@ -103,6 +103,8 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(html.includes('id="settingsDock"'));
   assert.ok(html.includes('aria-hidden="true"'));
   assert.ok(html.includes('id="settingsClose"'));
+  assert.ok(html.includes('class="dock-close"'));
+  assert.ok(html.includes('点 × 收起，重置前会再确认。'));
   assert.ok(html.includes('id="resetPreviewAction"'));
   assert.ok(html.includes('id="resetConfirmPanel"'));
   assert.ok(html.includes('id="confirmResetAction"'));
@@ -124,6 +126,8 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(js.includes('confirmResetAction.addEventListener'));
   assert.ok(css.includes('.settings-toggle'));
   assert.ok(css.includes('.settings-dock.open'));
+  assert.ok(css.includes('.dock-close'));
+  assert.ok(css.includes('.drawer-hint'));
   assert.ok(css.includes('.reset-confirm-panel'));
   assert.ok(css.includes('left: 8px'));
   assert.ok(css.includes('right: 8px'));
@@ -198,6 +202,10 @@ test('browser preview replaces time-flip controls with a vertical record timelin
   assert.ok(js.includes('timelineItems()'));
   assert.ok(js.includes('function focusTimelineEvent('));
   assert.ok(js.includes('recordTimelineList.addEventListener'));
+  assert.ok(html.includes('id="timelineClose"'));
+  assert.ok(html.includes('点日期会圈住绳上的位置，再点一次取消。'));
+  assert.ok(css.includes('.record-timeline-body'));
+  assert.ok(css.includes('.timeline-hint'));
   assert.ok(js.includes("const kind = item.type === 'badge' ? '印章'"));
   assert.ok(js.includes("recordTimelineList.innerHTML = '<div class=\"record-timeline-empty\"><span>还没有</span><span>记录</span></div>';"));
   assert.ok(!js.includes('timelineItems().slice(-8)'));
@@ -218,13 +226,18 @@ test('browser preview highlights the selected rope item from the timeline', () =
   assert.ok(js.includes('let selectedTimelineId'));
   assert.ok(js.includes('function isRecordTimelineOpen('));
   assert.ok(js.includes("if (item.id === selectedTimelineId && isRecordTimelineOpen())"));
-  assert.ok(js.includes("if (isRecordTimelineOpen()) {\n      focusTimelineEvent(hit.id);\n      return;\n    }"));
+  assert.ok(js.includes("if (isRecordTimelineOpen()) {\n    if (hit) focusTimelineEvent(hit.id);"));
   assert.ok(js.indexOf('if (isRecordTimelineOpen())') < js.indexOf("if (hit.type === 'badge')"));
+  assert.ok(js.includes("else if (selectedTimelineId)"));
   assert.ok(js.includes('const isSelectedAgain = selectedTimelineId === id'));
   assert.ok(js.includes("selectedTimelineId = isSelectedAgain ? '' : id"));
   assert.ok(js.includes("if (!selectedTimelineId)"));
   assert.ok(js.includes('function drawTimelineHighlight('));
   assert.ok(js.includes('drawTimelineHighlight(item, screenY, index)'));
+  assert.ok(js.includes('let shouldTimelineListScrollLatest = false'));
+  assert.ok(js.includes('shouldTimelineListScrollLatest = true'));
+  assert.ok(js.includes('recordTimelineList.scrollTop = recordTimelineList.scrollHeight'));
+  assert.ok(js.includes("event.stopPropagation();"));
   assert.ok(js.includes('const HIGHLIGHT_INK'));
   assert.ok(js.includes("stroke: 'rgba(176, 37, 31, 0.82)'"));
   assert.ok(js.includes('ctx.lineWidth = ring ? 1.15 : 2.35'));
@@ -331,11 +344,14 @@ test('browser preview diversifies visible reward seals by color, motif, and hang
   assert.ok(js.includes("'seedCluster'"));
   assert.ok(js.includes('function assignVisibleBadgeVariants('));
   assert.ok(js.includes('function pickUnusedBadgeOption('));
-  assert.ok(js.includes('const usedTones = new Set()'));
-  assert.ok(js.includes('const usedMotifs = new Set()'));
+  assert.ok(js.includes('const recentTones = []'));
+  assert.ok(js.includes('const recentMotifs = []'));
+  assert.ok(js.includes('const pageMemory = 6'));
+  assert.ok(js.includes('const usedTones = new Set(recentTones)'));
+  assert.ok(js.includes('const usedMotifs = new Set(recentMotifs)'));
   assert.ok(js.includes('usedTones.has(variant.tone)'));
   assert.ok(js.includes('usedMotifs.has(variant.motif)'));
-  assert.ok(js.includes('const badgeVariants = assignVisibleBadgeVariants(layoutItems, scrollY, height)'));
+  assert.ok(js.includes('const badgeVariants = assignVisibleBadgeVariants(layoutItems)'));
   assert.ok(js.includes('const palette = badgePalette(visual.tone)'));
   assert.ok(js.includes('ctx.strokeStyle = palette.cord'));
   assert.ok(js.includes('ctx.strokeStyle = palette.cordHighlight'));
@@ -382,6 +398,17 @@ test('browser preview renders resolved knots as dated sticky notes', () => {
   assert.ok(miniPage.includes('drawStickyTape(ctx,'));
   assert.ok(html.includes(`styles.css?v=${assetVersion}`));
   assert.ok(html.includes(`app.js?v=${assetVersion}`));
+});
+
+test('browser preview gives newly written knots a stronger hand-made birth animation', () => {
+  assert.ok(js.includes('function getKnotAnimation('));
+  assert.ok(js.includes('function drawNewKnotBirthEffect('));
+  assert.ok(js.includes('drawNewKnotBirthEffect(item, x, y + jitter, side, seed, animation)'));
+  assert.ok(js.includes('duration: 1280'));
+  assert.ok(js.includes('shortDate(item.createdAt)'));
+  assert.ok(js.includes('drawStickyNotePaper(48, 26'));
+  assert.ok(js.includes('drawRoughOval(x, y'));
+  assert.ok(!js.includes('function getKnotProgress('));
 });
 
 test('browser preview removes rope dust effects and uses rough kraft paper texture', () => {

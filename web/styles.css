@@ -278,7 +278,7 @@ button {
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 8px;
-  width: 156px;
+  width: 178px;
   padding: 12px 9px 12px 7px;
   background:
     linear-gradient(90deg, rgba(238, 219, 177, 0.7), rgba(252, 242, 214, 0.84)),
@@ -287,7 +287,7 @@ button {
   border-radius: 6px 9px 7px 10px;
   opacity: 0;
   pointer-events: auto;
-  transform: translateX(-164px) rotate(-2deg) scale(0.96);
+  transform: translateX(-188px) rotate(-2deg) scale(0.96);
   transform-origin: left center;
   transition:
     opacity 180ms ease,
@@ -326,7 +326,18 @@ button {
   transform: rotate(8deg);
 }
 
-.settings-title {
+.dock-rail {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-title,
+.record-timeline-title {
   align-self: start;
   padding: 0;
   color: #604d3d;
@@ -337,8 +348,42 @@ button {
   text-align: center;
   background: transparent;
   border: 0;
-  cursor: pointer;
   writing-mode: vertical-rl;
+}
+
+.dock-close {
+  position: relative;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  place-items: center;
+  color: #6b4a35;
+  font-family: var(--font-hand);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+  background:
+    radial-gradient(circle at 36% 30%, rgba(255, 248, 224, 0.92), rgba(224, 190, 132, 0.74)),
+    repeating-linear-gradient(110deg, rgba(98, 68, 39, 0.1) 0 1px, transparent 1px 6px);
+  border: 1px solid rgba(92, 67, 42, 0.28);
+  border-radius: 50%;
+  box-shadow:
+    0 4px 10px rgba(73, 52, 31, 0.12),
+    inset 0 0 0 1px rgba(255, 244, 209, 0.26);
+  transform: rotate(-4deg);
+}
+
+.dock-close::after {
+  position: absolute;
+  inset: 4px;
+  content: "";
+  border: 1px solid rgba(105, 70, 43, 0.12);
+  border-radius: 50%;
+}
+
+.dock-close:active {
+  transform: translateY(1px) rotate(2deg) scale(0.96);
 }
 
 .settings-list {
@@ -347,6 +392,23 @@ button {
   display: grid;
   gap: 10px;
   min-width: 0;
+}
+
+.drawer-hint {
+  position: relative;
+  padding: 7px 8px;
+  color: #806b57;
+  font-family: var(--font-hand);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.35;
+  background:
+    linear-gradient(108deg, rgba(255, 251, 237, 0.72), rgba(224, 194, 139, 0.38)),
+    radial-gradient(circle at 84% 22%, rgba(112, 72, 35, 0.11), transparent 38%);
+  border: 1px dashed rgba(101, 74, 46, 0.2);
+  border-radius: 6px 5px 7px 5px;
+  box-shadow: inset 0 0 10px rgba(110, 78, 45, 0.06);
+  transform: rotate(-0.45deg);
 }
 
 .settings-action {
@@ -486,7 +548,7 @@ button {
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 7px;
-  width: 106px;
+  width: 138px;
   padding: 12px 8px 12px 7px;
   background:
     linear-gradient(90deg, rgba(252, 242, 214, 0.82), rgba(238, 219, 177, 0.7)),
@@ -495,7 +557,7 @@ button {
   border-radius: 9px 6px 10px 7px;
   opacity: 0;
   pointer-events: auto;
-  transform: translateX(118px) rotate(2deg) scale(0.96);
+  transform: translateX(150px) rotate(2deg) scale(0.96);
   transform-origin: right center;
   transition:
     opacity 180ms ease,
@@ -534,19 +596,20 @@ button {
   transform: rotate(-8deg);
 }
 
-.record-timeline-title {
-  align-self: start;
-  padding: 0;
-  color: #604d3d;
-  font-family: var(--font-hand);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.15;
-  text-align: center;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  writing-mode: vertical-rl;
+.record-timeline-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  min-height: 0;
+}
+
+.timeline-hint {
+  padding: 7px 7px;
+  color: #7a4f43;
+  border-color: rgba(168, 50, 44, 0.22);
+  transform: rotate(0.65deg);
 }
 
 .record-timeline-list {
