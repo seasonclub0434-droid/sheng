@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-scene-focus-1';
+const assetVersion = 'pull-scene-smooth-1';
 
 function test(name, fn) {
   try {
@@ -148,7 +148,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('let activeHomePullAnimation = false;'));
   assert.ok(js.includes('function applyHomePullFocus('));
   assert.ok(js.includes('function primeRopeTransitionView('));
+  assert.ok(js.includes('function completePrimedRopeTransition('));
   assert.ok(js.includes('function playHomePullTransition('));
+  assert.ok(js.includes('const transitionPrepared = primeRopeTransitionView(ropeId);'));
+  assert.ok(js.includes('completePrimedRopeTransition(ropeId)'));
   assert.ok(js.includes("homePage.style.setProperty('--pull-zoom-scale'"));
   assert.ok(js.includes("homePage.style.setProperty('--pull-zoom-x'"));
   assert.ok(js.includes("homePage.style.setProperty('--pull-zoom-y'"));
@@ -201,6 +204,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-mode.home-pull-revealing .rope-canvas'));
   assert.ok(css.includes('.home-mode.home-pull-centering .home-page'));
   assert.ok(css.includes('.home-mode.home-pull-drop .home-page'));
+  assert.ok(css.includes('will-change: transform, opacity'));
+  assert.ok(css.includes('translate3d(var(--pull-zoom-x, 0), var(--pull-zoom-y, 0), 0)'));
+  assert.ok(!css.includes('filter: blur(1.1px)'));
+  assert.ok(!css.includes('filter: blur(0.8px) saturate(0.86)'));
   assert.ok(css.includes('@keyframes homeSceneFocus'));
   assert.ok(css.includes('@keyframes focusCordTestPull'));
   assert.ok(css.includes('@keyframes focusCordPagePull'));

@@ -2313,6 +2313,16 @@ function primeRopeTransitionView(id) {
   return true;
 }
 
+function completePrimedRopeTransition(id) {
+  const rope = homeState.ropes.find((entry) => entry.id === id);
+  if (!rope || activeRopeId !== id || viewMode !== 'rope') return false;
+  closeFloatingDocks();
+  closeModal();
+  phone.classList.remove('home-mode');
+  phone.classList.add('rope-mode');
+  return true;
+}
+
 function applyHomePullFocus(button) {
   const sourceCord = button.querySelector('.rope-coil');
   if (!sourceCord) return false;
@@ -2356,6 +2366,7 @@ function playHomePullTransition(button, ropeId) {
     return;
   }
   button.classList.add('pulling-rope');
+  const transitionPrepared = primeRopeTransitionView(ropeId);
   phone.classList.add('home-pull-centering');
 
   window.setTimeout(() => {
@@ -2366,7 +2377,7 @@ function playHomePullTransition(button, ropeId) {
   window.setTimeout(() => {
     if (!activeHomePullAnimation) return;
     button.classList.add('pulling-rope-again');
-    if (primeRopeTransitionView(ropeId)) {
+    if (transitionPrepared) {
       phone.classList.add('home-pull-revealing');
     }
     phone.classList.add('home-pull-drop');
@@ -2374,7 +2385,9 @@ function playHomePullTransition(button, ropeId) {
 
   window.setTimeout(() => {
     clearHomePullTransition(button);
-    enterRope(ropeId);
+    if (!transitionPrepared || !completePrimedRopeTransition(ropeId)) {
+      enterRope(ropeId);
+    }
   }, 2080);
 }
 
