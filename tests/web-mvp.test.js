@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'antique-cabinet-1';
+const assetVersion = 'empty-named-ropes-1';
 
 function test(name, fn) {
   try {
@@ -86,12 +86,18 @@ test('browser preview keeps the home screen clean with a journal rope control', 
 });
 
 test('browser preview adds a cabinet-style rope home with isolated rope states and global search', () => {
+  const defaultRopesStart = js.indexOf('function defaultRopes(');
   assert.ok(html.includes('id="homePage"'));
   assert.ok(html.includes('我的绳'));
   assert.ok(html.includes('id="ropeShelf"'));
   assert.ok(html.includes('class="rope-shelf"'));
   assert.ok(html.includes('id="addRopeAction"'));
   assert.ok(html.includes('id="backHomeAction"'));
+  assert.ok(html.includes('返回柜子'));
+  assert.ok(html.includes('id="ropeNameCard"'));
+  assert.ok(html.includes('id="ropeNameInput"'));
+  assert.ok(html.includes('给这根绳命名'));
+  assert.ok(html.includes('放进柜子'));
   assert.ok(html.includes('id="homeSearchToggle"'));
   assert.ok(html.includes('id="globalSearchDock"'));
   assert.ok(html.includes('</section>\n\n      <aside id="globalSearchDock"'));
@@ -100,15 +106,24 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(pagesHtml.includes('id="homePage"'));
   assert.ok(pagesHtml.includes('id="globalSearchDock"'));
   assert.ok(js.includes('const HOME_STORAGE_KEY'));
+  assert.ok(js.includes("const HOME_STORAGE_KEY = 'rope-talk-web-home-state-v3'"));
   assert.ok(js.includes('const ROPE_STATE_PREFIX'));
   assert.ok(js.includes('const DEFAULT_ROPE_ID'));
   assert.ok(js.includes('function defaultRopes('));
+  assert.ok(defaultRopesStart >= 0);
+  assert.ok(js.slice(defaultRopesStart, defaultRopesStart + 80).includes('return [];'));
   assert.ok(js.includes('function ropeStateKey('));
   assert.ok(js.includes('function loadHomeState('));
   assert.ok(js.includes('function saveRopeState('));
   assert.ok(js.includes('function enterRope('));
   assert.ok(js.includes('function goHome('));
+  assert.ok(js.includes('function openRopeNameModal('));
   assert.ok(js.includes('function addRope('));
+  assert.ok(js.includes('function addNamedRope('));
+  assert.ok(js.includes("activeRopeId = homeState.activeRopeId || homeState.ropes[0]?.id || '';"));
+  assert.ok(js.includes('let state = activeRopeId ? loadState() : emptyState();'));
+  assert.ok(js.includes('saveRopeState(rope.id, emptyState())'));
+  assert.ok(js.includes('if (!activeRopeId) return;'));
   assert.ok(js.includes('function renderHome('));
   assert.ok(js.includes('function globalSearchItems('));
   assert.ok(js.includes('function renderGlobalSearchList('));
@@ -137,7 +152,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.cabinet-back'));
   assert.ok(css.includes('.cabinet-slots'));
   assert.ok(css.includes('.rope-coil'));
+  assert.ok(css.includes('.rope-coil::before'));
+  assert.ok(css.includes('.rope-coil::after'));
   assert.ok(css.includes('.rope-note'));
+  assert.ok(css.includes('.rope-name-input'));
   assert.ok(css.includes('.add-rope-action'));
   assert.ok(css.includes('.global-search-dock'));
   assert.ok(css.includes('position: fixed'));
@@ -168,6 +186,8 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(html.includes('class="dock-close"'));
   assert.ok(html.includes('点 × 收起，重置前会再确认。'));
   assert.ok(html.includes('id="resetPreviewAction"'));
+  assert.ok(html.includes('回到空柜子'));
+  assert.ok(html.includes('会清空本机保存的绳、结、印记和选中状态'));
   assert.ok(html.includes('id="resetConfirmPanel"'));
   assert.ok(html.includes('id="confirmResetAction"'));
   assert.ok(html.includes('id="cancelResetAction"'));
@@ -180,10 +200,15 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(js.includes('function askResetConfirmation('));
   assert.ok(js.includes('function emptyState('));
   assert.ok(js.includes('function resetPreviewState('));
+  assert.ok(js.includes('function clearStoredRopeStates('));
+  assert.ok(js.includes('clearStoredRopeStates();'));
+  assert.ok(js.includes('homeState = defaultHomeState();'));
+  assert.ok(js.includes("activeRopeId = '';"));
   assert.ok(js.includes('state = emptyState()'));
   assert.ok(js.includes('events: []'));
   assert.ok(!js.includes('state = demoState()'));
-  assert.ok(js.includes('saveState();'));
+  assert.ok(js.includes('saveHomeState();'));
+  assert.ok(js.includes("phone.classList.add('home-mode')"));
   assert.ok(js.includes('localStorage.setItem(ropeStateKey(id), JSON.stringify(nextState))'));
   assert.ok(js.includes("lastTimelineSignature = '__reset__'"));
   assert.ok(js.includes('settingsToggle.addEventListener'));

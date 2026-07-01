@@ -382,46 +382,81 @@ button {
   position: relative;
   display: block;
   z-index: 2;
-  width: 68px;
-  height: 61px;
-  margin-top: 3px;
+  width: 78px;
+  height: 62px;
+  margin-top: 7px;
   background:
-    radial-gradient(ellipse at 50% 62%, rgba(92, 63, 38, 0.2), transparent 55%),
-    linear-gradient(135deg, rgba(221, 200, 166, 0.22), rgba(161, 119, 75, 0.1));
-  border-radius: 50%;
+    radial-gradient(ellipse at 48% 82%, rgba(48, 27, 10, 0.24), transparent 58%),
+    radial-gradient(ellipse at 35% 42%, rgba(248, 235, 205, 0.13), transparent 38%);
+  border-radius: 48% 52% 46% 54%;
   box-shadow:
-    0 9px 11px rgba(63, 40, 19, 0.18),
-    inset 0 0 9px rgba(250, 235, 205, 0.16);
+    0 10px 12px rgba(44, 24, 9, 0.2),
+    inset 0 -7px 10px rgba(83, 55, 30, 0.13);
+  transform: rotate(calc((var(--tile-index) - 2) * 0.34deg - 1deg));
+}
+
+.rope-coil::before,
+.rope-coil::after {
+  position: absolute;
+  z-index: 1;
+  height: 8px;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(239, 216, 176, 0.86), rgba(194, 151, 95, 0.98) 50%, rgba(132, 92, 52, 0.88)),
+    repeating-linear-gradient(96deg, rgba(78, 52, 27, 0.28) 0 1px, transparent 1px 6px);
+  border-radius: 999px;
+  box-shadow:
+    0 2px 0 rgba(58, 36, 18, 0.28),
+    inset 0 1px 0 rgba(255, 240, 203, 0.44),
+    inset 0 -1px 0 rgba(78, 52, 28, 0.18);
+}
+
+.rope-coil::before {
+  bottom: 10px;
+  left: 2px;
+  width: 48px;
+  transform: rotate(13deg);
+}
+
+.rope-coil::after {
+  top: 12px;
+  right: 1px;
+  width: 35px;
+  transform: rotate(-20deg);
 }
 
 .rope-coil-line {
   position: absolute;
+  z-index: 2;
   content: "";
-  border: 6px solid rgba(222, 202, 168, 0.95);
-  border-radius: 50%;
+  border-style: solid;
+  border-color: #d4b37c #9b7045 #b48452 #ead0a1;
+  border-radius: 46% 54% 50% 48%;
   box-shadow:
-    1px 2px 0 rgba(113, 80, 48, 0.26),
-    inset 1px 1px 0 rgba(252, 239, 210, 0.32);
+    1px 2px 0 rgba(58, 36, 18, 0.3),
+    inset 1px 1px 0 rgba(248, 235, 205, 0.4),
+    inset -1px -2px 0 rgba(88, 58, 29, 0.18);
 }
 
 .rope-coil-line-a {
-  inset: 6px 13px 13px 4px;
-  border-color: rgba(226, 207, 175, 0.98);
-  transform: rotate(-23deg);
+  inset: 5px 10px 14px 3px;
+  border-width: 7px 7px 6px 6px;
+  border-right-color: rgba(132, 92, 52, 0.72);
+  transform: rotate(-19deg);
 }
 
 .rope-coil-line-b {
-  inset: 15px 4px 7px 18px;
-  border-color: rgba(198, 171, 129, 0.92);
-  border-width: 5px;
-  transform: rotate(24deg);
+  inset: 14px 3px 8px 17px;
+  border-width: 6px 5px 7px 6px;
+  border-left-color: rgba(230, 197, 142, 0.78);
+  transform: rotate(23deg);
 }
 
 .rope-coil-line-c {
-  inset: 21px 21px 15px 18px;
-  border-color: rgba(244, 229, 199, 0.92);
-  border-width: 4px;
-  transform: rotate(-8deg);
+  inset: 21px 21px 15px 16px;
+  border-width: 5px 4px 4px 5px;
+  border-bottom-color: rgba(142, 96, 51, 0.68);
+  transform: rotate(-7deg);
 }
 
 .rope-note {
@@ -521,12 +556,12 @@ button {
 
 .back-home-action {
   position: absolute;
-  top: 104px;
-  left: 50%;
-  z-index: 5;
-  min-width: 72px;
-  min-height: 34px;
-  padding: 7px 12px;
+  top: 77px;
+  left: 18px;
+  z-index: 6;
+  min-width: 78px;
+  min-height: 36px;
+  padding: 7px 11px;
   color: #594431;
   font-family: var(--font-hand);
   font-size: 13px;
@@ -537,7 +572,7 @@ button {
   border: 1px solid rgba(80, 58, 35, 0.22);
   border-radius: 6px 5px 7px 6px;
   box-shadow: 0 10px 18px rgba(63, 44, 27, 0.1);
-  transform: translateX(-50%) rotate(-0.8deg);
+  transform: rotate(-1.4deg);
 }
 
 .stats-bar,
@@ -1690,6 +1725,10 @@ button {
   transform: rotate(0.4deg);
 }
 
+#ropeNameCard {
+  transform: rotate(-0.5deg);
+}
+
 .card-title {
   color: #3a3129;
   font-size: 18px;
@@ -1705,15 +1744,32 @@ button {
 }
 
 .note-input,
-.resolve-input {
+.resolve-input,
+.rope-name-input {
   width: 100%;
   color: #3b332c;
   line-height: 1.6;
-  resize: none;
   background: rgba(255, 251, 240, 0.55);
   border: 1px solid rgba(93, 70, 44, 0.15);
   border-radius: 7px;
   outline: none;
+}
+
+.note-input,
+.resolve-input {
+  resize: none;
+}
+
+.rope-name-input {
+  min-height: 48px;
+  margin-top: 15px;
+  padding: 10px 12px;
+  font-family: var(--font-hand);
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 0 13px rgba(105, 76, 43, 0.06),
+    0 1px 0 rgba(255, 248, 226, 0.58);
 }
 
 .note-input {
@@ -1731,7 +1787,8 @@ button {
 }
 
 .note-input::placeholder,
-.resolve-input::placeholder {
+.resolve-input::placeholder,
+.rope-name-input::placeholder {
   color: #b4a58e;
 }
 

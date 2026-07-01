@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./styles.css?v=antique-cabinet-1" />
+    <link rel="stylesheet" href="./styles.css?v=empty-named-ropes-1" />
   </head>
   <body>
     <main class="workspace">
@@ -21,7 +21,7 @@
         </section>
 
         <div id="statsBar" class="stats-bar" aria-live="polite"></div>
-        <button id="backHomeAction" class="back-home-action" type="button">我的绳</button>
+        <button id="backHomeAction" class="back-home-action" type="button">返回柜子</button>
 
         <button id="settingsToggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="settingsDock" aria-label="打开设置">
           <span class="settings-toggle-mark">设置</span>
@@ -36,10 +36,10 @@
             <div class="drawer-hint">点 × 收起，重置前会再确认。</div>
             <button id="resetPreviewAction" class="settings-action reset-preview-action" type="button">
               <span class="settings-action-label">重置预览</span>
-              <span class="settings-action-hint">清空本机记录，回到初始绳子</span>
+              <span class="settings-action-hint">清空本机记录，回到空柜子</span>
             </button>
             <div id="resetConfirmPanel" class="reset-confirm-panel hidden">
-              <div class="reset-confirm-copy">确认后会清空本机保存的结、印记和选中状态。</div>
+              <div class="reset-confirm-copy">确认后会清空本机保存的绳、结、印记和选中状态。</div>
               <div class="reset-confirm-actions">
                 <button id="cancelResetAction" class="text-button" type="button">取消</button>
                 <button id="confirmResetAction" class="ink-button" type="button">确认重置</button>
@@ -89,6 +89,16 @@
         </section>
 
         <div id="modalLayer" class="modal-layer hidden" role="presentation">
+          <section id="ropeNameCard" class="paper-card hidden" aria-label="给绳子命名">
+            <div class="card-title">给这根绳命名</div>
+            <div class="card-meta">写在便签上的名字，会贴到柜子的收纳格上。</div>
+            <input id="ropeNameInput" class="rope-name-input" maxlength="12" placeholder="比如：周末绳" />
+            <div class="card-actions">
+              <button id="cancelRopeName" class="text-button" type="button">先不放</button>
+              <button id="saveRopeName" class="ink-button" type="button">放进柜子</button>
+            </div>
+          </section>
+
           <section id="noteCard" class="paper-card hidden" aria-label="写成一个结">
             <div class="card-title">写成一个结</div>
             <textarea id="noteInput" class="note-input" maxlength="500" placeholder="发生了什么"></textarea>
@@ -145,6 +155,6 @@
       </aside>
     </main>
 
-    <script type="module" src="./app.js?v=antique-cabinet-1"></script>
+    <script type="module" src="./app.js?v=empty-named-ropes-1"></script>
   </body>
 </html>
