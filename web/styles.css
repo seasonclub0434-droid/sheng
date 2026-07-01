@@ -123,10 +123,28 @@ button {
   z-index: 2;
   display: grid;
   grid-template-rows: auto 1fr;
+  isolation: isolate;
   width: 100%;
   height: 100%;
   padding: 38px 32px 88px;
   overflow: hidden;
+}
+
+.home-page::after {
+  position: absolute;
+  inset: 0;
+  z-index: 36;
+  pointer-events: none;
+  content: "";
+  opacity: 0;
+  background:
+    radial-gradient(
+      circle at var(--pull-focus-local-x, 50%) var(--pull-focus-local-y, 50%),
+      rgba(205, 166, 104, 0) 0 54px,
+      rgba(210, 171, 108, 0.22) 92px,
+      rgba(199, 157, 96, 0.72) 148px,
+      rgba(177, 134, 82, 0.94) 100%
+    );
 }
 
 .home-page.search-stabilized {
@@ -569,6 +587,34 @@ button {
   z-index: 28;
 }
 
+.rope-tile.focus-rope-tile {
+  z-index: 48;
+}
+
+.home-mode.home-pull-centering .cabinet-slots {
+  z-index: 50;
+}
+
+.home-mode.home-pull-centering .home-title,
+.home-mode.home-pull-centering .home-control-bar,
+.home-mode.home-pull-centering .rope-tile:not(.focus-rope-tile),
+.home-mode.home-pull-centering .empty-slot,
+.home-mode.home-pull-centering .cabinet-stack::before,
+.home-mode.home-pull-centering .cabinet-stack::after,
+.home-mode.home-pull-centering .cabinet-top,
+.home-mode.home-pull-centering .cabinet-bottom,
+.home-mode.home-pull-centering .cabinet-row::before,
+.home-mode.home-pull-centering .cabinet-row::after,
+.home-mode.home-pull-centering .cabinet-front,
+.home-mode.home-pull-centering .cabinet-back,
+.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-note {
+  animation: focusSurroundingFade 760ms ease both;
+}
+
+.home-mode.home-pull-centering .home-page::after {
+  animation: focusSurroundingsVanish 780ms ease both;
+}
+
 .rope-tile.pulling-rope:not(.pulling-rope-again) .rope-coil {
   backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
@@ -642,17 +688,35 @@ button {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
   }
-  74% {
-    opacity: 1;
-    transform:
-      translate3d(var(--pull-zoom-x, 0), var(--pull-zoom-y, 0), 0)
-      scale(calc(var(--pull-zoom-scale, 2.75) + 0.08));
-  }
   100% {
     opacity: 1;
     transform:
       translate3d(var(--pull-zoom-x, 0), var(--pull-zoom-y, 0), 0)
       scale(var(--pull-zoom-scale, 2.75));
+  }
+}
+
+@keyframes focusSurroundingFade {
+  0% {
+    opacity: 1;
+  }
+  58% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes focusSurroundingsVanish {
+  0% {
+    opacity: 0;
+  }
+  64% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0.9;
   }
 }
 

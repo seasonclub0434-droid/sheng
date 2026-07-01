@@ -2339,6 +2339,8 @@ function applyHomePullFocus(button) {
   homePage.style.setProperty('--pull-zoom-scale', String(scale));
   homePage.style.setProperty('--pull-zoom-x', `${Math.round(zoomX)}px`);
   homePage.style.setProperty('--pull-zoom-y', `${Math.round(zoomY)}px`);
+  homePage.style.setProperty('--pull-focus-local-x', `${Math.round(focusX)}px`);
+  homePage.style.setProperty('--pull-focus-local-y', `${Math.round(focusY)}px`);
   return true;
 }
 
@@ -2350,8 +2352,10 @@ function clearHomePullTransition(button) {
   homePage.style.removeProperty('--pull-zoom-scale');
   homePage.style.removeProperty('--pull-zoom-x');
   homePage.style.removeProperty('--pull-zoom-y');
-  const pullingButtons = button ? [button] : Array.from(document.querySelectorAll('.pulling-rope'));
-  pullingButtons.forEach((entry) => entry.classList.remove('pulling-rope', 'pulling-rope-again'));
+  homePage.style.removeProperty('--pull-focus-local-x');
+  homePage.style.removeProperty('--pull-focus-local-y');
+  const focusButtons = button ? [button] : Array.from(document.querySelectorAll('.focus-rope-tile, .pulling-rope'));
+  focusButtons.forEach((entry) => entry.classList.remove('focus-rope-tile', 'pulling-rope', 'pulling-rope-again'));
 }
 
 function playHomePullTransition(button, ropeId) {
@@ -2365,14 +2369,15 @@ function playHomePullTransition(button, ropeId) {
     enterRope(ropeId);
     return;
   }
-  button.classList.add('pulling-rope');
+  button.classList.add('focus-rope-tile');
   const transitionPrepared = primeRopeTransitionView(ropeId);
   phone.classList.add('home-pull-centering');
 
   window.setTimeout(() => {
     if (!activeHomePullAnimation) return;
     phone.classList.add('home-pull-ready');
-  }, 760);
+    button.classList.add('pulling-rope');
+  }, 860);
 
   window.setTimeout(() => {
     if (!activeHomePullAnimation) return;
@@ -2381,14 +2386,14 @@ function playHomePullTransition(button, ropeId) {
       phone.classList.add('home-pull-revealing');
     }
     phone.classList.add('home-pull-drop');
-  }, 1240);
+  }, 1500);
 
   window.setTimeout(() => {
     clearHomePullTransition(button);
     if (!transitionPrepared || !completePrimedRopeTransition(ropeId)) {
       enterRope(ropeId);
     }
-  }, 2080);
+  }, 2440);
 }
 
 function goHome() {
