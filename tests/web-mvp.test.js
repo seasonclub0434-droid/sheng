@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'empty-named-ropes-1';
+const assetVersion = 'cabinet-plaque-1';
 
 function test(name, fn) {
   try {
@@ -93,7 +93,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('class="rope-shelf"'));
   assert.ok(html.includes('id="addRopeAction"'));
   assert.ok(html.includes('id="backHomeAction"'));
-  assert.ok(html.includes('返回柜子'));
+  assert.ok(html.includes('<h1 class="home-title"><span>我的绳</span></h1>'));
+  assert.ok(html.includes('>返回</button>'));
   assert.ok(html.includes('id="ropeNameCard"'));
   assert.ok(html.includes('id="ropeNameInput"'));
   assert.ok(html.includes('给这根绳命名'));
@@ -125,6 +126,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('saveRopeState(rope.id, emptyState())'));
   assert.ok(js.includes('if (!activeRopeId) return;'));
   assert.ok(js.includes('function renderHome('));
+  assert.ok(js.includes('style="--home-rows: ${rows}"'));
+  assert.ok(js.includes('class="cabinet-top"'));
+  assert.ok(js.includes('class="cabinet-bottom"'));
+  assert.ok(js.includes('--row-center'));
   assert.ok(js.includes('function globalSearchItems('));
   assert.ok(js.includes('function renderGlobalSearchList('));
   assert.ok(js.includes('function updateFloatingDockBounds('));
@@ -141,12 +146,19 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('globalSearchList.addEventListener'));
   assert.ok(css.includes('.home-page'));
   assert.ok(cssBlock('.home-page').includes('position: relative'));
+  assert.ok(cssBlock('.home-page').includes('grid-template-rows: auto 1fr'));
   assert.ok(!cssBlock('.home-page').includes('position: absolute'));
   assert.ok(css.includes('.home-page.search-stabilized'));
+  assert.ok(css.includes('.home-title::before'));
+  assert.ok(css.includes('.home-title span'));
   assert.ok(css.includes('.rope-shelf'));
+  assert.ok(css.includes('--home-rows'));
+  assert.ok(css.includes('height: max(100%, calc(var(--home-rows) * 120px + 94px))'));
   assert.ok(css.includes('.cabinet-row'));
   assert.ok(css.includes('.cabinet-slot'));
   assert.ok(css.includes('.empty-slot'));
+  assert.ok(css.includes('.cabinet-top'));
+  assert.ok(css.includes('.cabinet-bottom'));
   assert.ok(css.includes('.cabinet-front'));
   assert.ok(css.includes('.cabinet-front::before'));
   assert.ok(css.includes('.cabinet-back'));
@@ -157,6 +169,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-note'));
   assert.ok(css.includes('.rope-name-input'));
   assert.ok(css.includes('.add-rope-action'));
+  assert.ok(cssBlock('.add-rope-action').includes('position: absolute'));
+  assert.ok(cssBlock('.add-rope-action').includes('width: 58px'));
+  assert.ok(css.includes('.phone.rope-mode .settings-toggle'));
+  assert.ok(css.includes('.back-home-action::before'));
   assert.ok(css.includes('.global-search-dock'));
   assert.ok(css.includes('position: fixed'));
   assert.ok(css.includes('--global-search-left'));

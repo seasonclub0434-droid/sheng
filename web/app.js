@@ -2042,7 +2042,7 @@ function renderHome() {
     }).join('');
 
     return `
-      <div class="cabinet-row" style="--row-index: ${rowIndex}">
+      <div class="cabinet-row" style="--row-index: ${rowIndex}; --row-center: ${(rows - 1) / 2}">
         <span class="cabinet-back" aria-hidden="true"></span>
         <div class="cabinet-slots">${slots}</div>
         <span class="cabinet-front" aria-hidden="true"></span>
@@ -2050,7 +2050,13 @@ function renderHome() {
     `;
   }).join('');
 
-  ropeShelf.innerHTML = `<div class="cabinet-stack">${shelfRows}</div>`;
+  ropeShelf.innerHTML = `
+    <div class="cabinet-stack" style="--home-rows: ${rows}">
+      <span class="cabinet-top" aria-hidden="true"></span>
+      ${shelfRows}
+      <span class="cabinet-bottom" aria-hidden="true"></span>
+    </div>
+  `;
   rememberHomeRestingPosition();
 }
 
