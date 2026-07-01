@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'rope-color-match-1';
+const assetVersion = 'clean-bottom-plus-1';
 
 function test(name, fn) {
   try {
@@ -92,6 +92,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('id="ropeShelf"'));
   assert.ok(html.includes('class="rope-shelf"'));
   assert.ok(html.includes('id="addRopeAction"'));
+  assert.ok(html.includes('class="add-rope-plus"'));
+  assert.ok(!html.includes('<span>添加</span>'));
   assert.ok(html.includes('id="backHomeAction"'));
   assert.ok(html.includes('<h1 class="home-title"><span>我的绳</span></h1>'));
   assert.ok(html.includes('>返回</button>'));
@@ -153,12 +155,13 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-title span'));
   assert.ok(css.includes('.rope-shelf'));
   assert.ok(css.includes('--home-rows'));
-  assert.ok(css.includes('height: max(100%, calc(var(--home-rows) * 120px + 94px))'));
+  assert.ok(css.includes('height: max(100%, calc(var(--home-rows) * 120px + 76px))'));
   assert.ok(css.includes('.cabinet-row'));
   assert.ok(css.includes('.cabinet-slot'));
   assert.ok(css.includes('.empty-slot'));
   assert.ok(css.includes('.cabinet-top'));
   assert.ok(css.includes('.cabinet-bottom'));
+  assert.ok(cssBlock('.cabinet-bottom', 'right: -12px;').includes('height: 24px'));
   assert.ok(css.includes('.cabinet-front'));
   assert.ok(css.includes('.cabinet-front::before'));
   assert.ok(css.includes('.cabinet-back'));
@@ -175,7 +178,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.rope-name-input'));
   assert.ok(css.includes('.add-rope-action'));
   assert.ok(cssBlock('.add-rope-action').includes('position: absolute'));
-  assert.ok(cssBlock('.add-rope-action').includes('width: 58px'));
+  assert.ok(cssBlock('.add-rope-action').includes('bottom: 22px'));
+  assert.ok(cssBlock('.add-rope-action').includes('width: 50px'));
+  assert.ok(css.includes('.add-rope-plus'));
   assert.ok(css.includes('.phone.rope-mode .settings-toggle'));
   assert.ok(css.includes('.back-home-action::before'));
   assert.ok(css.includes('.global-search-dock'));
