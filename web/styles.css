@@ -477,32 +477,28 @@ button {
   position: relative;
   display: block;
   z-index: 2;
-  width: 74px;
-  height: 57px;
-  margin-top: 22px;
+  width: 36px;
+  height: 76px;
+  margin-top: 2px;
   --coil-body: #ddc8a6;
   --coil-edge: #b89a72;
   --coil-light: #f3dfbd;
-  background:
-    radial-gradient(ellipse at 48% 82%, rgba(71, 49, 25, 0.2), transparent 58%),
-    radial-gradient(ellipse at 35% 42%, rgba(248, 235, 205, 0.2), transparent 38%);
-  border-radius: 48% 52% 46% 54%;
-  box-shadow:
-    0 10px 12px rgba(44, 24, 9, 0.2),
-    inset 0 -7px 10px rgba(83, 55, 30, 0.13);
-  transform: rotate(calc((var(--tile-index) - 2) * 0.34deg - 1deg));
+  filter: drop-shadow(0 10px 9px rgba(43, 25, 9, 0.22));
+  transform: rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg));
+  transform-origin: 50% 4px;
+  transition:
+    filter 180ms ease,
+    transform 220ms cubic-bezier(0.2, 0.9, 0.22, 1);
 }
 
 .rope-coil::before,
 .rope-coil::after {
   position: absolute;
   z-index: 1;
-  height: 8px;
   content: "";
   background:
     linear-gradient(180deg, var(--coil-light), var(--coil-body) 52%, var(--coil-edge)),
     repeating-linear-gradient(96deg, rgba(96, 70, 39, 0.16) 0 1px, transparent 1px 6px);
-  border-radius: 999px;
   box-shadow:
     0 2px 0 rgba(86, 63, 37, 0.22),
     inset 0 1px 0 rgba(255, 247, 222, 0.56),
@@ -510,51 +506,149 @@ button {
 }
 
 .rope-coil::before {
-  bottom: 10px;
-  left: 2px;
-  width: 48px;
-  transform: rotate(13deg);
+  top: 0;
+  left: 50%;
+  width: 14px;
+  height: 8px;
+  border-radius: 47% 53% 43% 57%;
+  transform: translateX(-50%) rotate(-6deg);
 }
 
 .rope-coil::after {
-  top: 12px;
-  right: 1px;
-  width: 35px;
-  transform: rotate(-20deg);
+  right: 13px;
+  bottom: 6px;
+  width: 9px;
+  height: 10px;
+  border-radius: 50% 48% 56% 42%;
+  transform: rotate(8deg);
 }
 
 .rope-coil-line {
   position: absolute;
   z-index: 2;
   content: "";
-  border-style: solid;
-  border-color: var(--coil-body);
-  border-radius: 46% 54% 50% 48%;
+  background:
+    linear-gradient(90deg, var(--coil-edge), var(--coil-body) 28%, var(--coil-light) 48%, var(--coil-body) 68%, #ab8b61),
+    repeating-linear-gradient(180deg, rgba(92, 65, 35, 0.22) 0 2px, transparent 2px 7px);
+  border-radius: 999px 999px 70% 60%;
   box-shadow:
-    1px 2px 0 rgba(86, 63, 37, 0.24),
+    2px 2px 0 rgba(86, 63, 37, 0.18),
     inset 1px 1px 0 rgba(248, 235, 205, 0.52),
     inset -1px -2px 0 rgba(105, 75, 43, 0.12);
+  transform-origin: top center;
 }
 
 .rope-coil-line-a {
-  inset: 5px 10px 14px 3px;
-  border-width: 7px 7px 6px 6px;
-  border-right-color: var(--coil-body);
-  transform: rotate(-19deg);
+  top: 5px;
+  left: 15px;
+  width: 7px;
+  height: 61px;
+  transform: rotate(-3deg);
 }
 
 .rope-coil-line-b {
-  inset: 14px 3px 8px 17px;
-  border-width: 6px 5px 7px 6px;
-  border-left-color: var(--coil-body);
-  transform: rotate(23deg);
+  top: 23px;
+  left: 19px;
+  width: 4px;
+  height: 36px;
+  opacity: 0.64;
+  transform: rotate(11deg);
 }
 
 .rope-coil-line-c {
-  inset: 21px 21px 15px 16px;
-  border-width: 5px 4px 4px 5px;
-  border-bottom-color: var(--coil-body);
-  transform: rotate(-7deg);
+  top: 55px;
+  left: 12px;
+  width: 6px;
+  height: 16px;
+  border-radius: 999px 999px 64% 54%;
+  opacity: 0.74;
+  transform: rotate(-15deg);
+}
+
+.rope-tile.pulling-rope {
+  z-index: 28;
+}
+
+.rope-tile.pulling-rope:not(.pulling-rope-again) .rope-coil {
+  animation: pullCordTest 520ms cubic-bezier(0.22, 0.92, 0.2, 1) both;
+}
+
+.rope-tile.pulling-rope.pulling-rope-again .rope-coil {
+  animation: pullCordDrag 760ms cubic-bezier(0.16, 0.94, 0.18, 1) both;
+}
+
+.home-mode.home-pull-focus .home-page {
+  pointer-events: none;
+  transform-origin: var(--pull-focus-x, 50%) var(--pull-focus-y, 38%);
+  animation: homePullFocus 520ms cubic-bezier(0.18, 0.9, 0.18, 1) both;
+}
+
+.home-mode.home-pull-drop .home-page {
+  pointer-events: none;
+  transform-origin: var(--pull-focus-x, 50%) var(--pull-focus-y, 38%);
+  animation: homePullDrop 560ms cubic-bezier(0.18, 0.94, 0.22, 1) both;
+}
+
+@keyframes pullCordTest {
+  0% {
+    filter: drop-shadow(0 10px 9px rgba(43, 25, 9, 0.22));
+    transform: translateY(0) rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg)) scaleY(1);
+  }
+  48% {
+    filter: drop-shadow(0 17px 13px rgba(43, 25, 9, 0.24));
+    transform: translateY(15px) rotate(calc((var(--tile-index) - 2) * 0.22deg + 1.2deg)) scaleY(1.06);
+  }
+  76% {
+    transform: translateY(3px) rotate(calc((var(--tile-index) - 2) * 0.22deg - 1.8deg)) scaleY(0.98);
+  }
+  100% {
+    filter: drop-shadow(0 10px 9px rgba(43, 25, 9, 0.22));
+    transform: translateY(0) rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg)) scaleY(1);
+  }
+}
+
+@keyframes pullCordDrag {
+  0% {
+    filter: drop-shadow(0 10px 9px rgba(43, 25, 9, 0.22));
+    transform: translateY(0) rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg)) scaleY(1);
+  }
+  38% {
+    filter: drop-shadow(0 22px 16px rgba(43, 25, 9, 0.27));
+    transform: translateY(25px) rotate(calc((var(--tile-index) - 2) * 0.22deg + 2deg)) scaleY(1.08);
+  }
+  100% {
+    filter: drop-shadow(0 25px 18px rgba(43, 25, 9, 0.24));
+    transform: translateY(34px) rotate(calc((var(--tile-index) - 2) * 0.22deg + 1deg)) scaleY(1.11);
+  }
+}
+
+@keyframes homePullFocus {
+  0% {
+    filter: saturate(1);
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  100% {
+    filter: saturate(1.05) contrast(1.02);
+    transform: translateX(0) translateY(-10px) scale(1.075);
+  }
+}
+
+@keyframes homePullDrop {
+  0% {
+    opacity: 1;
+    filter: saturate(1.05) contrast(1.02);
+    transform: translateX(0) translateY(-10px) scale(1.075);
+  }
+  42% {
+    opacity: 0.96;
+    filter: saturate(1.02) contrast(1);
+    transform: translateX(0) translateY(58px) scale(1.07);
+  }
+  100% {
+    opacity: 0.08;
+    filter: blur(0.7px) saturate(0.92);
+    transform: translateX(0) translateY(260px) scale(1.02);
+  }
 }
 
 .rope-note {

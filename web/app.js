@@ -303,6 +303,7 @@ let resolveMode = '';
 let shouldScrollToLatest = true;
 let shouldTimelineListScrollLatest = false;
 let activeKnotAnimation = null;
+let activeHomePullAnimation = false;
 let animationFrame = 0;
 let searchStabilizeFrame = 0;
 let searchHomeRestingX = 0;
@@ -2295,8 +2296,51 @@ function enterRope(id) {
   updateCanvasSize();
 }
 
+function clearHomePullTransition(button) {
+  activeHomePullAnimation = false;
+  phone.classList.remove('home-pull-focus', 'home-pull-drop');
+  homePage.style.removeProperty('--pull-focus-x');
+  homePage.style.removeProperty('--pull-focus-y');
+  if (button) {
+    button.classList.remove('pulling-rope', 'pulling-rope-again');
+  }
+}
+
+function playHomePullTransition(button, ropeId) {
+  if (activeHomePullAnimation || !button || !ropeId) return;
+  activeHomePullAnimation = true;
+  closeFloatingDocks();
+  closeModal();
+
+  const buttonRect = button.getBoundingClientRect();
+  const pageRect = homePage.getBoundingClientRect();
+  const focusX = buttonRect.left + buttonRect.width / 2 - pageRect.left;
+  const focusY = buttonRect.top + buttonRect.height / 2 - pageRect.top;
+  homePage.style.setProperty('--pull-focus-x', `${focusX}px`);
+  homePage.style.setProperty('--pull-focus-y', `${focusY}px`);
+
+  button.classList.add('pulling-rope');
+  phone.classList.add('home-pull-focus');
+
+  window.setTimeout(() => {
+    if (!activeHomePullAnimation) return;
+    button.classList.add('pulling-rope-again');
+  }, 520);
+
+  window.setTimeout(() => {
+    if (!activeHomePullAnimation) return;
+    phone.classList.add('home-pull-drop');
+  }, 910);
+
+  window.setTimeout(() => {
+    clearHomePullTransition(button);
+    enterRope(ropeId);
+  }, 1380);
+}
+
 function goHome() {
   viewMode = 'home';
+  clearHomePullTransition();
   closeFloatingDocks();
   closeModal();
   phone.classList.add('home-mode');
@@ -2812,7 +2856,7 @@ document.querySelector('#closeNotebook').addEventListener('click', closeModal);
 ropeShelf.addEventListener('click', (event) => {
   const button = event.target.closest('[data-rope-id]');
   if (!button) return;
-  enterRope(button.dataset.ropeId);
+  playHomePullTransition(button, button.dataset.ropeId);
 });
 addRopeAction.addEventListener('click', addRope);
 backHomeAction.addEventListener('click', goHome);
