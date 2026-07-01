@@ -210,9 +210,10 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: repeat(var(--home-rows), minmax(112px, 1fr));
+  grid-template-rows: repeat(var(--home-rows), 135px);
+  align-content: start;
   gap: 0;
-  height: max(100%, calc(var(--home-rows) * 120px + 76px));
+  height: max(100%, calc(var(--home-rows) * 135px + 84px));
   min-height: 100%;
   padding: 42px 18px 42px;
   overflow: hidden;
@@ -313,7 +314,7 @@ button {
 .cabinet-row {
   position: relative;
   z-index: 1;
-  min-height: 112px;
+  min-height: 135px;
   padding: 9px 17px 29px;
   overflow: visible;
   transform: rotate(calc((var(--row-index) - var(--row-center)) * 0.14deg));
@@ -478,7 +479,7 @@ button {
   z-index: 2;
   width: 74px;
   height: 57px;
-  margin-top: 4px;
+  margin-top: 22px;
   --coil-body: #ddc8a6;
   --coil-edge: #b89a72;
   --coil-light: #f3dfbd;
