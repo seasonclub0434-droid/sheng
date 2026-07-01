@@ -610,7 +610,14 @@ button {
   z-index: 48;
 }
 
+.home-mode.home-pull-centering .rope-shelf {
+  z-index: 44;
+  overflow: visible;
+}
+
 .home-mode.home-pull-centering .cabinet-stack {
+  z-index: 44;
+  overflow: visible;
   background: transparent;
   border-color: transparent;
   box-shadow: none;

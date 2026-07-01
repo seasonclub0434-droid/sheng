@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-tail-connection-1';
+const assetVersion = 'pull-tail-clear-layer-1';
 
 function test(name, fn) {
   try {
@@ -210,6 +210,11 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-page::after'));
   assert.ok(css.includes('.rope-tile.focus-rope-tile'));
   assert.ok(css.includes('.home-mode.home-pull-centering .cabinet-stack'));
+  assert.ok(css.includes('.home-mode.home-pull-centering .rope-shelf'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-shelf').includes('z-index: 44'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-shelf').includes('overflow: visible'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .cabinet-stack').includes('z-index: 44'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .cabinet-stack').includes('overflow: visible'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::before'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after'));
