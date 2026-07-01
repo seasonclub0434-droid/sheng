@@ -2016,12 +2016,16 @@ function renderHome() {
   const rows = Math.max(4, Math.ceil(homeState.ropes.length / 2));
   const shelfRows = Array.from({ length: rows }, (_, rowIndex) => {
     const rowRopes = homeState.ropes.slice(rowIndex * 2, rowIndex * 2 + 2);
-    const slots = rowRopes
-      .map((rope, slotIndex) => {
+    const slots = Array.from({ length: 2 }, (_, slotIndex) => {
+      const rope = rowRopes[slotIndex];
+      if (!rope) {
+        return '<div class="cabinet-slot empty-slot" aria-hidden="true"></div>';
+      }
+
         const summary = ropeSummary(rope);
         const tileIndex = rowIndex * 2 + slotIndex;
         return `
-          <button class="rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${tileIndex}">
+          <button class="cabinet-slot rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${tileIndex}" aria-label="打开${escapeHtml(rope.name)}">
             <span class="rope-coil" aria-hidden="true">
               <span class="rope-coil-line rope-coil-line-a"></span>
               <span class="rope-coil-line rope-coil-line-b"></span>
@@ -2033,8 +2037,7 @@ function renderHome() {
             </span>
           </button>
         `;
-      })
-      .join('');
+    }).join('');
 
     return `
       <div class="cabinet-row" style="--row-index: ${rowIndex}">

@@ -146,7 +146,8 @@ button {
 .rope-shelf {
   position: relative;
   min-height: 0;
-  margin-top: 20px;
+  margin-top: 18px;
+  padding: 4px 0 2px;
   overflow: auto;
   scrollbar-width: none;
 }
@@ -159,58 +160,115 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 11px;
-  padding: 12px 0 26px;
+  gap: 0;
+  min-height: 588px;
+  padding: 24px 18px 42px;
+  overflow: visible;
+  background:
+    radial-gradient(ellipse at 12% 10%, rgba(239, 178, 87, 0.2), transparent 28%),
+    radial-gradient(ellipse at 84% 22%, rgba(54, 28, 9, 0.22), transparent 34%),
+    radial-gradient(ellipse at 50% 96%, rgba(49, 24, 6, 0.3), transparent 38%),
+    linear-gradient(90deg, rgba(74, 39, 13, 0.9), rgba(153, 91, 34, 0.86) 13%, rgba(111, 65, 24, 0.82) 50%, rgba(160, 94, 35, 0.85) 87%, rgba(61, 31, 10, 0.92)),
+    repeating-linear-gradient(96deg, rgba(236, 171, 86, 0.12) 0 1px, transparent 1px 13px);
+  border: 1px solid rgba(47, 26, 10, 0.36);
+  border-radius: 12px 9px 14px 10px;
+  box-shadow:
+    0 18px 30px rgba(47, 28, 11, 0.2),
+    inset 14px 0 18px rgba(38, 20, 8, 0.3),
+    inset -12px 0 20px rgba(244, 169, 73, 0.08),
+    inset 0 12px 18px rgba(245, 184, 91, 0.08),
+    inset 0 -22px 26px rgba(39, 20, 7, 0.32);
+}
+
+.cabinet-stack::before,
+.cabinet-stack::after {
+  position: absolute;
+  pointer-events: none;
+  content: "";
+}
+
+.cabinet-stack::before {
+  inset: 12px 13px 18px;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, rgba(31, 16, 6, 0.28), transparent 6% 94%, rgba(31, 16, 6, 0.28)),
+    repeating-linear-gradient(90deg, rgba(255, 203, 116, 0.05) 0 1px, transparent 1px 17px),
+    radial-gradient(circle at 23% 18%, rgba(53, 25, 8, 0.18), transparent 8%),
+    radial-gradient(circle at 78% 72%, rgba(255, 214, 144, 0.08), transparent 9%);
+  border: 1px solid rgba(34, 18, 7, 0.28);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 18px 24px rgba(28, 14, 5, 0.2),
+    inset 0 -10px 18px rgba(234, 158, 65, 0.06);
+}
+
+.cabinet-stack::after {
+  inset: 0;
+  z-index: 12;
+  opacity: 0.58;
+  background:
+    linear-gradient(108deg, transparent 0 21%, rgba(255, 213, 133, 0.16) 22%, rgba(42, 21, 7, 0.12) 22.6%, transparent 24% 100%),
+    radial-gradient(circle at 17% 32%, rgba(30, 15, 5, 0.17) 0 1px, transparent 2px),
+    radial-gradient(circle at 63% 18%, rgba(251, 198, 108, 0.14) 0 1px, transparent 2px),
+    repeating-linear-gradient(7deg, transparent 0 11px, rgba(43, 21, 7, 0.09) 11px 12px, transparent 12px 29px);
+  background-size: 100% 100%, 18px 21px, 23px 26px, 100% 100%;
+  border-radius: inherit;
+  mix-blend-mode: multiply;
 }
 
 .cabinet-row {
   position: relative;
-  min-height: 126px;
-  padding: 10px 18px 24px;
+  z-index: 1;
+  min-height: 132px;
+  padding: 14px 17px 36px;
   overflow: visible;
-  background:
-    linear-gradient(180deg, rgba(75, 43, 16, 0.2), rgba(151, 104, 45, 0.08) 40%, rgba(58, 34, 14, 0.2)),
-    radial-gradient(ellipse at 50% 18%, rgba(236, 181, 101, 0.12), transparent 52%),
-    linear-gradient(96deg, rgba(88, 54, 22, 0.18), rgba(178, 126, 61, 0.08) 46%, rgba(58, 33, 12, 0.17));
-  border: 1px solid rgba(68, 43, 20, 0.18);
-  border-radius: 6px 5px 7px 5px;
-  box-shadow:
-    inset 0 10px 22px rgba(65, 39, 17, 0.16),
-    inset 0 -10px 16px rgba(231, 178, 98, 0.06);
   transform: rotate(calc((var(--row-index) - 1.5) * 0.16deg));
 }
 
 .cabinet-row::before,
 .cabinet-row::after {
   position: absolute;
-  top: 2px;
-  bottom: 15px;
-  z-index: 1;
-  width: 10px;
   content: "";
-  background:
-    linear-gradient(90deg, rgba(70, 40, 15, 0.34), rgba(180, 126, 60, 0.08)),
-    repeating-linear-gradient(180deg, rgba(241, 183, 98, 0.08) 0 1px, transparent 1px 10px);
-  border-radius: 4px;
-  box-shadow: inset -2px 0 5px rgba(55, 32, 13, 0.18);
+  pointer-events: none;
 }
 
 .cabinet-row::before {
-  left: -5px;
+  inset: 7px 10px 33px;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at 20% 16%, rgba(255, 210, 127, 0.08), transparent 34%),
+    radial-gradient(ellipse at 78% 70%, rgba(36, 17, 5, 0.18), transparent 42%),
+    linear-gradient(180deg, rgba(38, 20, 7, 0.32), rgba(96, 55, 19, 0.18) 18%, rgba(139, 87, 35, 0.08) 68%, rgba(29, 14, 4, 0.22));
+  border-radius: 5px 5px 3px 3px;
+  box-shadow:
+    inset 0 12px 20px rgba(20, 10, 4, 0.26),
+    inset 0 -8px 18px rgba(228, 156, 64, 0.05);
 }
 
 .cabinet-row::after {
-  right: -5px;
-  transform: scaleX(-1);
+  top: 7px;
+  bottom: 32px;
+  left: calc(50% - 7px);
+  z-index: 5;
+  width: 14px;
+  background:
+    linear-gradient(90deg, rgba(52, 27, 9, 0.62), rgba(162, 99, 38, 0.78) 48%, rgba(42, 21, 7, 0.62)),
+    repeating-linear-gradient(180deg, rgba(255, 203, 110, 0.09) 0 1px, transparent 1px 12px);
+  border-radius: 4px 4px 2px 2px;
+  box-shadow:
+    4px 0 12px rgba(24, 12, 4, 0.2),
+    -3px 0 10px rgba(24, 12, 4, 0.2),
+    inset 1px 0 0 rgba(246, 187, 93, 0.1);
 }
 
 .cabinet-back {
   position: absolute;
-  inset: 6px 9px 30px;
+  inset: 8px 10px 35px;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 24% 24%, rgba(85, 51, 21, 0.12), transparent 24%),
+    linear-gradient(90deg, rgba(24, 12, 5, 0.2), transparent 12% 88%, rgba(24, 12, 5, 0.18)),
+    radial-gradient(circle at 24% 24%, rgba(65, 32, 11, 0.16), transparent 24%),
     radial-gradient(circle at 72% 65%, rgba(238, 186, 104, 0.08), transparent 28%),
     repeating-linear-gradient(91deg, rgba(80, 49, 23, 0.08) 0 1px, transparent 1px 15px);
   border-radius: 5px;
@@ -218,39 +276,102 @@ button {
 
 .cabinet-front {
   position: absolute;
-  right: -33px;
-  bottom: 10px;
-  left: -33px;
-  z-index: 3;
-  height: 30px;
+  right: -19px;
+  bottom: 4px;
+  left: -19px;
+  z-index: 8;
+  height: 40px;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(157, 100, 35, 0.94), rgba(90, 51, 13, 0.98)),
-    repeating-linear-gradient(8deg, rgba(255, 216, 135, 0.12) 0 1px, transparent 1px 10px),
-    radial-gradient(ellipse at 28% 42%, rgba(64, 35, 10, 0.22), transparent 16%),
-    radial-gradient(ellipse at 75% 34%, rgba(230, 166, 72, 0.13), transparent 18%);
-  border-top: 1px solid rgba(229, 166, 76, 0.2);
-  border-bottom: 1px solid rgba(53, 29, 8, 0.36);
+    linear-gradient(180deg, rgba(185, 116, 38, 0.96), rgba(125, 70, 18, 0.98) 50%, rgba(63, 34, 10, 0.99)),
+    repeating-linear-gradient(8deg, rgba(255, 216, 135, 0.13) 0 1px, transparent 1px 9px),
+    radial-gradient(ellipse at 21% 42%, rgba(46, 23, 7, 0.3), transparent 16%),
+    radial-gradient(ellipse at 75% 34%, rgba(230, 166, 72, 0.15), transparent 18%);
+  border-top: 1px solid rgba(246, 188, 94, 0.22);
+  border-bottom: 1px solid rgba(38, 18, 5, 0.5);
+  border-radius: 2px 2px 6px 6px;
   box-shadow:
-    0 9px 16px rgba(55, 32, 13, 0.22),
-    inset 0 3px 0 rgba(232, 171, 86, 0.08),
-    inset 0 -6px 10px rgba(48, 28, 11, 0.22);
+    0 12px 18px rgba(36, 18, 6, 0.3),
+    inset 0 4px 0 rgba(232, 171, 86, 0.08),
+    inset 0 -9px 12px rgba(43, 22, 7, 0.32);
   transform: rotate(-0.12deg);
+}
+
+.cabinet-front::before,
+.cabinet-front::after {
+  position: absolute;
+  pointer-events: none;
+  content: "";
+}
+
+.cabinet-front::before {
+  inset: 4px 8px 8px;
+  opacity: 0.62;
+  background:
+    linear-gradient(92deg, transparent 0 18%, rgba(255, 202, 116, 0.18) 19%, transparent 20% 100%),
+    repeating-linear-gradient(174deg, transparent 0 9px, rgba(32, 16, 5, 0.16) 9px 10px, transparent 10px 24px),
+    radial-gradient(ellipse at 34% 48%, rgba(26, 12, 4, 0.22), transparent 12%),
+    radial-gradient(ellipse at 81% 38%, rgba(255, 205, 114, 0.1), transparent 15%);
+  border-radius: inherit;
+}
+
+.cabinet-front::after {
+  right: 18px;
+  bottom: 5px;
+  left: 16px;
+  height: 2px;
+  opacity: 0.55;
+  background:
+    linear-gradient(90deg, transparent, rgba(31, 15, 4, 0.46), transparent 62%),
+    repeating-linear-gradient(90deg, rgba(255, 215, 137, 0.16) 0 1px, transparent 1px 15px);
 }
 
 .cabinet-slots {
   position: relative;
-  z-index: 4;
+  z-index: 6;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 30px;
+  gap: 28px;
+  min-height: 98px;
+}
+
+.cabinet-slot {
+  position: relative;
+  min-height: 104px;
+}
+
+.cabinet-slot::before {
+  position: absolute;
+  inset: 2px 2px 27px;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(ellipse at 48% 90%, rgba(33, 17, 6, 0.18), transparent 46%),
+    linear-gradient(180deg, rgba(22, 11, 4, 0.1), rgba(222, 151, 63, 0.04));
+  border-radius: 4px;
+}
+
+.empty-slot::after {
+  position: absolute;
+  right: 18px;
+  bottom: 42px;
+  left: 18px;
+  height: 1px;
+  pointer-events: none;
+  content: "";
+  background: rgba(36, 18, 6, 0.18);
+  box-shadow:
+    0 5px 10px rgba(35, 18, 6, 0.18),
+    0 -18px 0 rgba(255, 211, 130, 0.025);
 }
 
 .rope-tile {
   position: relative;
   display: grid;
-  height: 94px;
-  padding: 0;
+  width: 100%;
+  height: 112px;
+  padding: 4px 0 0;
   place-items: start center;
   background: transparent;
   border: 0;
@@ -261,9 +382,9 @@ button {
   position: relative;
   display: block;
   z-index: 2;
-  width: 66px;
-  height: 60px;
-  margin-top: 2px;
+  width: 68px;
+  height: 61px;
+  margin-top: 3px;
   background:
     radial-gradient(ellipse at 50% 62%, rgba(92, 63, 38, 0.2), transparent 55%),
     linear-gradient(135deg, rgba(221, 200, 166, 0.22), rgba(161, 119, 75, 0.1));
@@ -305,36 +426,52 @@ button {
 
 .rope-note {
   position: absolute;
-  bottom: -10px;
+  bottom: 5px;
   left: 50%;
   display: grid;
-  z-index: 6;
-  width: 66px;
-  min-height: 41px;
-  padding: 7px 5px 5px;
+  z-index: 10;
+  width: 72px;
+  min-height: 39px;
+  padding: 6px 5px 5px;
   place-items: center;
   color: #4b3b2e;
   font-family: var(--font-hand);
   text-align: center;
   background:
-    linear-gradient(105deg, rgba(255, 251, 236, 0.86), rgba(234, 221, 196, 0.88)),
-    radial-gradient(circle at 82% 18%, rgba(120, 80, 38, 0.1), transparent 34%);
-  border: 1px solid rgba(101, 76, 49, 0.14);
-  border-radius: 4px 5px 6px 4px;
-  box-shadow: 0 7px 10px rgba(47, 27, 10, 0.14);
-  transform: translateX(-50%) rotate(-0.7deg);
+    linear-gradient(105deg, rgba(255, 248, 222, 0.88), rgba(226, 206, 168, 0.9)),
+    radial-gradient(circle at 15% 84%, rgba(83, 47, 18, 0.12), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(120, 80, 38, 0.13), transparent 34%);
+  border: 1px solid rgba(87, 59, 31, 0.19);
+  border-radius: 3px 5px 5px 4px;
+  box-shadow:
+    0 3px 5px rgba(31, 15, 4, 0.22),
+    inset 0 -8px 12px rgba(95, 59, 25, 0.05);
+  transform: translateX(-50%) rotate(calc((var(--tile-index) - 2) * -0.22deg - 0.5deg));
 }
 
 .rope-note::before {
   position: absolute;
-  top: -6px;
-  left: 13px;
-  width: 32px;
-  height: 12px;
+  top: -7px;
+  left: 12px;
+  width: 36px;
+  height: 13px;
   content: "";
-  background: rgba(116, 82, 47, 0.12);
-  border: 1px solid rgba(94, 67, 41, 0.06);
-  transform: rotate(-7deg);
+  background:
+    linear-gradient(90deg, rgba(145, 103, 62, 0.15), rgba(241, 219, 177, 0.26), rgba(101, 67, 35, 0.1));
+  border: 1px solid rgba(73, 46, 23, 0.07);
+  box-shadow: 0 2px 4px rgba(39, 20, 7, 0.1);
+  transform: rotate(-6deg);
+}
+
+.rope-note::after {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  width: 18px;
+  height: 10px;
+  content: "";
+  background: radial-gradient(ellipse, rgba(84, 48, 19, 0.12), transparent 68%);
+  transform: rotate(9deg);
 }
 
 .rope-note b {

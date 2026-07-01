@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'search-stabilized-2';
+const assetVersion = 'antique-cabinet-1';
 
 function test(name, fn) {
   try {
@@ -130,7 +130,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-page.search-stabilized'));
   assert.ok(css.includes('.rope-shelf'));
   assert.ok(css.includes('.cabinet-row'));
+  assert.ok(css.includes('.cabinet-slot'));
+  assert.ok(css.includes('.empty-slot'));
   assert.ok(css.includes('.cabinet-front'));
+  assert.ok(css.includes('.cabinet-front::before'));
   assert.ok(css.includes('.cabinet-back'));
   assert.ok(css.includes('.cabinet-slots'));
   assert.ok(css.includes('.rope-coil'));
