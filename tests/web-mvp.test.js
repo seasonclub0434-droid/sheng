@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'settings-logo-gear-1';
+const assetVersion = 'cabinet-top-trim-1';
 
 function test(name, fn) {
   try {
@@ -161,12 +161,13 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('--home-rows'));
   assert.ok(css.includes('grid-template-rows: repeat(var(--home-rows), 135px)'));
   assert.ok(css.includes('align-content: start'));
-  assert.ok(css.includes('height: max(100%, calc(var(--home-rows) * 135px + 84px))'));
+  assert.ok(css.includes('height: max(100%, calc(var(--home-rows) * 135px + 72px))'));
   assert.ok(css.includes('.cabinet-row'));
   assert.ok(css.includes('.cabinet-slot'));
   assert.ok(css.includes('.empty-slot'));
   assert.ok(css.includes('.cabinet-top'));
   assert.ok(css.includes('.cabinet-bottom'));
+  assert.ok(cssBlock('.cabinet-top', 'top: 8px;').includes('height: 13px'));
   assert.ok(cssBlock('.cabinet-bottom', 'right: -12px;').includes('height: 13px'));
   assert.ok(css.includes('.cabinet-front'));
   assert.ok(css.includes('.cabinet-front::before'));
@@ -197,6 +198,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.search-icon'));
   assert.ok(css.includes('.add-rope-action'));
   assert.ok(cssBlock('.home-control-bar').includes('grid-template-columns: 42px 52px 42px'));
+  assert.ok(cssBlock('.home-control-bar').includes('bottom: 25px'));
   assert.ok(cssBlock('.add-rope-action').includes('position: absolute'));
   assert.ok(cssBlock('.add-rope-action').includes('width: 50px'));
   assert.ok(cssBlock('.add-rope-action').includes('opacity: 0.84'));
