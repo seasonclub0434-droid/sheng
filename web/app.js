@@ -238,6 +238,8 @@ const REWARD_BADGE_NODES = [
 const canvas = document.querySelector('#ropeCanvas');
 const ctx = canvas.getContext('2d');
 const phone = document.querySelector('.phone');
+const loginGate = document.querySelector('#loginGate');
+const loginEnterAction = document.querySelector('#loginEnterAction');
 const homePage = document.querySelector('#homePage');
 const ropeShelf = document.querySelector('#ropeShelf');
 const addRopeAction = document.querySelector('#addRopeAction');
@@ -2331,6 +2333,12 @@ function goHome() {
   renderHome();
 }
 
+function enterLoginGate() {
+  phone.classList.remove('login-mode');
+  loginGate.setAttribute('aria-hidden', 'true');
+  renderHome();
+}
+
 function openRopeNameModal() {
   ropeNameInput.value = '';
   closeFloatingDocks();
@@ -2836,6 +2844,7 @@ ropeNameInput.addEventListener('keydown', (event) => {
 });
 document.querySelector('#closeDetail').addEventListener('click', closeModal);
 document.querySelector('#closeNotebook').addEventListener('click', closeModal);
+loginEnterAction.addEventListener('click', enterLoginGate);
 ropeShelf.addEventListener('click', (event) => {
   const button = event.target.closest('[data-rope-id]');
   if (!button) return;
@@ -2903,5 +2912,6 @@ window.addEventListener('resize', updateCanvasSize);
 window.addEventListener('load', updateCanvasSize);
 
 phone.classList.add('home-mode');
+loginGate.setAttribute('aria-hidden', 'false');
 updateCanvasSize();
 requestAnimationFrame(updateCanvasSize);

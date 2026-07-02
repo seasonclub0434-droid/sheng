@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'search-icon-1';
+const assetVersion = 'login-gate-1';
 
 function test(name, fn) {
   try {
@@ -87,6 +87,19 @@ test('browser preview keeps the home screen clean with a journal rope control', 
 
 test('browser preview adds a cabinet-style rope home with isolated rope states and global search', () => {
   const defaultRopesStart = js.indexOf('function defaultRopes(');
+  assert.ok(html.includes('id="loginGate"'));
+  assert.ok(html.includes('class="phone kraft-paper home-mode login-mode"'));
+  assert.ok(html.includes('<h1 class="login-title" aria-label="绳迹">'));
+  assert.ok(html.includes('id="loginEnterAction"'));
+  assert.ok(html.includes('点击此处进入'));
+  assert.ok(html.includes('class="login-handle-icon"'));
+  assert.ok(pagesHtml.includes('id="loginGate"'));
+  assert.ok(js.includes("const loginEnterAction = document.querySelector('#loginEnterAction');"));
+  assert.ok(js.includes("phone.classList.remove('login-mode');"));
+  assert.ok(css.includes('.login-gate'));
+  assert.ok(css.includes('.login-title'));
+  assert.ok(css.includes('.login-enter-action'));
+  assert.ok(css.includes('.login-handle-icon'));
   assert.ok(html.includes('id="homePage"'));
   assert.ok(html.includes('id="pullBridgeRope"'));
   assert.ok(html.includes('我的绳'));

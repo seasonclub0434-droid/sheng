@@ -4,11 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./styles.css?v=search-icon-1" />
+    <link rel="stylesheet" href="./styles.css?v=login-gate-1" />
   </head>
   <body>
     <main class="workspace">
-      <section class="phone kraft-paper home-mode" aria-label="绳话预览">
+      <section class="phone kraft-paper home-mode login-mode" aria-label="绳话预览">
+        <section id="loginGate" class="login-gate" aria-label="绳迹登录">
+          <div class="login-cabinet-door" aria-hidden="true"></div>
+          <h1 class="login-title" aria-label="绳迹">
+            <span>绳</span>
+            <span>迹</span>
+          </h1>
+          <button id="loginEnterAction" class="login-enter-action" type="button" aria-label="进入我的绳">
+            <span class="login-handle-icon" aria-hidden="true"></span>
+          </button>
+          <div class="login-enter-copy">点击此处进入</div>
+        </section>
+
         <canvas id="ropeCanvas" class="rope-canvas"></canvas>
         <span id="pullBridgeRope" class="pull-bridge-rope" aria-hidden="true"></span>
 
@@ -166,6 +178,6 @@
       </aside>
     </main>
 
-    <script type="module" src="./app.js?v=search-icon-1"></script>
+    <script type="module" src="./app.js?v=login-gate-1"></script>
   </body>
 </html>
