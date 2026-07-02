@@ -103,7 +103,7 @@ button {
   z-index: 48;
   display: grid;
   overflow: hidden;
-  padding: 0;
+  padding: 8px 0 10px;
   place-items: center;
   background:
     radial-gradient(ellipse at 50% 18%, rgba(255, 224, 155, 0.12), transparent 42%),
@@ -151,9 +151,11 @@ button {
   position: relative;
   z-index: 3;
   display: block;
-  width: auto;
-  max-width: none;
-  height: calc(100% - 4px);
+  width: calc(100% - 2px);
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
   pointer-events: none;
   user-select: none;
   filter:
@@ -164,11 +166,11 @@ button {
 
 .login-enter-action {
   position: absolute;
-  top: 58%;
+  top: 55.8%;
   left: 50%;
   z-index: 5;
   display: grid;
-  width: min(46%, 184px);
+  width: min(31%, 134px);
   aspect-ratio: 1;
   padding: 0;
   place-items: center;
@@ -184,7 +186,7 @@ button {
 
 .login-enter-action::before {
   position: absolute;
-  inset: 7%;
+  inset: 2%;
   content: "";
   border: 2px solid rgba(255, 220, 124, 0.52);
   border-radius: 50%;
@@ -225,7 +227,7 @@ button {
 
 .login-enter-glow {
   position: absolute;
-  inset: -2%;
+  inset: -8%;
   display: block;
   background:
     radial-gradient(ellipse at 50% 48%, rgba(255, 224, 138, 0.24), transparent 54%),

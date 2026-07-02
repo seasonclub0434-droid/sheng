@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'home-sign-transparent-1';
+const assetVersion = 'login-full-door-handle-1';
 
 function test(name, fn) {
   try {
@@ -114,7 +114,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(!css.includes('.login-handle-icon'));
   assert.ok(!css.includes('.login-rope-corner'));
   assert.ok(cssBlock('.login-gate').includes('place-items: center'));
-  assert.ok(cssBlock('.login-cabinet-image').includes('height: calc(100% - 4px)'));
+  assert.ok(cssBlock('.login-cabinet-image').includes('width: calc(100% - 2px)'));
+  assert.ok(cssBlock('.login-cabinet-image').includes('object-fit: contain'));
+  assert.ok(cssBlock('.login-enter-action').includes('top: 55.8%'));
+  assert.ok(cssBlock('.login-enter-action').includes('width: min(31%, 134px)'));
   assert.ok(cssBlock('.login-enter-action').includes('aspect-ratio: 1'));
   assert.ok(html.includes('id="homePage"'));
   assert.ok(html.includes('id="pullBridgeRope"'));
