@@ -1762,29 +1762,35 @@ button {
   fill: currentColor;
 }
 
-.search-icon::before,
-.search-icon::after {
-  position: absolute;
-  content: "";
+.search-icon {
+  width: 30px;
+  height: 30px;
+  color: rgba(51, 51, 48, 0.84);
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 248, 222, 0.22))
+    drop-shadow(0 1px 1px rgba(51, 34, 20, 0.14));
+  transform: rotate(-2deg);
 }
 
-.search-icon::before {
-  top: 2px;
-  left: 2px;
-  width: 12px;
-  height: 12px;
-  border: 2px solid currentColor;
-  border-radius: 50%;
+.search-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 6;
 }
 
-.search-icon::after {
-  right: 2px;
-  bottom: 3px;
-  width: 10px;
-  height: 3px;
-  background: currentColor;
-  border-radius: 999px;
-  transform: rotate(45deg);
+.search-icon .search-icon-handle {
+  stroke-width: 8;
+}
+
+.search-icon .search-icon-glint {
+  opacity: 0.82;
+  stroke-width: 5;
 }
 
 .home-mode .home-control-bar .settings-toggle.open {
