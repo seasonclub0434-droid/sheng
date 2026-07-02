@@ -789,6 +789,7 @@ button {
 .home-mode.home-pull-centering .cabinet-bottom,
 .home-mode.home-pull-centering .cabinet-row::before,
 .home-mode.home-pull-centering .cabinet-row::after,
+.home-mode.home-pull-centering .cabinet-slot::before,
 .home-mode.home-pull-centering .cabinet-front,
 .home-mode.home-pull-centering .cabinet-back,
 .home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-note {
@@ -924,7 +925,7 @@ button {
     opacity: 0.2;
   }
   100% {
-    opacity: 0.18;
+    opacity: 0;
   }
 }
 
@@ -933,10 +934,10 @@ button {
     opacity: 0;
   }
   64% {
-    opacity: 0.58;
+    opacity: 0.82;
   }
   100% {
-    opacity: 0.72;
+    opacity: 1;
   }
 }
 
