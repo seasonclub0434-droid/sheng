@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-tail-drag-2';
+const assetVersion = 'pull-tail-drag-3';
 
 function test(name, fn) {
   try {
@@ -153,6 +153,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('function completePrimedRopeTransition('));
   assert.ok(js.includes('function playHomePullTransition('));
   assert.ok(js.includes('function startHomePullDrag('));
+  assert.ok(js.includes('function shouldStartHomePullDrag('));
   assert.ok(js.includes('function updateHomePullDrag('));
   assert.ok(js.includes('function finishHomePullDrag('));
   assert.ok(js.includes('function commitHomePullDrag('));
@@ -189,6 +190,10 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes("ropeShelf.addEventListener('pointerdown', startHomePullDrag)"));
   assert.ok(js.includes("ropeShelf.addEventListener('pointermove', updateHomePullDrag)"));
   assert.ok(js.includes("ropeShelf.addEventListener('pointerup', finishHomePullDrag)"));
+  assert.ok(js.includes("phone.addEventListener('pointerdown', startHomePullDrag)"));
+  assert.ok(js.includes("phone.addEventListener('pointermove', updateHomePullDrag)"));
+  assert.ok(js.includes("phone.addEventListener('pointerup', finishHomePullDrag)"));
+  assert.ok(js.includes("phone.addEventListener('pointercancel', finishHomePullDrag)"));
   assert.ok(js.includes('globalSearchList.addEventListener'));
   assert.ok(css.includes('.home-page'));
   assert.ok(cssBlock('.home-page').includes('position: relative'));
@@ -272,7 +277,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(!css.includes('filter: blur(0.8px) saturate(0.86)'));
   assert.ok(css.includes('@keyframes homeSceneFocus'));
   assert.ok(css.includes('@keyframes focusSurroundingFade'));
+  assert.ok(css.includes('opacity: 0.18;'));
   assert.ok(css.includes('@keyframes focusSurroundingsVanish'));
+  assert.ok(css.includes('opacity: 0.72;'));
   assert.ok(css.includes('@keyframes focusWoodBackingFade'));
   assert.ok(css.includes('@keyframes focusRopeStemReveal'));
   assert.ok(!css.includes('@keyframes focusCordTestPull'));

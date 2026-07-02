@@ -2334,8 +2334,8 @@ function applyHomePullFocus(button) {
   const focusX = cordRect.left + cordRect.width / 2 - pageRect.left;
   const focusY = cordRect.top + cordRect.height / 2 - pageRect.top;
   const targetX = phoneRect.width / 2;
-  const targetY = phoneRect.height * 0.52;
-  const scale = Math.min(2.18, Math.max(1.76, phoneRect.height / Math.max(410, cordRect.height * 5.2)));
+  const targetY = phoneRect.height * 0.48;
+  const scale = Math.min(1.78, Math.max(1.48, phoneRect.height / Math.max(470, cordRect.height * 6.2)));
   const zoomX = targetX - focusX * scale;
   const zoomY = targetY - focusY * scale;
   homePage.style.setProperty('--pull-zoom-scale', String(scale));
@@ -2381,10 +2381,20 @@ function setHomePullDrag(rawY) {
   activeHomePull.button.style.setProperty('--pull-cord-y', `${Math.round(cordY)}px`);
 }
 
-function startHomePullDrag(event) {
-  if (!activeHomePullAnimation || !activeHomePull || activeHomePull.phase !== 'focused') return;
+function shouldStartHomePullDrag(event) {
+  if (!activeHomePullAnimation || !activeHomePull || activeHomePull.phase !== 'focused') return false;
   const button = event.target.closest('.focus-rope-tile');
-  if (!button || button !== activeHomePull.button) return;
+  if (button) return button === activeHomePull.button;
+  if (event.target.closest('.modal-layer, .floating-dock, .home-control-bar, input, textarea')) return false;
+  const rect = phone.getBoundingClientRect();
+  return event.clientX >= rect.left
+    && event.clientX <= rect.right
+    && event.clientY >= rect.top
+    && event.clientY <= rect.bottom;
+}
+
+function startHomePullDrag(event) {
+  if (!shouldStartHomePullDrag(event)) return;
   event.preventDefault();
   activeHomePull.phase = 'dragging';
   activeHomePull.pointerId = event.pointerId;
@@ -2393,6 +2403,7 @@ function startHomePullDrag(event) {
   activeHomePull.button.classList.add('dragging-rope');
   phone.classList.add('home-pull-dragging');
   setHomePullDrag(0);
+  const button = activeHomePull.button;
   if (button.setPointerCapture) button.setPointerCapture(event.pointerId);
 }
 
@@ -3006,6 +3017,10 @@ ropeShelf.addEventListener('pointerdown', startHomePullDrag);
 ropeShelf.addEventListener('pointermove', updateHomePullDrag);
 ropeShelf.addEventListener('pointerup', finishHomePullDrag);
 ropeShelf.addEventListener('pointercancel', finishHomePullDrag);
+phone.addEventListener('pointerdown', startHomePullDrag);
+phone.addEventListener('pointermove', updateHomePullDrag);
+phone.addEventListener('pointerup', finishHomePullDrag);
+phone.addEventListener('pointercancel', finishHomePullDrag);
 addRopeAction.addEventListener('click', addRope);
 backHomeAction.addEventListener('click', goHome);
 settingsToggle.addEventListener('click', () => toggleSettingsDock());
