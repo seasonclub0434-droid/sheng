@@ -4,32 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./styles.css?v=settings-icon-open-1" />
+    <link rel="stylesheet" href="./styles.css?v=login-door-home-sign-1" />
   </head>
   <body>
     <main class="workspace">
       <section class="phone kraft-paper home-mode login-mode" aria-label="绳话预览">
-        <section id="loginGate" class="login-gate" aria-label="绳记登录">
-          <div class="login-cabinet-door" aria-hidden="true"></div>
-          <span class="login-rope-corner login-rope-corner-tl" aria-hidden="true"></span>
-          <span class="login-rope-corner login-rope-corner-tr" aria-hidden="true"></span>
-          <span class="login-rope-corner login-rope-corner-bl" aria-hidden="true"></span>
-          <span class="login-rope-corner login-rope-corner-br" aria-hidden="true"></span>
-          <h1 class="login-title" aria-label="绳记">
-            <span>绳</span>
-            <span>记</span>
-          </h1>
-          <button id="loginEnterAction" class="login-enter-action" type="button" aria-label="进入我的绳">
-            <span class="login-handle-icon" aria-hidden="true"></span>
+        <section id="loginGate" class="login-gate image-login-gate" aria-label="绳记登录">
+          <img class="login-cabinet-image" src="./assets/login-cabinet-door.png" alt="绳记柜门" />
+          <button id="loginEnterAction" class="login-enter-action image-login-enter-action" type="button" aria-label="进入我的绳">
+            <span class="login-enter-glow" aria-hidden="true"></span>
           </button>
-          <div class="login-enter-copy">点击此处进入</div>
         </section>
 
         <canvas id="ropeCanvas" class="rope-canvas"></canvas>
         <span id="pullBridgeRope" class="pull-bridge-rope" aria-hidden="true"></span>
 
         <section id="homePage" class="home-page" aria-label="我的绳">
-          <h1 class="home-title"><span>我的绳</span></h1>
+          <h1 class="home-title" aria-label="我的绳">
+            <img class="home-title-image" src="./assets/home-rope-sign.png" alt="我的绳牌匾" />
+          </h1>
           <div id="ropeShelf" class="rope-shelf" aria-label="绳子列表"></div>
           <div class="home-control-bar" aria-label="主页操作">
             <button id="settingsToggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="settingsDock" aria-label="打开设置">
@@ -182,6 +175,6 @@
       </aside>
     </main>
 
-    <script type="module" src="./app.js?v=settings-icon-open-1"></script>
+    <script type="module" src="./app.js?v=login-door-home-sign-1"></script>
   </body>
 </html>
