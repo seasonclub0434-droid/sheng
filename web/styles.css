@@ -758,30 +758,17 @@ button {
   animation: focusSurroundingsVanish 780ms ease both;
 }
 
-.rope-tile.pulling-rope:not(.pulling-rope-again) .rope-coil {
+.rope-tile.pulling-rope .rope-coil {
   backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
   will-change: transform;
-  animation: focusCordTestPull 560ms cubic-bezier(0.16, 1.08, 0.18, 1) both;
+  animation: focusCordPagePull 880ms cubic-bezier(0.14, 1.02, 0.14, 1) both;
 }
 
-.home-mode.home-pull-centering .rope-tile.pulling-rope:not(.pulling-rope-again)::after {
+.home-mode.home-pull-centering .rope-tile.pulling-rope::after {
   backface-visibility: hidden;
   will-change: transform;
-  animation: focusCordStemTestPull 560ms cubic-bezier(0.16, 1.08, 0.18, 1) both;
-}
-
-.rope-tile.pulling-rope.pulling-rope-again .rope-coil {
-  backface-visibility: hidden;
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
-  animation: focusCordPagePull 980ms cubic-bezier(0.14, 1.02, 0.14, 1) both;
-}
-
-.home-mode.home-pull-centering .rope-tile.pulling-rope.pulling-rope-again::after {
-  backface-visibility: hidden;
-  will-change: transform;
-  animation: focusCordStemPagePull 980ms cubic-bezier(0.14, 1.02, 0.14, 1) both;
+  animation: focusCordStemPagePull 880ms cubic-bezier(0.14, 1.02, 0.14, 1) both;
 }
 
 .home-mode.home-pull-centering .home-page {
@@ -791,7 +778,7 @@ button {
   z-index: 12;
   transform-origin: 0 0;
   will-change: transform, opacity;
-  animation: homeSceneFocus 760ms cubic-bezier(0.16, 0.92, 0.16, 1) both;
+  animation: homeSceneFocus 640ms cubic-bezier(0.16, 0.92, 0.16, 1) both;
 }
 
 .home-mode.home-pull-revealing .rope-canvas {
@@ -814,36 +801,6 @@ button {
   transform-origin: 0 0;
   will-change: transform, opacity;
   animation: homePullDrop 1500ms cubic-bezier(0.13, 1.02, 0.14, 1) both;
-}
-
-@keyframes focusCordTestPull {
-  0% {
-    transform: translateY(0) rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg)) scaleY(1);
-  }
-  46% {
-    transform: translateY(18px) rotate(calc((var(--tile-index) - 2) * 0.22deg + 1.4deg)) scaleY(1.06);
-  }
-  72% {
-    transform: translateY(4px) rotate(calc((var(--tile-index) - 2) * 0.22deg - 1.6deg)) scaleY(0.99);
-  }
-  100% {
-    transform: translateY(0) rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg)) scaleY(1);
-  }
-}
-
-@keyframes focusCordStemTestPull {
-  0% {
-    transform: translateX(-50%) translateY(0) rotate(calc((var(--tile-index) - 2) * 0.2deg - 1.6deg)) scaleY(1);
-  }
-  46% {
-    transform: translateX(-50%) translateY(18px) rotate(calc((var(--tile-index) - 2) * 0.2deg + 1.1deg)) scaleY(1.035);
-  }
-  72% {
-    transform: translateX(-50%) translateY(4px) rotate(calc((var(--tile-index) - 2) * 0.2deg - 1.8deg)) scaleY(0.995);
-  }
-  100% {
-    transform: translateX(-50%) translateY(0) rotate(calc((var(--tile-index) - 2) * 0.2deg - 1.6deg)) scaleY(1);
-  }
 }
 
 @keyframes focusCordPagePull {
@@ -901,7 +858,7 @@ button {
     opacity: 1;
     transform:
       translate3d(var(--pull-zoom-x, 0), var(--pull-zoom-y, 0), 0)
-      scale(var(--pull-zoom-scale, 2.75));
+      scale(var(--pull-zoom-scale, 2.05));
   }
 }
 
@@ -996,25 +953,25 @@ button {
     opacity: 1;
     transform:
       translate3d(var(--pull-zoom-x, 0), var(--pull-zoom-y, 0), 0)
-      scale(var(--pull-zoom-scale, 2.75));
+      scale(var(--pull-zoom-scale, 2.05));
   }
   48% {
     opacity: 0.92;
     transform:
       translate3d(var(--pull-zoom-x, 0), calc(var(--pull-zoom-y, 0px) + 252px), 0)
-      scale(var(--pull-zoom-scale, 2.75));
+      scale(var(--pull-zoom-scale, 2.05));
   }
   76% {
     opacity: 0.32;
     transform:
       translate3d(var(--pull-zoom-x, 0), calc(var(--pull-zoom-y, 0px) + 790px), 0)
-      scale(var(--pull-zoom-scale, 2.75));
+      scale(var(--pull-zoom-scale, 2.05));
   }
   100% {
     opacity: 0.03;
     transform:
       translate3d(var(--pull-zoom-x, 0), calc(var(--pull-zoom-y, 0px) + 1060px), 0)
-      scale(var(--pull-zoom-scale, 2.75));
+      scale(var(--pull-zoom-scale, 2.05));
   }
 }
 

@@ -2333,7 +2333,7 @@ function applyHomePullFocus(button) {
   const focusY = cordRect.top + cordRect.height / 2 - pageRect.top;
   const targetX = phoneRect.width / 2;
   const targetY = phoneRect.height * 0.52;
-  const scale = Math.min(3.08, Math.max(2.62, phoneRect.height / Math.max(260, cordRect.height * 3.25)));
+  const scale = Math.min(2.18, Math.max(1.76, phoneRect.height / Math.max(410, cordRect.height * 5.2)));
   const zoomX = targetX - focusX * scale;
   const zoomY = targetY - focusY * scale;
   homePage.style.setProperty('--pull-zoom-scale', String(scale));
@@ -2375,25 +2375,19 @@ function playHomePullTransition(button, ropeId) {
 
   window.setTimeout(() => {
     if (!activeHomePullAnimation) return;
-    phone.classList.add('home-pull-ready');
     button.classList.add('pulling-rope');
-  }, 920);
-
-  window.setTimeout(() => {
-    if (!activeHomePullAnimation) return;
-    button.classList.add('pulling-rope-again');
     if (transitionPrepared) {
       phone.classList.add('home-pull-revealing');
     }
     phone.classList.add('home-pull-drop');
-  }, 1640);
+  }, 620);
 
   window.setTimeout(() => {
     clearHomePullTransition(button);
     if (!transitionPrepared || !completePrimedRopeTransition(ropeId)) {
       enterRope(ropeId);
     }
-  }, 3300);
+  }, 2440);
 }
 
 function goHome() {
