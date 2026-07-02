@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'login-title-ji-1';
+const assetVersion = 'wood-login-door-1';
 
 function test(name, fn) {
   try {
@@ -94,6 +94,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('id="loginEnterAction"'));
   assert.ok(html.includes('点击此处进入'));
   assert.ok(html.includes('class="login-handle-icon"'));
+  assert.ok(html.includes('login-rope-corner-tl'));
+  assert.ok(html.includes('login-rope-corner-br'));
   assert.ok(pagesHtml.includes('id="loginGate"'));
   assert.ok(js.includes("const loginEnterAction = document.querySelector('#loginEnterAction');"));
   assert.ok(js.includes("phone.classList.remove('login-mode');"));
@@ -101,6 +103,11 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.login-title'));
   assert.ok(css.includes('.login-enter-action'));
   assert.ok(css.includes('.login-handle-icon'));
+  assert.ok(css.includes('.login-rope-corner'));
+  assert.ok(css.includes('.login-cabinet-door::before'));
+  assert.ok(css.includes('.login-cabinet-door::after'));
+  assert.ok(cssBlock('.login-gate').includes('#6b3513'));
+  assert.ok(cssBlock('.login-enter-action').includes('width: 154px'));
   assert.ok(html.includes('id="homePage"'));
   assert.ok(html.includes('id="pullBridgeRope"'));
   assert.ok(html.includes('我的绳'));

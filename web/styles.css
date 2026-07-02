@@ -101,17 +101,12 @@ button {
   position: absolute;
   inset: 0;
   z-index: 48;
-  display: grid;
-  grid-template-rows: 1fr auto 54px auto 1fr;
-  align-items: center;
-  justify-items: center;
-  padding: 54px 42px 78px;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 22% 12%, rgba(255, 226, 164, 0.24), transparent 30%),
-    radial-gradient(ellipse at 82% 34%, rgba(88, 50, 20, 0.18), transparent 26%),
-    radial-gradient(ellipse at 50% 92%, rgba(66, 39, 19, 0.24), transparent 52%),
-    linear-gradient(105deg, var(--paper-kraft-light), var(--paper-kraft) 46%, #b98955);
+    radial-gradient(ellipse at 18% 12%, rgba(255, 191, 102, 0.18), transparent 26%),
+    radial-gradient(ellipse at 78% 36%, rgba(28, 13, 5, 0.24), transparent 30%),
+    radial-gradient(ellipse at 50% 98%, rgba(20, 10, 4, 0.42), transparent 58%),
+    linear-gradient(105deg, #6b3513, #9b541d 44%, #5a2b10);
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0) scale(1);
@@ -136,132 +131,194 @@ button {
 .login-gate::before {
   inset: 0;
   z-index: 1;
-  opacity: 0.36;
+  opacity: 0.55;
   background-image:
-    repeating-linear-gradient(7deg, rgba(69, 43, 22, 0.08) 0 1px, transparent 1px 10px),
-    repeating-linear-gradient(96deg, rgba(255, 229, 172, 0.08) 0 1px, transparent 1px 13px),
-    radial-gradient(circle at 24% 32%, rgba(65, 38, 17, 0.14) 0 1px, transparent 1.8px),
-    radial-gradient(circle at 76% 70%, rgba(249, 222, 168, 0.16) 0 1px, transparent 1.8px);
-  background-size: 100% 100%, 100% 100%, 14px 18px, 17px 20px;
+    repeating-linear-gradient(92deg, rgba(41, 18, 7, 0.34) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(86deg, rgba(255, 185, 93, 0.13) 0 1px, transparent 1px 15px),
+    radial-gradient(ellipse at 23% 27%, rgba(40, 17, 5, 0.38) 0 2px, transparent 7px),
+    radial-gradient(ellipse at 76% 65%, rgba(245, 154, 68, 0.18) 0 1px, transparent 6px);
+  background-size: 100% 100%, 100% 100%, 62px 138px, 78px 154px;
   mix-blend-mode: multiply;
 }
 
 .login-gate::after {
-  inset: 28px 34px 42px;
+  inset: 8px 5px 10px;
   z-index: 2;
-  border: 1px solid rgba(77, 48, 25, 0.18);
-  border-radius: 18px 16px 20px 17px;
+  border: 2px solid rgba(34, 15, 5, 0.72);
+  border-radius: 23px 21px 18px 20px;
   box-shadow:
-    inset 0 0 0 7px rgba(88, 54, 25, 0.05),
-    inset 0 0 46px rgba(70, 40, 17, 0.18),
-    0 18px 28px rgba(61, 38, 18, 0.12);
+    inset 0 0 0 6px rgba(177, 95, 31, 0.34),
+    inset 0 17px 0 rgba(239, 151, 55, 0.16),
+    inset 0 -17px 0 rgba(36, 16, 5, 0.46),
+    inset 0 0 48px rgba(22, 10, 4, 0.38),
+    0 18px 34px rgba(38, 20, 9, 0.2);
 }
 
 .login-cabinet-door {
   position: absolute;
-  inset: 56px 54px 82px;
+  inset: 25px 23px 24px;
   z-index: 3;
   pointer-events: none;
   background:
-    linear-gradient(90deg, transparent 0 calc(50% - 1px), rgba(58, 35, 17, 0.28) calc(50% - 1px) calc(50% + 1px), rgba(255, 226, 167, 0.18) calc(50% + 1px) calc(50% + 3px), transparent calc(50% + 3px)),
-    linear-gradient(180deg, rgba(65, 38, 17, 0.34) 0 1px, rgba(255, 225, 156, 0.2) 1px 3px, transparent 3px calc(100% - 3px), rgba(65, 38, 17, 0.28) calc(100% - 3px) calc(100% - 2px), rgba(255, 225, 156, 0.18) calc(100% - 2px) 100%),
-    radial-gradient(ellipse at 18% 20%, rgba(251, 216, 145, 0.16), transparent 28%),
-    radial-gradient(ellipse at 82% 82%, rgba(70, 39, 16, 0.16), transparent 34%);
-  border-radius: 6px;
+    linear-gradient(90deg, rgba(35, 14, 4, 0.72) 0 4px, transparent 4px calc(50% - 4px), rgba(25, 10, 3, 0.9) calc(50% - 4px) calc(50% + 4px), rgba(218, 124, 44, 0.28) calc(50% + 4px) calc(50% + 6px), transparent calc(50% + 6px) calc(100% - 4px), rgba(35, 14, 4, 0.7) calc(100% - 4px)),
+    linear-gradient(180deg, rgba(246, 158, 56, 0.34) 0 18px, rgba(58, 24, 7, 0.62) 18px 25px, transparent 25px calc(100% - 25px), rgba(46, 18, 5, 0.7) calc(100% - 25px) calc(100% - 18px), rgba(224, 122, 38, 0.28) calc(100% - 18px) 100%),
+    radial-gradient(ellipse at 29% 28%, rgba(32, 13, 4, 0.34) 0 2px, transparent 10px),
+    radial-gradient(ellipse at 70% 20%, rgba(246, 169, 75, 0.16) 0 2px, transparent 11px),
+    radial-gradient(ellipse at 74% 76%, rgba(34, 13, 4, 0.28) 0 2px, transparent 12px),
+    repeating-linear-gradient(90deg, rgba(37, 15, 5, 0.24) 0 1px, transparent 1px 13px),
+    linear-gradient(90deg, #703611, #a65a1e 48%, #6a3210);
+  border: 1px solid rgba(26, 10, 3, 0.72);
+  border-radius: 14px 13px 11px 12px;
   box-shadow:
-    inset 0 0 18px rgba(63, 37, 17, 0.08),
-    inset 18px 0 28px rgba(255, 225, 166, 0.05),
-    inset -18px 0 30px rgba(62, 34, 13, 0.08);
+    inset 0 0 0 12px rgba(45, 18, 5, 0.34),
+    inset 0 0 0 15px rgba(224, 128, 42, 0.15),
+    inset 0 0 52px rgba(24, 9, 3, 0.4),
+    inset 18px 0 28px rgba(251, 169, 75, 0.08),
+    inset -18px 0 30px rgba(26, 10, 3, 0.18);
+}
+
+.login-cabinet-door::before,
+.login-cabinet-door::after {
+  position: absolute;
+  top: 72px;
+  bottom: 72px;
+  z-index: 1;
+  width: calc(50% - 45px);
+  pointer-events: none;
+  content: "";
+  border: 3px double rgba(53, 21, 6, 0.58);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 0 5px rgba(230, 138, 45, 0.12),
+    inset 0 0 21px rgba(32, 12, 4, 0.2),
+    0 0 0 1px rgba(241, 158, 65, 0.16);
+}
+
+.login-cabinet-door::before {
+  left: 26px;
+}
+
+.login-cabinet-door::after {
+  right: 26px;
 }
 
 .login-title {
-  position: relative;
+  position: absolute;
+  top: 33.5%;
+  right: 42px;
+  left: 42px;
   z-index: 4;
-  grid-row: 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(72px, 22vw, 128px);
-  width: min(330px, 100%);
+  gap: 24px;
   margin: 0;
-  color: rgba(48, 35, 24, 0.9);
-  font-family: "STHeiti", "PingFang SC", var(--font-hand);
-  font-size: clamp(66px, 18vw, 92px);
+  color: rgba(58, 25, 7, 0.88);
+  font-family: "STXingkai", "Hannotate SC", "Kaiti SC", "STKaiti", var(--font-hand);
+  font-size: clamp(88px, 21vw, 116px);
   font-weight: 900;
-  line-height: 0.95;
+  line-height: 0.9;
   letter-spacing: 0;
   text-align: center;
+  -webkit-text-stroke: 1px rgba(27, 10, 3, 0.42);
   text-shadow:
-    0 1px 0 rgba(246, 207, 142, 0.24),
-    0 -1px 0 rgba(39, 22, 9, 0.34),
-    1px 0 0 rgba(62, 36, 16, 0.18);
-  transform: scaleY(1.16);
+    0 2px 0 rgba(215, 119, 38, 0.22),
+    0 -2px 0 rgba(27, 10, 3, 0.58),
+    4px 5px 0 rgba(31, 12, 4, 0.28),
+    -1px 0 0 rgba(236, 157, 67, 0.22);
+  transform: translateY(-50%) scaleY(1.24);
 }
 
 .login-title span {
   display: block;
-  transform: rotate(-1deg);
+  filter: drop-shadow(0 6px 5px rgba(28, 10, 3, 0.22));
+  transform: rotate(-2deg);
 }
 
 .login-title span + span {
-  transform: rotate(1.5deg);
+  transform: rotate(2deg);
 }
 
 .login-enter-action {
-  position: relative;
+  position: absolute;
+  top: 61%;
+  left: 50%;
   z-index: 5;
-  grid-row: 4;
   display: grid;
-  width: 114px;
-  height: 114px;
+  width: 154px;
+  height: 162px;
   padding: 0;
   place-items: center;
   color: rgba(55, 38, 24, 0.88);
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 244, 205, 0.72), transparent 34%),
-    radial-gradient(circle at 52% 55%, rgba(255, 235, 183, 0.42), transparent 45%),
-    linear-gradient(145deg, rgba(232, 202, 145, 0.92), rgba(166, 101, 43, 0.82));
-  border: 1px solid rgba(67, 38, 16, 0.32);
+  background: transparent;
+  border: 0;
   border-radius: 50%;
-  box-shadow:
-    0 0 0 10px rgba(255, 223, 151, 0.1),
-    0 0 26px rgba(255, 226, 153, 0.34),
-    0 16px 25px rgba(55, 32, 14, 0.2),
-    inset 0 3px 0 rgba(255, 245, 214, 0.34),
-    inset 0 -14px 18px rgba(79, 43, 16, 0.18);
-  transform: rotate(-1deg);
+  filter:
+    drop-shadow(0 0 16px rgba(255, 186, 85, 0.36))
+    drop-shadow(0 16px 18px rgba(25, 9, 3, 0.34));
+  transform: translate(-50%, -50%) rotate(-0.8deg);
   transition:
-    box-shadow 180ms ease,
+    filter 180ms ease,
     transform 180ms ease;
+}
+
+.login-enter-action::before,
+.login-enter-action::after {
+  position: absolute;
+  top: 20px;
+  width: 67px;
+  height: 120px;
+  content: "";
+  background:
+    radial-gradient(ellipse at 38% 28%, rgba(255, 211, 127, 0.72), transparent 25%),
+    linear-gradient(90deg, rgba(115, 54, 15, 0.96), rgba(207, 124, 43, 0.98) 45%, rgba(105, 48, 14, 0.98));
+  border: 3px solid rgba(52, 20, 5, 0.78);
+  box-shadow:
+    inset 0 0 0 5px rgba(245, 161, 68, 0.18),
+    inset 0 -12px 18px rgba(34, 13, 4, 0.3),
+    inset 0 8px 12px rgba(255, 199, 103, 0.2),
+    0 0 0 1px rgba(255, 188, 86, 0.2);
+}
+
+.login-enter-action::before {
+  right: 50%;
+  border-radius: 999px 0 0 999px;
+  border-right: 1px solid rgba(31, 10, 3, 0.76);
+}
+
+.login-enter-action::after {
+  left: 50%;
+  border-left: 1px solid rgba(31, 10, 3, 0.76);
+  border-radius: 0 999px 999px 0;
 }
 
 .login-enter-action:hover,
 .login-enter-action:focus-visible {
-  box-shadow:
-    0 0 0 12px rgba(255, 228, 164, 0.16),
-    0 0 34px rgba(255, 224, 145, 0.48),
-    0 18px 28px rgba(55, 32, 14, 0.2),
-    inset 0 3px 0 rgba(255, 245, 214, 0.38),
-    inset 0 -14px 18px rgba(79, 43, 16, 0.18);
+  filter:
+    drop-shadow(0 0 23px rgba(255, 200, 104, 0.58))
+    drop-shadow(0 19px 20px rgba(25, 9, 3, 0.34));
   outline: 0;
-  transform: translateY(-2px) rotate(-1deg) scale(1.02);
+  transform: translate(-50%, calc(-50% - 2px)) rotate(-0.8deg) scale(1.02);
 }
 
 .login-enter-action:active {
-  transform: translateY(2px) rotate(-1deg) scale(0.98);
+  transform: translate(-50%, calc(-50% + 2px)) rotate(-0.8deg) scale(0.98);
 }
 
 .login-handle-icon {
-  position: relative;
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  z-index: 2;
   display: block;
-  width: 46px;
-  height: 46px;
-  border: 4px solid rgba(54, 36, 22, 0.55);
-  border-top-color: rgba(255, 240, 199, 0.5);
-  border-left-color: rgba(255, 240, 199, 0.42);
+  width: 36px;
+  height: 32px;
+  border: 4px solid rgba(74, 34, 10, 0.72);
+  border-top-color: rgba(247, 179, 83, 0.88);
   border-radius: 50%;
   box-shadow:
-    inset 0 4px 7px rgba(54, 31, 13, 0.18),
-    0 2px 0 rgba(255, 234, 183, 0.24);
+    inset 0 3px 4px rgba(37, 13, 4, 0.24),
+    0 1px 0 rgba(255, 208, 114, 0.28);
+  transform: translateX(-50%) rotate(-18deg);
 }
 
 .login-handle-icon::before,
@@ -272,42 +329,97 @@ button {
 
 .login-handle-icon::before {
   top: 9px;
-  left: 17px;
-  width: 8px;
-  height: 24px;
-  background:
-    linear-gradient(90deg, rgba(255, 237, 190, 0.28), transparent 34%),
-    rgba(54, 36, 22, 0.56);
+  left: 8px;
+  width: 16px;
+  height: 7px;
+  background: rgba(215, 133, 48, 0.72);
   border-radius: 999px;
-  box-shadow:
-    inset 1px 0 0 rgba(39, 25, 14, 0.22),
-    0 1px 0 rgba(255, 236, 190, 0.24);
-  transform: rotate(2deg);
+  box-shadow: inset 0 2px 0 rgba(255, 200, 112, 0.26);
+  transform: rotate(25deg);
 }
 
 .login-handle-icon::after {
-  top: 11px;
-  left: 9px;
-  width: 11px;
-  height: 18px;
+  top: -4px;
+  left: 19px;
+  width: 10px;
+  height: 10px;
   background: transparent;
-  border-left: 4px solid rgba(255, 240, 198, 0.32);
+  border: 3px solid rgba(226, 142, 50, 0.82);
   border-radius: 50%;
-  transform: rotate(-12deg);
+  transform: rotate(18deg);
+}
+
+.login-rope-corner {
+  position: absolute;
+  z-index: 4;
+  width: 76px;
+  height: 76px;
+  pointer-events: none;
+  opacity: 0.74;
+  filter:
+    drop-shadow(0 2px 0 rgba(47, 17, 4, 0.5))
+    drop-shadow(0 0 5px rgba(232, 139, 48, 0.16));
+}
+
+.login-rope-corner::before,
+.login-rope-corner::after {
+  position: absolute;
+  content: "";
+  border: 8px solid rgba(185, 100, 35, 0.82);
+  border-radius: 50%;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 184, 90, 0.28),
+    2px 2px 0 rgba(50, 18, 5, 0.34);
+}
+
+.login-rope-corner::before {
+  inset: 9px 21px 21px 7px;
+  transform: rotate(42deg);
+}
+
+.login-rope-corner::after {
+  inset: 27px 6px 9px 28px;
+  transform: rotate(-28deg);
+}
+
+.login-rope-corner-tl {
+  top: 82px;
+  left: 58px;
+  transform: rotate(-18deg);
+}
+
+.login-rope-corner-tr {
+  top: 82px;
+  right: 58px;
+  transform: scaleX(-1) rotate(-18deg);
+}
+
+.login-rope-corner-bl {
+  bottom: 92px;
+  left: 58px;
+  transform: scaleY(-1) rotate(-18deg);
+}
+
+.login-rope-corner-br {
+  right: 58px;
+  bottom: 92px;
+  transform: scale(-1) rotate(-18deg);
 }
 
 .login-enter-copy {
-  position: relative;
+  position: absolute;
+  top: calc(61% + 106px);
+  left: 50%;
   z-index: 5;
-  grid-row: 5;
-  align-self: start;
-  margin-top: 22px;
-  color: rgba(50, 36, 25, 0.88);
+  color: rgba(38, 15, 5, 0.72);
   font-family: "STHeiti", "PingFang SC", var(--font-hand);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 900;
   letter-spacing: 0;
-  text-shadow: 0 1px 0 rgba(245, 209, 151, 0.2);
+  text-shadow:
+    0 1px 0 rgba(231, 136, 47, 0.18),
+    0 -1px 0 rgba(20, 8, 3, 0.24);
+  transform: translateX(-50%);
 }
 
 .rope-canvas {
