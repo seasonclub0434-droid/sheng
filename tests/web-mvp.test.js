@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'login-full-door-handle-1';
+const assetVersion = 'handle-ring-image-frame-1';
 
 function test(name, fn) {
   try {
@@ -90,6 +90,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('id="loginGate"'));
   assert.ok(html.includes('class="phone kraft-paper home-mode login-mode"'));
   assert.ok(html.includes('class="login-gate image-login-gate"'));
+  assert.ok(html.includes('class="login-cabinet-frame"'));
   assert.ok(html.includes('class="login-cabinet-image"'));
   assert.ok(html.includes('src="./assets/login-cabinet-door.png"'));
   assert.ok(html.includes('alt="绳记柜门"'));
@@ -107,6 +108,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes("const loginEnterAction = document.querySelector('#loginEnterAction');"));
   assert.ok(js.includes("phone.classList.remove('login-mode');"));
   assert.ok(css.includes('.login-gate'));
+  assert.ok(css.includes('.login-cabinet-frame'));
   assert.ok(css.includes('.login-cabinet-image'));
   assert.ok(css.includes('.login-enter-action'));
   assert.ok(css.includes('.login-enter-glow'));
@@ -114,10 +116,11 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(!css.includes('.login-handle-icon'));
   assert.ok(!css.includes('.login-rope-corner'));
   assert.ok(cssBlock('.login-gate').includes('place-items: center'));
-  assert.ok(cssBlock('.login-cabinet-image').includes('width: calc(100% - 2px)'));
+  assert.ok(cssBlock('.login-cabinet-frame').includes('width: calc(100% - 2px)'));
+  assert.ok(cssBlock('.login-cabinet-frame').includes('aspect-ratio: 959 / 1640'));
   assert.ok(cssBlock('.login-cabinet-image').includes('object-fit: contain'));
-  assert.ok(cssBlock('.login-enter-action').includes('top: 55.8%'));
-  assert.ok(cssBlock('.login-enter-action').includes('width: min(31%, 134px)'));
+  assert.ok(cssBlock('.login-enter-action').includes('top: 59.4%'));
+  assert.ok(cssBlock('.login-enter-action').includes('width: 36%'));
   assert.ok(cssBlock('.login-enter-action').includes('aspect-ratio: 1'));
   assert.ok(html.includes('id="homePage"'));
   assert.ok(html.includes('id="pullBridgeRope"'));
