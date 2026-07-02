@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'login-door-home-sign-1';
+const assetVersion = 'home-sign-transparent-1';
 
 function test(name, fn) {
   try {
@@ -94,7 +94,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('src="./assets/login-cabinet-door.png"'));
   assert.ok(html.includes('alt="绳记柜门"'));
   assert.ok(fs.existsSync(path.join(root, 'web/assets/login-cabinet-door.png')));
-  assert.ok(fs.existsSync(path.join(root, 'web/assets/home-rope-sign.png')));
+  assert.ok(fs.existsSync(path.join(root, 'web/assets/home-rope-sign-transparent.png')));
   assert.ok(html.includes('id="loginEnterAction"'));
   assert.ok(html.includes('class="login-enter-glow"'));
   assert.ok(!html.includes('login-title'));
@@ -103,7 +103,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(pagesHtml.includes('id="loginGate"'));
   assert.ok(pagesHtml.includes('class="login-gate image-login-gate"'));
   assert.ok(pagesHtml.includes('src="./web/assets/login-cabinet-door.png"'));
-  assert.ok(pagesHtml.includes('src="./web/assets/home-rope-sign.png"'));
+  assert.ok(pagesHtml.includes('src="./web/assets/home-rope-sign-transparent.png"'));
   assert.ok(js.includes("const loginEnterAction = document.querySelector('#loginEnterAction');"));
   assert.ok(js.includes("phone.classList.remove('login-mode');"));
   assert.ok(css.includes('.login-gate'));
@@ -121,7 +121,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('我的绳'));
   assert.ok(html.includes('class="home-title" aria-label="我的绳"'));
   assert.ok(html.includes('class="home-title-image"'));
-  assert.ok(html.includes('src="./assets/home-rope-sign.png"'));
+  assert.ok(html.includes('src="./assets/home-rope-sign-transparent.png"'));
   assert.ok(html.includes('alt="我的绳牌匾"'));
   assert.ok(html.includes('id="ropeShelf"'));
   assert.ok(html.includes('class="rope-shelf"'));
