@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'wood-login-door-1';
+const assetVersion = 'settings-icon-open-1';
 
 function test(name, fn) {
   try {
@@ -396,6 +396,10 @@ test('browser preview adds a left settings drawer with confirmed reset', () => {
   assert.ok(js.includes('resetPreviewAction.addEventListener'));
   assert.ok(js.includes('confirmResetAction.addEventListener'));
   assert.ok(css.includes('.settings-toggle'));
+  assert.ok(cssBlock('.settings-toggle.open').includes('opacity: 0.96'));
+  assert.ok(cssBlock('.settings-toggle.open').includes('pointer-events: auto'));
+  assert.ok(cssBlock('.home-mode .home-control-bar .settings-toggle.open').includes('opacity: 1'));
+  assert.ok(cssBlock('.home-mode .home-control-bar .settings-toggle.open').includes('pointer-events: auto'));
   assert.ok(css.includes('.settings-dock.open'));
   assert.ok(css.includes('.dock-close'));
   assert.ok(css.includes('.drawer-hint'));
