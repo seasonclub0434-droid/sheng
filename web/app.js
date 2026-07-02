@@ -303,9 +303,6 @@ let resolveMode = '';
 let shouldScrollToLatest = true;
 let shouldTimelineListScrollLatest = false;
 let activeKnotAnimation = null;
-let activeHomePullAnimation = false;
-let activeHomePull = null;
-let ignoreNextRopeClick = false;
 let animationFrame = 0;
 let searchStabilizeFrame = 0;
 let searchHomeRestingX = 0;
@@ -2325,173 +2322,8 @@ function completePrimedRopeTransition(id) {
   return true;
 }
 
-function applyHomePullFocus(button) {
-  const sourceCord = button.querySelector('.rope-coil');
-  if (!sourceCord) return false;
-  const phoneRect = phone.getBoundingClientRect();
-  const cordRect = sourceCord.getBoundingClientRect();
-  const pageRect = homePage.getBoundingClientRect();
-  const focusX = cordRect.left + cordRect.width / 2 - pageRect.left;
-  const focusY = cordRect.top + cordRect.height / 2 - pageRect.top;
-  const targetX = phoneRect.width / 2;
-  const targetY = phoneRect.height * 0.48;
-  const scale = Math.min(1.78, Math.max(1.48, phoneRect.height / Math.max(470, cordRect.height * 6.2)));
-  const zoomX = targetX - focusX * scale;
-  const zoomY = targetY - focusY * scale;
-  homePage.style.setProperty('--pull-zoom-scale', String(scale));
-  homePage.style.setProperty('--pull-zoom-x', `${Math.round(zoomX)}px`);
-  homePage.style.setProperty('--pull-zoom-y', `${Math.round(zoomY)}px`);
-  homePage.style.setProperty('--pull-focus-local-x', `${Math.round(focusX)}px`);
-  homePage.style.setProperty('--pull-focus-local-y', `${Math.round(focusY)}px`);
-  return true;
-}
-
-function clearHomePullTransition(button) {
-  if (activeHomePull?.dropTimer) window.clearTimeout(activeHomePull.dropTimer);
-  if (activeHomePull?.returnTimer) window.clearTimeout(activeHomePull.returnTimer);
-  activeHomePullAnimation = false;
-  phone.classList.remove('home-pull-centering', 'home-pull-ready', 'home-pull-dragging', 'home-pull-returning', 'home-pull-revealing', 'home-pull-drop');
-  homePage.style.removeProperty('--pull-focus-x');
-  homePage.style.removeProperty('--pull-focus-y');
-  homePage.style.removeProperty('--pull-zoom-scale');
-  homePage.style.removeProperty('--pull-zoom-x');
-  homePage.style.removeProperty('--pull-zoom-y');
-  homePage.style.removeProperty('--pull-drag-y');
-  homePage.style.removeProperty('--pull-focus-local-x');
-  homePage.style.removeProperty('--pull-focus-local-y');
-  const focusButtons = button ? [button] : Array.from(document.querySelectorAll('.focus-rope-tile, .pulling-rope, .dragging-rope'));
-  focusButtons.forEach((entry) => {
-    entry.classList.remove('focus-rope-tile', 'dragging-rope', 'pulling-rope', 'pulling-rope-again');
-    entry.style.removeProperty('--pull-cord-y');
-  });
-  activeHomePull = null;
-}
-
-function homePullThreshold() {
-  const rect = phone.getBoundingClientRect();
-  return Math.min(132, Math.max(92, rect.height * 0.16));
-}
-
-function setHomePullDrag(rawY) {
-  if (!activeHomePull) return;
-  const dragY = Math.max(0, Math.min(260, rawY));
-  const cordY = Math.min(68, dragY * 0.34);
-  activeHomePull.dragY = dragY;
-  homePage.style.setProperty('--pull-drag-y', `${Math.round(dragY)}px`);
-  activeHomePull.button.style.setProperty('--pull-cord-y', `${Math.round(cordY)}px`);
-}
-
-function shouldStartHomePullDrag(event) {
-  if (!activeHomePullAnimation || !activeHomePull || activeHomePull.phase !== 'focused') return false;
-  const button = event.target.closest('.focus-rope-tile');
-  if (button) return button === activeHomePull.button;
-  if (event.target.closest('.modal-layer, .floating-dock, .home-control-bar, input, textarea')) return false;
-  const rect = phone.getBoundingClientRect();
-  return event.clientX >= rect.left
-    && event.clientX <= rect.right
-    && event.clientY >= rect.top
-    && event.clientY <= rect.bottom;
-}
-
-function startHomePullDrag(event) {
-  if (!shouldStartHomePullDrag(event)) return;
-  event.preventDefault();
-  activeHomePull.phase = 'dragging';
-  activeHomePull.pointerId = event.pointerId;
-  activeHomePull.dragStartY = event.clientY;
-  activeHomePull.threshold = homePullThreshold();
-  activeHomePull.button.classList.add('dragging-rope');
-  phone.classList.add('home-pull-dragging');
-  setHomePullDrag(0);
-  const button = activeHomePull.button;
-  if (button.setPointerCapture) button.setPointerCapture(event.pointerId);
-}
-
-function updateHomePullDrag(event) {
-  if (!activeHomePull || activeHomePull.phase !== 'dragging' || activeHomePull.pointerId !== event.pointerId) return;
-  event.preventDefault();
-  setHomePullDrag(event.clientY - activeHomePull.dragStartY);
-}
-
-function commitHomePullDrag() {
-  if (!activeHomePull) return;
-  const pull = activeHomePull;
-  pull.phase = 'dropping';
-  pull.button.classList.remove('dragging-rope');
-  pull.button.classList.add('pulling-rope');
-  phone.classList.remove('home-pull-dragging');
-  if (pull.transitionPrepared) phone.classList.add('home-pull-revealing');
-  phone.classList.add('home-pull-drop');
-  pull.dropTimer = window.setTimeout(() => {
-    if (activeHomePull !== pull) return;
-    clearHomePullTransition(pull.button);
-    if (!pull.transitionPrepared || !completePrimedRopeTransition(pull.ropeId)) {
-      enterRope(pull.ropeId);
-    }
-  }, 1740);
-}
-
-function cancelHomePullDrag() {
-  if (!activeHomePull) return;
-  const pull = activeHomePull;
-  pull.phase = 'returning';
-  pull.button.classList.remove('dragging-rope');
-  phone.classList.remove('home-pull-dragging');
-  phone.classList.add('home-pull-returning');
-  window.requestAnimationFrame(() => setHomePullDrag(0));
-  pull.returnTimer = window.setTimeout(() => {
-    if (activeHomePull !== pull) return;
-    viewMode = 'home';
-    clearHomePullTransition(pull.button);
-    ignoreNextRopeClick = false;
-    renderHome();
-  }, 360);
-}
-
-function finishHomePullDrag(event) {
-  if (!activeHomePull || activeHomePull.phase !== 'dragging' || activeHomePull.pointerId !== event.pointerId) return;
-  event.preventDefault();
-  ignoreNextRopeClick = true;
-  try {
-    if (activeHomePull.button.releasePointerCapture) activeHomePull.button.releasePointerCapture(event.pointerId);
-  } catch (error) {
-    // The browser may already release capture after a quick flick.
-  }
-  if (activeHomePull.dragY >= activeHomePull.threshold) commitHomePullDrag();
-  else cancelHomePullDrag();
-}
-
-function playHomePullTransition(button, ropeId) {
-  if (activeHomePullAnimation || !button || !ropeId) return;
-  activeHomePullAnimation = true;
-  closeFloatingDocks();
-  closeModal();
-
-  if (!applyHomePullFocus(button)) {
-    activeHomePullAnimation = false;
-    enterRope(ropeId);
-    return;
-  }
-  button.classList.add('focus-rope-tile');
-  const transitionPrepared = primeRopeTransitionView(ropeId);
-  activeHomePull = {
-    button,
-    ropeId,
-    transitionPrepared,
-    phase: 'focused',
-    dragStartY: 0,
-    dragY: 0,
-    threshold: homePullThreshold(),
-    pointerId: 0,
-    dropTimer: 0,
-    returnTimer: 0,
-  };
-  phone.classList.add('home-pull-centering');
-}
-
 function goHome() {
   viewMode = 'home';
-  clearHomePullTransition();
   closeFloatingDocks();
   closeModal();
   phone.classList.add('home-mode');
@@ -3005,22 +2837,10 @@ ropeNameInput.addEventListener('keydown', (event) => {
 document.querySelector('#closeDetail').addEventListener('click', closeModal);
 document.querySelector('#closeNotebook').addEventListener('click', closeModal);
 ropeShelf.addEventListener('click', (event) => {
-  if (ignoreNextRopeClick) {
-    ignoreNextRopeClick = false;
-    return;
-  }
   const button = event.target.closest('[data-rope-id]');
   if (!button) return;
-  playHomePullTransition(button, button.dataset.ropeId);
+  enterRope(button.dataset.ropeId);
 });
-ropeShelf.addEventListener('pointerdown', startHomePullDrag);
-ropeShelf.addEventListener('pointermove', updateHomePullDrag);
-ropeShelf.addEventListener('pointerup', finishHomePullDrag);
-ropeShelf.addEventListener('pointercancel', finishHomePullDrag);
-phone.addEventListener('pointerdown', startHomePullDrag);
-phone.addEventListener('pointermove', updateHomePullDrag);
-phone.addEventListener('pointerup', finishHomePullDrag);
-phone.addEventListener('pointercancel', finishHomePullDrag);
 addRopeAction.addEventListener('click', addRope);
 backHomeAction.addEventListener('click', goHome);
 settingsToggle.addEventListener('click', () => toggleSettingsDock());
