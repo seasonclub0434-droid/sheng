@@ -571,8 +571,8 @@ button {
   display: block;
   z-index: 2;
   width: 36px;
-  height: 76px;
-  margin-top: 22px;
+  height: 68px;
+  margin-top: 8px;
   --coil-body: #ddc8a6;
   --coil-edge: #b89a72;
   --coil-light: #f3dfbd;
@@ -609,7 +609,7 @@ button {
 
 .rope-coil::after {
   right: 13px;
-  bottom: 6px;
+  bottom: 5px;
   width: 9px;
   height: 10px;
   border-radius: 50% 48% 56% 42%;
@@ -635,24 +635,24 @@ button {
   top: 5px;
   left: 15px;
   width: 7px;
-  height: 61px;
+  height: 54px;
   transform: rotate(-3deg);
 }
 
 .rope-coil-line-b {
-  top: 23px;
+  top: 21px;
   left: 19px;
   width: 4px;
-  height: 36px;
+  height: 32px;
   opacity: 0.64;
   transform: rotate(11deg);
 }
 
 .rope-coil-line-c {
-  top: 55px;
+  top: 47px;
   left: 12px;
   width: 6px;
-  height: 16px;
+  height: 14px;
   border-radius: 999px 999px 64% 54%;
   opacity: 0.74;
   transform: rotate(-15deg);
