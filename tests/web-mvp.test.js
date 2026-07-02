@@ -12,8 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'pull-tail-drag-1';
-const pullRopeAssetPath = path.join(root, 'web/assets/pull-rope-full-v1.png');
+const assetVersion = 'pull-tail-drag-2';
 
 function test(name, fn) {
   try {
@@ -240,11 +239,12 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::before'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after'));
-  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('width: 50px'));
-  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('height: 478px'));
-  assert.ok(css.includes('url("./assets/pull-rope-full-v1.png")'));
-  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil').includes('opacity: 0'));
-  assert.ok(fs.existsSync(pullRopeAssetPath));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('width: 18px'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('height: 552px'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('repeating-linear-gradient(176deg'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile::after').includes('background-blend-mode: multiply, screen, normal'));
+  assert.ok(!css.includes('url("./assets/pull-rope-full-v1.png")'));
+  assert.ok(cssBlock('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil').includes('opacity: 1'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.focus-rope-tile .rope-coil-line-b'));
   assert.ok(css.includes('linear-gradient(180deg, #caa36f, #caa36f)'));
   assert.ok(css.includes('clip-path: polygon'));

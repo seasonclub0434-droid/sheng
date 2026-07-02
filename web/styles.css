@@ -692,14 +692,36 @@ button {
 }
 
 .home-mode.home-pull-centering .rope-tile.focus-rope-tile::after {
-  top: -230px;
-  width: 50px;
-  height: 478px;
-  background: url("./assets/pull-rope-full-v1.png") center top / 100% 100% no-repeat;
-  border-radius: 0;
-  box-shadow: none;
+  top: -270px;
+  width: 18px;
+  height: 552px;
+  background:
+    repeating-linear-gradient(176deg, transparent 0 46px, rgba(95, 62, 31, 0.025) 46px 47px, transparent 47px 84px),
+    repeating-linear-gradient(88deg, rgba(255, 244, 216, 0.08) 0 1px, transparent 1px 18px),
+    linear-gradient(90deg, #7f5935 0%, #b9986c 16%, #ddc8a6 38%, #f3dfbd 52%, #ddc8a6 67%, #af8b5f 84%, #76522f 100%);
+  background-blend-mode: multiply, screen, normal;
+  border-radius: 999px;
+  box-shadow:
+    5px 9px 12px rgba(58, 35, 15, 0.26),
+    inset 2px 0 0 rgba(255, 247, 218, 0.54),
+    inset -2px 0 0 rgba(81, 50, 24, 0.22);
   opacity: 1;
-  clip-path: none;
+  clip-path: polygon(
+    25% 0%,
+    76% 0%,
+    73% 16%,
+    82% 31%,
+    74% 48%,
+    80% 64%,
+    72% 82%,
+    77% 100%,
+    23% 100%,
+    17% 82%,
+    27% 64%,
+    20% 48%,
+    29% 31%,
+    22% 16%
+  );
   animation: focusRopeStemReveal 760ms cubic-bezier(0.16, 0.94, 0.18, 1) both;
 }
 
@@ -707,7 +729,7 @@ button {
   --coil-body: #ddc8a6;
   --coil-edge: #b89a72;
   --coil-light: #f3dfbd;
-  opacity: 0;
+  opacity: 1;
   filter:
     drop-shadow(0 11px 12px rgba(55, 32, 13, 0.28))
     drop-shadow(0 2px 0 rgba(248, 235, 205, 0.18));
