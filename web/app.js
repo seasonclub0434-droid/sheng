@@ -304,6 +304,8 @@ let shouldScrollToLatest = true;
 let shouldTimelineListScrollLatest = false;
 let activeKnotAnimation = null;
 let activeHomePullAnimation = false;
+let activeHomePull = null;
+let ignoreNextRopeClick = false;
 let animationFrame = 0;
 let searchStabilizeFrame = 0;
 let searchHomeRestingX = 0;
@@ -2345,17 +2347,107 @@ function applyHomePullFocus(button) {
 }
 
 function clearHomePullTransition(button) {
+  if (activeHomePull?.dropTimer) window.clearTimeout(activeHomePull.dropTimer);
+  if (activeHomePull?.returnTimer) window.clearTimeout(activeHomePull.returnTimer);
   activeHomePullAnimation = false;
-  phone.classList.remove('home-pull-centering', 'home-pull-ready', 'home-pull-revealing', 'home-pull-drop');
+  phone.classList.remove('home-pull-centering', 'home-pull-ready', 'home-pull-dragging', 'home-pull-returning', 'home-pull-revealing', 'home-pull-drop');
   homePage.style.removeProperty('--pull-focus-x');
   homePage.style.removeProperty('--pull-focus-y');
   homePage.style.removeProperty('--pull-zoom-scale');
   homePage.style.removeProperty('--pull-zoom-x');
   homePage.style.removeProperty('--pull-zoom-y');
+  homePage.style.removeProperty('--pull-drag-y');
   homePage.style.removeProperty('--pull-focus-local-x');
   homePage.style.removeProperty('--pull-focus-local-y');
-  const focusButtons = button ? [button] : Array.from(document.querySelectorAll('.focus-rope-tile, .pulling-rope'));
-  focusButtons.forEach((entry) => entry.classList.remove('focus-rope-tile', 'pulling-rope', 'pulling-rope-again'));
+  const focusButtons = button ? [button] : Array.from(document.querySelectorAll('.focus-rope-tile, .pulling-rope, .dragging-rope'));
+  focusButtons.forEach((entry) => {
+    entry.classList.remove('focus-rope-tile', 'dragging-rope', 'pulling-rope', 'pulling-rope-again');
+    entry.style.removeProperty('--pull-cord-y');
+  });
+  activeHomePull = null;
+}
+
+function homePullThreshold() {
+  const rect = phone.getBoundingClientRect();
+  return Math.min(132, Math.max(92, rect.height * 0.16));
+}
+
+function setHomePullDrag(rawY) {
+  if (!activeHomePull) return;
+  const dragY = Math.max(0, Math.min(260, rawY));
+  const cordY = Math.min(68, dragY * 0.34);
+  activeHomePull.dragY = dragY;
+  homePage.style.setProperty('--pull-drag-y', `${Math.round(dragY)}px`);
+  activeHomePull.button.style.setProperty('--pull-cord-y', `${Math.round(cordY)}px`);
+}
+
+function startHomePullDrag(event) {
+  if (!activeHomePullAnimation || !activeHomePull || activeHomePull.phase !== 'focused') return;
+  const button = event.target.closest('.focus-rope-tile');
+  if (!button || button !== activeHomePull.button) return;
+  event.preventDefault();
+  activeHomePull.phase = 'dragging';
+  activeHomePull.pointerId = event.pointerId;
+  activeHomePull.dragStartY = event.clientY;
+  activeHomePull.threshold = homePullThreshold();
+  activeHomePull.button.classList.add('dragging-rope');
+  phone.classList.add('home-pull-dragging');
+  setHomePullDrag(0);
+  if (button.setPointerCapture) button.setPointerCapture(event.pointerId);
+}
+
+function updateHomePullDrag(event) {
+  if (!activeHomePull || activeHomePull.phase !== 'dragging' || activeHomePull.pointerId !== event.pointerId) return;
+  event.preventDefault();
+  setHomePullDrag(event.clientY - activeHomePull.dragStartY);
+}
+
+function commitHomePullDrag() {
+  if (!activeHomePull) return;
+  const pull = activeHomePull;
+  pull.phase = 'dropping';
+  pull.button.classList.remove('dragging-rope');
+  pull.button.classList.add('pulling-rope');
+  phone.classList.remove('home-pull-dragging');
+  if (pull.transitionPrepared) phone.classList.add('home-pull-revealing');
+  phone.classList.add('home-pull-drop');
+  pull.dropTimer = window.setTimeout(() => {
+    if (activeHomePull !== pull) return;
+    clearHomePullTransition(pull.button);
+    if (!pull.transitionPrepared || !completePrimedRopeTransition(pull.ropeId)) {
+      enterRope(pull.ropeId);
+    }
+  }, 1740);
+}
+
+function cancelHomePullDrag() {
+  if (!activeHomePull) return;
+  const pull = activeHomePull;
+  pull.phase = 'returning';
+  pull.button.classList.remove('dragging-rope');
+  phone.classList.remove('home-pull-dragging');
+  phone.classList.add('home-pull-returning');
+  window.requestAnimationFrame(() => setHomePullDrag(0));
+  pull.returnTimer = window.setTimeout(() => {
+    if (activeHomePull !== pull) return;
+    viewMode = 'home';
+    clearHomePullTransition(pull.button);
+    ignoreNextRopeClick = false;
+    renderHome();
+  }, 360);
+}
+
+function finishHomePullDrag(event) {
+  if (!activeHomePull || activeHomePull.phase !== 'dragging' || activeHomePull.pointerId !== event.pointerId) return;
+  event.preventDefault();
+  ignoreNextRopeClick = true;
+  try {
+    if (activeHomePull.button.releasePointerCapture) activeHomePull.button.releasePointerCapture(event.pointerId);
+  } catch (error) {
+    // The browser may already release capture after a quick flick.
+  }
+  if (activeHomePull.dragY >= activeHomePull.threshold) commitHomePullDrag();
+  else cancelHomePullDrag();
 }
 
 function playHomePullTransition(button, ropeId) {
@@ -2371,23 +2463,19 @@ function playHomePullTransition(button, ropeId) {
   }
   button.classList.add('focus-rope-tile');
   const transitionPrepared = primeRopeTransitionView(ropeId);
+  activeHomePull = {
+    button,
+    ropeId,
+    transitionPrepared,
+    phase: 'focused',
+    dragStartY: 0,
+    dragY: 0,
+    threshold: homePullThreshold(),
+    pointerId: 0,
+    dropTimer: 0,
+    returnTimer: 0,
+  };
   phone.classList.add('home-pull-centering');
-
-  window.setTimeout(() => {
-    if (!activeHomePullAnimation) return;
-    button.classList.add('pulling-rope');
-    if (transitionPrepared) {
-      phone.classList.add('home-pull-revealing');
-    }
-    phone.classList.add('home-pull-drop');
-  }, 620);
-
-  window.setTimeout(() => {
-    clearHomePullTransition(button);
-    if (!transitionPrepared || !completePrimedRopeTransition(ropeId)) {
-      enterRope(ropeId);
-    }
-  }, 2440);
 }
 
 function goHome() {
@@ -2906,10 +2994,18 @@ ropeNameInput.addEventListener('keydown', (event) => {
 document.querySelector('#closeDetail').addEventListener('click', closeModal);
 document.querySelector('#closeNotebook').addEventListener('click', closeModal);
 ropeShelf.addEventListener('click', (event) => {
+  if (ignoreNextRopeClick) {
+    ignoreNextRopeClick = false;
+    return;
+  }
   const button = event.target.closest('[data-rope-id]');
   if (!button) return;
   playHomePullTransition(button, button.dataset.ropeId);
 });
+ropeShelf.addEventListener('pointerdown', startHomePullDrag);
+ropeShelf.addEventListener('pointermove', updateHomePullDrag);
+ropeShelf.addEventListener('pointerup', finishHomePullDrag);
+ropeShelf.addEventListener('pointercancel', finishHomePullDrag);
 addRopeAction.addEventListener('click', addRope);
 backHomeAction.addEventListener('click', goHome);
 settingsToggle.addEventListener('click', () => toggleSettingsDock());
