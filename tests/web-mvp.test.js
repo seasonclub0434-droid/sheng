@@ -12,12 +12,15 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'mobile-asset-slim-1';
+const assetVersion = 'mobile-image-fix-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
 const homeSignWebpPath = path.join(root, 'web/assets/home-rope-sign-transparent.webp');
+const pullRopePngPath = path.join(root, 'web/assets/pull-rope-full-v1.png');
+const singleModePngPath = path.join(root, 'web/assets/rope-mode-single-cutout.png');
 const singleModeWebpPath = path.join(root, 'web/assets/rope-mode-single-cutout.webp');
+const coupleModePngPath = path.join(root, 'web/assets/rope-mode-couple-cutout.png');
 const coupleModeWebpPath = path.join(root, 'web/assets/rope-mode-couple-cutout.webp');
 
 function test(name, fn) {
@@ -109,7 +112,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(fs.existsSync(homeSignPngPath));
   assert.ok(fs.existsSync(homeSignWebpPath));
   assert.ok(fs.statSync(loginWebpPath).size < 180000);
+  assert.ok(fs.statSync(loginPngPath).size < 900000);
   assert.ok(fs.statSync(homeSignWebpPath).size < 90000);
+  assert.ok(fs.statSync(homeSignPngPath).size < 120000);
   assert.ok(html.includes('id="loginEnterAction"'));
   assert.ok(html.includes('class="login-enter-glow"'));
   assert.ok(!html.includes('login-title'));
@@ -150,7 +155,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('srcset="./assets/home-rope-sign-transparent.webp"'));
   assert.ok(html.includes('src="./assets/home-rope-sign-transparent.webp"'));
   assert.ok(!html.includes('src="./assets/home-rope-sign-transparent.png"'));
-  assert.ok(html.includes('loading="lazy"'));
+  assert.ok(!html.includes('loading="lazy"'));
   assert.ok(html.includes('alt="我的绳牌匾"'));
   assert.ok(html.includes('id="ropeShelf"'));
   assert.ok(html.includes('class="rope-shelf"'));
@@ -173,8 +178,12 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('data-rope-mode="couple"'));
   assert.ok(html.includes('aria-label="选择单人绳结模式"'));
   assert.ok(html.includes('aria-label="选择双人绳结模式"'));
-  assert.ok(html.includes('src="./assets/rope-mode-single-cutout.webp"'));
-  assert.ok(html.includes('src="./assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(html.includes('href="./assets/rope-mode-single-cutout.webp"'));
+  assert.ok(html.includes('href="./assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(html.includes('srcset="./assets/rope-mode-single-cutout.webp"'));
+  assert.ok(html.includes('src="./assets/rope-mode-single-cutout.png"'));
+  assert.ok(html.includes('srcset="./assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(html.includes('src="./assets/rope-mode-couple-cutout.png"'));
   assert.ok(html.includes('id="addRopeNameInput"'));
   assert.ok(html.includes('placeholder="输入绳子的名字"'));
   assert.ok(html.includes('id="createRopeFromAddPage"'));
@@ -192,8 +201,12 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('placeholder="搜所有绳"'));
   assert.ok(pagesHtml.includes('id="homePage"'));
   assert.ok(pagesHtml.includes('id="addRopePage"'));
-  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-single-cutout.webp"'));
-  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(pagesHtml.includes('href="./web/assets/rope-mode-single-cutout.webp"'));
+  assert.ok(pagesHtml.includes('href="./web/assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(pagesHtml.includes('srcset="./web/assets/rope-mode-single-cutout.webp"'));
+  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-single-cutout.png"'));
+  assert.ok(pagesHtml.includes('srcset="./web/assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-couple-cutout.png"'));
   assert.ok(pagesHtml.includes('id="globalSearchDock"'));
   assert.ok(js.includes('const HOME_STORAGE_KEY'));
   assert.ok(js.includes("const HOME_STORAGE_KEY = 'rope-talk-web-home-state-v3'"));
@@ -294,10 +307,16 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(!js.includes('class="rope-photo"'));
   assert.ok(js.includes('class="rope-coil"'));
   assert.ok(js.includes('class="rope-coil-line rope-coil-line-a"'));
+  assert.ok(fs.existsSync(singleModePngPath));
   assert.ok(fs.existsSync(singleModeWebpPath));
+  assert.ok(fs.existsSync(coupleModePngPath));
   assert.ok(fs.existsSync(coupleModeWebpPath));
-  assert.ok(fs.statSync(singleModeWebpPath).size < 60000);
-  assert.ok(fs.statSync(coupleModeWebpPath).size < 70000);
+  assert.ok(fs.existsSync(pullRopePngPath));
+  assert.ok(fs.statSync(singleModeWebpPath).size < 30000);
+  assert.ok(fs.statSync(coupleModeWebpPath).size < 35000);
+  assert.ok(fs.statSync(singleModePngPath).size < 30000);
+  assert.ok(fs.statSync(coupleModePngPath).size < 45000);
+  assert.ok(fs.statSync(pullRopePngPath).size < 70000);
   assert.ok(!css.includes('.rope-photo'));
   assert.ok(cssBlock('.rope-tile::after').includes('repeating-linear-gradient(164deg'));
   assert.ok(cssBlock('.rope-tile::after').includes('background-blend-mode: multiply, screen, normal'));

@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./web/styles.css?v=mobile-asset-slim-1" />
+    <link rel="preload" as="image" href="./web/assets/rope-mode-single-cutout.webp" type="image/webp" />
+    <link rel="preload" as="image" href="./web/assets/rope-mode-couple-cutout.webp" type="image/webp" />
+    <link rel="stylesheet" href="./web/styles.css?v=mobile-image-fix-1" />
   </head>
   <body>
     <main class="workspace">
@@ -28,7 +30,7 @@
           <h1 class="home-title" aria-label="我的绳">
             <picture class="home-title-picture">
               <source srcset="./web/assets/home-rope-sign-transparent.webp" type="image/webp" />
-              <img class="home-title-image" src="./web/assets/home-rope-sign-transparent.webp" alt="我的绳牌匾" width="760" height="359" loading="lazy" decoding="async" />
+              <img class="home-title-image" src="./web/assets/home-rope-sign-transparent.webp" alt="我的绳牌匾" width="760" height="359" decoding="async" />
             </picture>
           </h1>
           <div id="ropeShelf" class="rope-shelf" aria-label="绳子列表"></div>
@@ -63,13 +65,19 @@
             <div class="rope-mode-options" role="radiogroup" aria-label="绳结模式">
               <button class="rope-mode-card" type="button" data-rope-mode="single" aria-pressed="false" aria-label="选择单人绳结模式">
                 <span class="rope-mode-orbit" aria-hidden="true">
-                  <img src="./web/assets/rope-mode-single-cutout.webp" alt="" loading="lazy" decoding="async" />
+                  <picture class="rope-mode-picture">
+                    <source srcset="./web/assets/rope-mode-single-cutout.webp" type="image/webp" />
+                    <img src="./web/assets/rope-mode-single-cutout.png" alt="" width="360" height="175" decoding="async" />
+                  </picture>
                 </span>
                 <span class="rope-mode-label">单人</span>
               </button>
               <button class="rope-mode-card" type="button" data-rope-mode="couple" aria-pressed="false" aria-label="选择双人绳结模式">
                 <span class="rope-mode-orbit" aria-hidden="true">
-                  <img src="./web/assets/rope-mode-couple-cutout.webp" alt="" loading="lazy" decoding="async" />
+                  <picture class="rope-mode-picture">
+                    <source srcset="./web/assets/rope-mode-couple-cutout.webp" type="image/webp" />
+                    <img src="./web/assets/rope-mode-couple-cutout.png" alt="" width="440" height="196" decoding="async" />
+                  </picture>
                 </span>
                 <span class="rope-mode-label">双人</span>
               </button>
@@ -200,6 +208,6 @@
       </aside>
     </main>
 
-    <script type="module" src="./web/app.js?v=mobile-asset-slim-1"></script>
+    <script type="module" src="./web/app.js?v=mobile-image-fix-1"></script>
   </body>
 </html>
