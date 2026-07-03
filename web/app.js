@@ -8,6 +8,7 @@ const ROPE_BODY = '#ddc8a6';
 const ROPE_EDGE = '#b89a72';
 const ROPE_SHADOW = 'rgba(86, 63, 37, 0.22)';
 const ROPE_HIGHLIGHT = 'rgba(248, 235, 205, 0.58)';
+const CABINET_ROPE_IMAGE_URL = new URL('./assets/cabinet-rope-a-cutout.webp', import.meta.url).href;
 const ROPE_NOTE_PALETTES = [
   {
     a: 'rgba(229, 236, 205, 0.92)',
@@ -2100,11 +2101,7 @@ function renderHome() {
         const noteStyle = ropeNotePaletteStyle(rope, tileIndex, usedNotePaletteIndexes);
         return `
           <button class="cabinet-slot rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${tileIndex}" aria-label="打开${escapeHtml(rope.name)}">
-            <span class="rope-coil" aria-hidden="true">
-              <span class="rope-coil-line rope-coil-line-a"></span>
-              <span class="rope-coil-line rope-coil-line-b"></span>
-              <span class="rope-coil-line rope-coil-line-c"></span>
-            </span>
+            <img class="rope-photo" src="${CABINET_ROPE_IMAGE_URL}" alt="" loading="lazy" decoding="async" aria-hidden="true" />
             <span class="rope-note" style="${noteStyle}">
               <b>${escapeHtml(rope.name)}</b>
               <span>${summary.openCount}结 · ${summary.resolvedCount}解</span>

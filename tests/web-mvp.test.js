@@ -12,11 +12,12 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'home-plus-align-1';
+const assetVersion = 'cabinet-rope-photo-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
 const homeSignWebpPath = path.join(root, 'web/assets/home-rope-sign-transparent.webp');
+const cabinetRopeWebpPath = path.join(root, 'web/assets/cabinet-rope-a-cutout.webp');
 
 function test(name, fn) {
   try {
@@ -257,17 +258,17 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.cabinet-back'));
   assert.ok(css.includes('.cabinet-slots'));
   assert.ok(cssBlock('.cabinet-slots').includes('z-index: 9'));
-  assert.ok(css.includes('.rope-coil'));
-  assert.ok(cssBlock('.rope-tile::after').includes('top: 2px'));
-  assert.ok(cssBlock('.rope-tile::after').includes('height: 34px'));
-  assert.ok(cssBlock('.rope-coil').includes('height: 68px'));
-  assert.ok(cssBlock('.rope-coil').includes('margin-top: 8px'));
-  assert.ok(css.includes('--coil-body: #ddc8a6'));
-  assert.ok(css.includes('--coil-edge: #b89a72'));
-  assert.ok(css.includes('--coil-light: #f3dfbd'));
-  assert.ok(css.includes('.rope-coil::before'));
-  assert.ok(css.includes('.rope-coil::after'));
-  assert.ok(css.includes('.rope-tile::after'));
+  assert.ok(js.includes("const CABINET_ROPE_IMAGE_URL = new URL('./assets/cabinet-rope-a-cutout.webp', import.meta.url).href;"));
+  assert.ok(js.includes('class="rope-photo"'));
+  assert.ok(js.includes('src="${CABINET_ROPE_IMAGE_URL}"'));
+  assert.ok(!js.includes('class="rope-coil"'));
+  assert.ok(fs.existsSync(cabinetRopeWebpPath));
+  assert.ok(fs.statSync(cabinetRopeWebpPath).size < 30000);
+  assert.ok(css.includes('.rope-photo'));
+  assert.ok(cssBlock('.rope-tile::after').includes('content: none'));
+  assert.ok(cssBlock('.rope-photo').includes('height: 90px'));
+  assert.ok(cssBlock('.rope-photo').includes('margin-top: -15px'));
+  assert.ok(cssBlock('.rope-photo').includes('object-fit: contain'));
   assert.ok(!css.includes('.home-pull-ghost'));
   assert.ok(css.includes('.rope-tile.pulling-rope .rope-coil'));
   assert.ok(css.includes('.home-mode.home-pull-centering .rope-tile.pulling-rope::after'));

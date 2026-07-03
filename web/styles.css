@@ -697,27 +697,23 @@ button {
 }
 
 .rope-tile::after {
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  z-index: 1;
-  width: 12px;
-  height: 34px;
+  content: none;
+}
+
+.rope-photo {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 42px;
+  height: 90px;
+  margin-top: -15px;
+  object-fit: contain;
+  object-position: center top;
   pointer-events: none;
-  content: "";
-  background:
-    linear-gradient(90deg, #8b6a45 0%, #b89a72 20%, #ddc8a6 41%, #ebd8b6 54%, #ddc8a6 67%, #b89a72 84%, #7f6040 100%),
-    repeating-linear-gradient(176deg, rgba(92, 65, 35, 0.28) 0 2px, transparent 2px 8px),
-    repeating-linear-gradient(92deg, rgba(248, 235, 205, 0.18) 0 1px, transparent 1px 7px);
-  border-radius: 999px;
-  box-shadow:
-    1.9px 2px 0 rgba(86, 63, 37, 0.22),
-    inset 1.2px 0 0 rgba(248, 235, 205, 0.38),
-    inset -1.3px 0 0 rgba(86, 63, 37, 0.2);
-  opacity: 0.9;
-  clip-path: polygon(25% 0, 76% 0, 73% 14%, 82% 29%, 73% 47%, 79% 63%, 72% 82%, 77% 100%, 23% 100%, 17% 82%, 27% 64%, 20% 47%, 29% 29%, 22% 14%);
-  transform: translateX(-50%) rotate(calc((var(--tile-index) - 2) * 0.2deg - 1.6deg));
-  transform-origin: 50% 100%;
+  user-select: none;
+  filter: drop-shadow(0 9px 8px rgba(43, 25, 9, 0.24));
+  transform: rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg));
+  transform-origin: 50% 5px;
 }
 
 .rope-coil {
