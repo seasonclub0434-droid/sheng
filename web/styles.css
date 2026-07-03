@@ -460,10 +460,37 @@ button {
   gap: 4px;
   justify-items: center;
   min-width: 0;
-  padding: 0;
+  min-height: 152px;
+  padding: 6px 0 0;
   background: transparent;
   border: 0;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+.rope-mode-card:focus-visible {
+  outline: 2px dashed rgba(93, 55, 26, 0.62);
+  outline-offset: 4px;
+}
+
+.rope-mode-card::before {
+  position: absolute;
+  inset: 0 4px 3px;
+  pointer-events: none;
+  content: "";
+  opacity: 0;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255, 245, 211, 0.4), transparent 68%),
+    linear-gradient(110deg, rgba(255, 250, 229, 0.16), rgba(119, 81, 42, 0.08));
+  border: 1px solid rgba(83, 54, 27, 0.16);
+  border-radius: 46% 42% 45% 44%;
+  box-shadow:
+    inset 0 0 16px rgba(93, 59, 25, 0.08),
+    0 8px 14px rgba(71, 43, 18, 0.06);
+  transform: rotate(-1.2deg) scale(0.96);
+  transition:
+    opacity 160ms ease,
+    transform 180ms cubic-bezier(0.2, 0.9, 0.22, 1);
 }
 
 .rope-mode-orbit {
@@ -477,6 +504,11 @@ button {
   box-shadow: none;
   transition:
     transform 180ms cubic-bezier(0.2, 0.9, 0.22, 1);
+}
+
+.rope-mode-orbit,
+.rope-mode-label {
+  pointer-events: none;
 }
 
 .rope-mode-orbit::before {
@@ -522,6 +554,37 @@ button {
   transform: translateY(-2px) rotate(-0.5deg) scale(1.03);
 }
 
+.rope-mode-card.selected::before {
+  opacity: 1;
+  transform: rotate(-1.2deg) scale(1);
+}
+
+.rope-mode-card.selected::after {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  z-index: 4;
+  display: grid;
+  width: 35px;
+  height: 27px;
+  place-items: center;
+  color: rgba(100, 40, 25, 0.86);
+  font-family: var(--font-hand);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  content: "已选";
+  background:
+    radial-gradient(ellipse at 44% 43%, rgba(135, 48, 30, 0.1), transparent 65%),
+    rgba(255, 245, 214, 0.52);
+  border: 2px solid rgba(112, 44, 30, 0.42);
+  border-radius: 46% 40% 44% 38%;
+  box-shadow:
+    0 2px 5px rgba(72, 39, 18, 0.08),
+    inset 0 0 8px rgba(113, 44, 26, 0.08);
+  transform: rotate(-10deg);
+}
+
 .rope-mode-card.selected .rope-mode-label {
   color: #5f351b;
 }
@@ -560,6 +623,19 @@ button {
     0 7px 14px rgba(72, 46, 23, 0.08),
     inset 0 0 18px rgba(255, 238, 190, 0.13);
   transform: rotate(0.35deg);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.add-rope-name-card:focus-within {
+  border-color: rgba(95, 56, 25, 0.44);
+  box-shadow:
+    0 9px 16px rgba(72, 46, 23, 0.12),
+    inset 0 0 22px rgba(255, 238, 190, 0.2),
+    0 0 0 3px rgba(250, 237, 196, 0.22);
+  transform: rotate(0.1deg) translateY(-1px);
 }
 
 .add-rope-name-input {
@@ -570,11 +646,29 @@ button {
   font-size: 18px;
   font-weight: 800;
   text-align: center;
-  background: rgba(247, 229, 187, 0.42);
-  border: 0;
-  border-bottom: 1px dashed rgba(70, 50, 31, 0.34);
-  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 229, 0.72), rgba(238, 213, 166, 0.45)),
+    repeating-linear-gradient(0deg, rgba(91, 61, 31, 0.045) 0 1px, transparent 1px 11px);
+  border: 1px solid rgba(77, 52, 29, 0.22);
+  border-bottom: 2px solid rgba(78, 50, 28, 0.38);
+  border-radius: 5px 4px 6px 3px;
   outline: none;
+  box-shadow:
+    inset 0 1px 2px rgba(80, 51, 25, 0.1),
+    0 1px 0 rgba(255, 247, 220, 0.36);
+  caret-color: #5f351b;
+}
+
+.add-rope-name-input::placeholder {
+  color: rgba(74, 55, 38, 0.4);
+  font-weight: 700;
+}
+
+.add-rope-name-input:focus {
+  border-color: rgba(100, 56, 25, 0.48);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 236, 0.86), rgba(242, 221, 176, 0.56)),
+    repeating-linear-gradient(0deg, rgba(91, 61, 31, 0.05) 0 1px, transparent 1px 11px);
 }
 
 .add-rope-rope {
@@ -621,6 +715,7 @@ button {
   font-family: var(--font-hand);
   font-size: 18px;
   font-weight: 850;
+  cursor: pointer;
   background:
     linear-gradient(180deg, rgba(151, 93, 37, 0.96), rgba(89, 50, 19, 0.98)),
     repeating-linear-gradient(8deg, rgba(255, 211, 130, 0.1) 0 1px, transparent 1px 9px);
@@ -631,16 +726,29 @@ button {
     inset 0 2px 0 rgba(255, 220, 153, 0.2),
     inset 0 -6px 9px rgba(42, 22, 8, 0.24);
   transform: rotate(-0.7deg);
+  transition:
+    filter 160ms ease,
+    opacity 160ms ease,
+    transform 160ms cubic-bezier(0.2, 0.9, 0.22, 1);
+}
+
+.create-rope-action:not(:disabled):active {
+  transform: rotate(-0.7deg) translateY(2px) scale(0.98);
 }
 
 .create-rope-action:disabled {
   color: rgba(84, 66, 46, 0.52);
+  cursor: default;
   background:
     linear-gradient(104deg, rgba(255, 248, 226, 0.66), rgba(214, 185, 130, 0.4)),
     repeating-linear-gradient(8deg, rgba(112, 81, 43, 0.05) 0 1px, transparent 1px 9px);
   box-shadow:
     inset 0 0 14px rgba(92, 66, 37, 0.06),
     0 5px 9px rgba(70, 42, 18, 0.08);
+}
+
+.create-rope-action.ready {
+  filter: saturate(1.08) contrast(1.03);
 }
 
 .home-page {
@@ -1529,6 +1637,14 @@ button {
   transform: translateX(-50%) rotate(calc((var(--tile-index) - 2) * -0.22deg - 0.5deg));
 }
 
+.rope-tile.new-rope-tile .rope-note {
+  animation: newRopeNoteSettle 1100ms cubic-bezier(0.2, 0.9, 0.22, 1) both;
+}
+
+.rope-tile.new-rope-tile .rope-coil {
+  animation: newRopeCordSettle 900ms cubic-bezier(0.2, 0.9, 0.22, 1) both;
+}
+
 .rope-note::before {
   position: absolute;
   top: -7px;
@@ -1570,6 +1686,46 @@ button {
   color: var(--note-sub, #65745d);
   font-size: 9px;
   line-height: 1.15;
+}
+
+@keyframes newRopeNoteSettle {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(126, 64, 31, 0.16),
+      0 3px 5px rgba(31, 15, 4, 0.18),
+      inset 0 -8px 12px rgba(62, 80, 47, 0.07);
+    filter: saturate(1.08) brightness(1.04);
+    transform: translateX(-50%) translateY(5px) rotate(calc((var(--tile-index) - 2) * -0.22deg - 2.2deg));
+  }
+  46% {
+    box-shadow:
+      0 0 0 9px rgba(126, 64, 31, 0.1),
+      0 5px 8px rgba(31, 15, 4, 0.2),
+      inset 0 -8px 12px rgba(62, 80, 47, 0.07);
+  }
+  100% {
+    box-shadow:
+      0 3px 5px rgba(31, 15, 4, 0.18),
+      inset 0 -8px 12px rgba(62, 80, 47, 0.07);
+    filter: none;
+    transform: translateX(-50%) rotate(calc((var(--tile-index) - 2) * -0.22deg - 0.5deg));
+  }
+}
+
+@keyframes newRopeCordSettle {
+  0% {
+    filter:
+      drop-shadow(0 14px 11px rgba(43, 25, 9, 0.26))
+      brightness(1.06)
+      contrast(1.03);
+    transform: translateY(-4px) rotate(calc((var(--tile-index) - 2) * 0.22deg - 4deg));
+  }
+  100% {
+    filter:
+      drop-shadow(0 10px 9px rgba(43, 25, 9, 0.22))
+      contrast(1.03);
+    transform: rotate(calc((var(--tile-index) - 2) * 0.22deg - 1deg));
+  }
 }
 
 .add-rope-action {

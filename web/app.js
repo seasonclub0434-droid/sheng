@@ -2350,6 +2350,8 @@ function updateAddRopeFormState() {
   const hasName = Boolean(addRopeNameInput.value.trim());
   const canCreate = hasMode && hasName;
   createRopeFromAddPage.disabled = !canCreate;
+  createRopeFromAddPage.classList.toggle('ready', canCreate);
+  createRopeFromAddPage.setAttribute('aria-disabled', String(!canCreate));
 }
 
 function selectRopeMode(mode) {
@@ -2380,7 +2382,6 @@ function openAddRopePage() {
   viewMode = 'home';
   phone.classList.add('home-mode', 'add-rope-mode');
   phone.classList.remove('rope-mode');
-  setTimeout(() => addRopeNameInput.focus(), 180);
 }
 
 function closeAddRopePage() {
@@ -2392,6 +2393,24 @@ function closeAddRopePage() {
 
 function addRope() {
   openAddRopePage();
+}
+
+function revealCreatedRope(ropeId) {
+  window.requestAnimationFrame(() => {
+    const ropeTile = Array.from(ropeShelf.querySelectorAll('[data-rope-id]'))
+      .find((tile) => tile.dataset.ropeId === ropeId);
+    if (!ropeTile) return;
+
+    ropeTile.scrollIntoView({
+      block: 'center',
+      inline: 'nearest',
+      behavior: 'smooth',
+    });
+    ropeTile.classList.add('new-rope-tile');
+    window.setTimeout(() => {
+      ropeTile.classList.remove('new-rope-tile');
+    }, 1250);
+  });
 }
 
 function createNamedRopeFromAddPage() {
@@ -2414,6 +2433,7 @@ function createNamedRopeFromAddPage() {
   saveRopeState(rope.id, emptyState());
   closeAddRopePage();
   renderHome();
+  revealCreatedRope(rope.id);
 }
 
 function isRecordTimelineOpen() {
