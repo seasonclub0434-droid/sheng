@@ -17,6 +17,7 @@ const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
 const homeSignWebpPath = path.join(root, 'web/assets/home-rope-sign-transparent.webp');
+const faviconPath = path.join(root, 'web/assets/favicon.svg');
 const pullRopePngPath = path.join(root, 'web/assets/pull-rope-full-v1.png');
 const singleModePngPath = path.join(root, 'web/assets/rope-mode-single-cutout.png');
 const singleModeWebpPath = path.join(root, 'web/assets/rope-mode-single-cutout.webp');
@@ -52,6 +53,10 @@ test('github pages root serves the browser preview', () => {
   assert.ok(pagesHtml.includes('id="timelineToggle"'));
   assert.ok(pagesHtml.includes(`href="./web/styles.css?v=${assetVersion}"`));
   assert.ok(pagesHtml.includes(`src="./web/app.js?v=${assetVersion}"`));
+  assert.ok(pagesHtml.includes('rel="icon" href="./web/assets/favicon.svg" type="image/svg+xml"'));
+  assert.ok(html.includes('rel="icon" href="./assets/favicon.svg" type="image/svg+xml"'));
+  assert.ok(fs.existsSync(faviconPath));
+  assert.ok(fs.statSync(faviconPath).size < 1000);
   assert.ok(!pagesHtml.includes('href="./styles.css'));
   assert.ok(!pagesHtml.includes('src="./app.js'));
   assert.ok(pkg.includes('"serve:web": "python3 -m http.server 4173 --directory ."'));
