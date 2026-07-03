@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'image-webp-performance-1';
+const assetVersion = 'home-plus-align-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
@@ -366,6 +366,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.home-mode .home-control-bar .settings-toggle'));
   assert.ok(css.includes('.home-mode .home-control-bar .home-search-toggle'));
   assert.ok(css.includes('.home-mode .home-control-bar .add-rope-action'));
+  assert.ok(cssBlock('.home-mode .home-control-bar .add-rope-action', 'width: 46px').includes('transform: translateY(3px) rotate(-1.5deg)'));
+  assert.ok(cssBlock('.home-mode .home-control-bar .add-rope-plus').includes('transform: translateY(1px)'));
   assert.ok(css.includes('width: 38px'));
   assert.ok(css.includes('width: 46px'));
   assert.ok(css.includes('writing-mode: horizontal-tb'));

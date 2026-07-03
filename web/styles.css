@@ -1872,7 +1872,12 @@ button {
   background:
     radial-gradient(circle at 34% 28%, rgba(255, 250, 227, 0.64), transparent 34%),
     linear-gradient(145deg, rgba(236, 217, 178, 0.62), rgba(197, 164, 110, 0.5));
-  transform: rotate(-1.5deg);
+  transform: translateY(3px) rotate(-1.5deg);
+}
+
+.home-mode .home-control-bar .add-rope-plus {
+  margin-top: -2px;
+  transform: translateY(1px);
 }
 
 .home-mode .home-control-bar .home-search-toggle {
