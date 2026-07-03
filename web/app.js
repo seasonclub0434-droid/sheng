@@ -441,6 +441,17 @@ function clearStoredRopeStates() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+function clearTransientRopeState() {
+  selectedEventId = '';
+  selectedTimelineId = '';
+  resolveMode = '';
+  activeKnotAnimation = null;
+  if (animationFrame) {
+    cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
+  }
+}
+
 function loadState() {
   if (!activeRopeId) return emptyState();
   const stored = readStoredJson(ropeStateKey(activeRopeId));
@@ -2286,11 +2297,10 @@ function enterRope(id) {
   activeRopeId = id;
   homeState.activeRopeId = id;
   saveHomeState();
+  clearTransientRopeState();
   state = loadState();
   viewMode = 'rope';
   shouldScrollToLatest = true;
-  selectedEventId = '';
-  selectedTimelineId = '';
   lastStatsSignature = '';
   lastTimelineSignature = '';
   closeFloatingDocks();
@@ -2307,11 +2317,10 @@ function primeRopeTransitionView(id) {
   activeRopeId = id;
   homeState.activeRopeId = id;
   saveHomeState();
+  clearTransientRopeState();
   state = loadState();
   viewMode = 'rope';
   shouldScrollToLatest = true;
-  selectedEventId = '';
-  selectedTimelineId = '';
   lastStatsSignature = '';
   lastTimelineSignature = '';
   updateCanvasSize();
@@ -2331,6 +2340,7 @@ function completePrimedRopeTransition(id) {
 
 function goHome() {
   viewMode = 'home';
+  clearTransientRopeState();
   closeFloatingDocks();
   closeAddRopePage();
   closeModal();
@@ -2376,6 +2386,7 @@ function resetAddRopeForm() {
 
 function openAddRopePage() {
   if (!addRopePage) return;
+  clearTransientRopeState();
   closeFloatingDocks();
   closeModal();
   resetAddRopeForm();
@@ -2428,9 +2439,12 @@ function createNamedRopeFromAddPage() {
     createdAt: new Date().toISOString(),
   };
   homeState.ropes.push(rope);
+  activeRopeId = rope.id;
   homeState.activeRopeId = rope.id;
   saveHomeState();
   saveRopeState(rope.id, emptyState());
+  clearTransientRopeState();
+  state = loadState();
   closeAddRopePage();
   renderHome();
   revealCreatedRope(rope.id);

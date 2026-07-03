@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'mobile-image-fix-1';
+const assetVersion = 'rope-isolation-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
@@ -231,6 +231,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('function updateAddRopeFormState('));
   assert.ok(js.includes('function createNamedRopeFromAddPage('));
   assert.ok(js.includes('function revealCreatedRope('));
+  assert.ok(js.includes('function clearTransientRopeState('));
   assert.ok(js.includes("mode: pendingRopeMode"));
   assert.ok(js.includes("classList.add('new-rope-tile')"));
   assert.ok(js.includes("ropeShelf.querySelectorAll('[data-rope-id]')"));
@@ -240,6 +241,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes("activeRopeId = homeState.activeRopeId || homeState.ropes[0]?.id || '';"));
   assert.ok(js.includes('let state = activeRopeId ? loadState() : emptyState();'));
   assert.ok(js.includes('saveRopeState(rope.id, emptyState())'));
+  assert.ok(js.includes('state = loadState();'));
   assert.ok(js.includes('if (!activeRopeId) return;'));
   assert.ok(js.includes('function renderHome('));
   assert.ok(js.includes('style="--home-rows: ${rows}"'));
