@@ -8,7 +8,6 @@ const ROPE_BODY = '#ddc8a6';
 const ROPE_EDGE = '#b89a72';
 const ROPE_SHADOW = 'rgba(86, 63, 37, 0.22)';
 const ROPE_HIGHLIGHT = 'rgba(248, 235, 205, 0.58)';
-const CABINET_ROPE_IMAGE_URL = new URL('./assets/cabinet-rope-a-clean.webp', import.meta.url).href;
 const ROPE_NOTE_PALETTES = [
   {
     a: 'rgba(229, 236, 205, 0.92)',
@@ -244,6 +243,12 @@ const loginEnterAction = document.querySelector('#loginEnterAction');
 const homePage = document.querySelector('#homePage');
 const ropeShelf = document.querySelector('#ropeShelf');
 const addRopeAction = document.querySelector('#addRopeAction');
+const addRopePage = document.querySelector('#addRopePage');
+const addRopeBack = document.querySelector('#addRopeBack');
+const addRopeNameInput = document.querySelector('#addRopeNameInput');
+const createRopeFromAddPage = document.querySelector('#createRopeFromAddPage');
+const addRopeHint = document.querySelector('#addRopeHint');
+const ropeModeCards = Array.from(document.querySelectorAll('[data-rope-mode]'));
 const backHomeAction = document.querySelector('#backHomeAction');
 const statsBar = document.querySelector('#statsBar');
 const settingsToggle = document.querySelector('#settingsToggle');
@@ -269,10 +274,6 @@ const writeKnotAction = document.querySelector('#writeKnotAction');
 const resolveKnotAction = document.querySelector('#resolveKnotAction');
 const notebookAction = document.querySelector('#notebookAction');
 const modalLayer = document.querySelector('#modalLayer');
-const ropeNameCard = document.querySelector('#ropeNameCard');
-const ropeNameInput = document.querySelector('#ropeNameInput');
-const cancelRopeName = document.querySelector('#cancelRopeName');
-const saveRopeName = document.querySelector('#saveRopeName');
 const noteCard = document.querySelector('#noteCard');
 const noteInput = document.querySelector('#noteInput');
 const detailCard = document.querySelector('#detailCard');
@@ -303,6 +304,7 @@ let selectedEventId = '';
 let selectedTimelineId = '';
 let notebookQuery = '';
 let resolveMode = '';
+let pendingRopeMode = '';
 let shouldScrollToLatest = true;
 let shouldTimelineListScrollLatest = false;
 let activeKnotAnimation = null;
@@ -2101,7 +2103,11 @@ function renderHome() {
         const noteStyle = ropeNotePaletteStyle(rope, tileIndex, usedNotePaletteIndexes);
         return `
           <button class="cabinet-slot rope-tile" type="button" data-rope-id="${escapeHtml(rope.id)}" style="--tile-index: ${tileIndex}" aria-label="打开${escapeHtml(rope.name)}">
-            <img class="rope-photo" src="${CABINET_ROPE_IMAGE_URL}" alt="" loading="lazy" decoding="async" aria-hidden="true" />
+            <span class="rope-coil" aria-hidden="true">
+              <span class="rope-coil-line rope-coil-line-a"></span>
+              <span class="rope-coil-line rope-coil-line-b"></span>
+              <span class="rope-coil-line rope-coil-line-c"></span>
+            </span>
             <span class="rope-note" style="${noteStyle}">
               <b>${escapeHtml(rope.name)}</b>
               <span>${summary.openCount}结 · ${summary.resolvedCount}解</span>
@@ -2263,6 +2269,7 @@ function resetPreviewState() {
   lastStatsSignature = '';
   lastTimelineSignature = '__reset__';
   shouldScrollToLatest = true;
+  closeAddRopePage();
   closeModal();
   toggleSettingsDock(false);
   phone.classList.add('home-mode');
@@ -2288,6 +2295,7 @@ function enterRope(id) {
   lastStatsSignature = '';
   lastTimelineSignature = '';
   closeFloatingDocks();
+  closeAddRopePage();
   closeModal();
   phone.classList.remove('home-mode');
   phone.classList.add('rope-mode');
@@ -2315,6 +2323,7 @@ function completePrimedRopeTransition(id) {
   const rope = homeState.ropes.find((entry) => entry.id === id);
   if (!rope || activeRopeId !== id || viewMode !== 'rope') return false;
   closeFloatingDocks();
+  closeAddRopePage();
   closeModal();
   phone.classList.remove('home-mode');
   phone.classList.add('rope-mode');
@@ -2324,6 +2333,7 @@ function completePrimedRopeTransition(id) {
 function goHome() {
   viewMode = 'home';
   closeFloatingDocks();
+  closeAddRopePage();
   closeModal();
   phone.classList.add('home-mode');
   phone.classList.remove('rope-mode');
@@ -2336,38 +2346,79 @@ function enterLoginGate() {
   renderHome();
 }
 
-function openRopeNameModal() {
-  ropeNameInput.value = '';
+function updateAddRopeFormState() {
+  const hasMode = Boolean(pendingRopeMode);
+  const hasName = Boolean(addRopeNameInput.value.trim());
+  const canCreate = hasMode && hasName;
+  createRopeFromAddPage.disabled = !canCreate;
+  addRopeHint.classList.toggle('ready', canCreate);
+}
+
+function selectRopeMode(mode) {
+  pendingRopeMode = mode;
+  ropeModeCards.forEach((card) => {
+    const isSelected = card.dataset.ropeMode === mode;
+    card.classList.toggle('selected', isSelected);
+    card.setAttribute('aria-pressed', String(isSelected));
+  });
+  updateAddRopeFormState();
+}
+
+function resetAddRopeForm() {
+  pendingRopeMode = '';
+  addRopeNameInput.value = '';
+  ropeModeCards.forEach((card) => {
+    card.classList.remove('selected');
+    card.setAttribute('aria-pressed', 'false');
+  });
+  updateAddRopeFormState();
+}
+
+function openAddRopePage() {
+  if (!addRopePage) return;
   closeFloatingDocks();
-  modalLayer.classList.remove('hidden');
-  ropeNameCard.classList.remove('hidden');
-  noteCard.classList.add('hidden');
-  detailCard.classList.add('hidden');
-  notebookCard.classList.add('hidden');
-  setTimeout(() => ropeNameInput.focus(), 20);
+  closeModal();
+  resetAddRopeForm();
+  viewMode = 'home';
+  phone.classList.add('home-mode', 'add-rope-mode');
+  phone.classList.remove('rope-mode');
+  setTimeout(() => addRopeNameInput.focus(), 180);
+}
+
+function closeAddRopePage() {
+  if (!addRopePage) return;
+  if (!phone.classList.contains('add-rope-mode')) return;
+  phone.classList.remove('add-rope-mode');
+  resetAddRopeForm();
 }
 
 function addRope() {
-  openRopeNameModal();
+  openAddRopePage();
 }
 
-function addNamedRope() {
-  const name = ropeNameInput.value.trim();
+function createNamedRopeFromAddPage() {
+  const name = addRopeNameInput.value.trim();
+  if (!pendingRopeMode) {
+    addRopeHint.classList.add('shake');
+    setTimeout(() => addRopeHint.classList.remove('shake'), 360);
+    return;
+  }
   if (!name) {
-    ropeNameInput.focus();
+    addRopeNameInput.focus();
     return;
   }
 
   const rope = {
     id: createId('rope'),
     name,
+    mode: pendingRopeMode,
     createdAt: new Date().toISOString(),
   };
   homeState.ropes.push(rope);
   homeState.activeRopeId = rope.id;
   saveHomeState();
   saveRopeState(rope.id, emptyState());
-  closeModal();
+  closeAddRopePage();
   renderHome();
 }
 
@@ -2556,7 +2607,6 @@ function openNotebook() {
   renderNotebookList();
 
   modalLayer.classList.remove('hidden');
-  ropeNameCard.classList.add('hidden');
   noteCard.classList.add('hidden');
   detailCard.classList.add('hidden');
   notebookCard.classList.remove('hidden');
@@ -2590,7 +2640,6 @@ function openResolveFromExchange() {
   resolveAction.classList.add('hidden');
   submitResolve.classList.add('hidden');
   modalLayer.classList.remove('hidden');
-  ropeNameCard.classList.add('hidden');
   noteCard.classList.add('hidden');
   detailCard.classList.remove('hidden');
   notebookCard.classList.add('hidden');
@@ -2659,7 +2708,6 @@ function openNote() {
   noteInput.value = '';
   toggleExchangeTray(false);
   modalLayer.classList.remove('hidden');
-  ropeNameCard.classList.add('hidden');
   noteCard.classList.remove('hidden');
   detailCard.classList.add('hidden');
   notebookCard.classList.add('hidden');
@@ -2668,7 +2716,6 @@ function openNote() {
 
 function closeModal() {
   modalLayer.classList.add('hidden');
-  ropeNameCard.classList.add('hidden');
   noteCard.classList.add('hidden');
   detailCard.classList.add('hidden');
   notebookCard.classList.add('hidden');
@@ -2744,7 +2791,6 @@ function openDetail(id) {
   }
 
   modalLayer.classList.remove('hidden');
-  ropeNameCard.classList.add('hidden');
   noteCard.classList.add('hidden');
   detailCard.classList.remove('hidden');
   notebookCard.classList.add('hidden');
@@ -2762,7 +2808,6 @@ function openBadgeDetail(badge) {
   submitResolve.classList.add('hidden');
   resolveAction.classList.add('hidden');
   modalLayer.classList.remove('hidden');
-  ropeNameCard.classList.add('hidden');
   noteCard.classList.add('hidden');
   detailCard.classList.remove('hidden');
   notebookCard.classList.add('hidden');
@@ -2834,11 +2879,6 @@ canvas.addEventListener('wheel', (event) => {
 
 document.querySelector('#cancelNote').addEventListener('click', closeModal);
 document.querySelector('#saveNote').addEventListener('click', saveNote);
-cancelRopeName.addEventListener('click', closeModal);
-saveRopeName.addEventListener('click', addNamedRope);
-ropeNameInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') addNamedRope();
-});
 document.querySelector('#closeDetail').addEventListener('click', closeModal);
 document.querySelector('#closeNotebook').addEventListener('click', closeModal);
 loginEnterAction.addEventListener('click', enterLoginGate);
@@ -2848,6 +2888,15 @@ ropeShelf.addEventListener('click', (event) => {
   enterRope(button.dataset.ropeId);
 });
 addRopeAction.addEventListener('click', addRope);
+addRopeBack.addEventListener('click', goHome);
+ropeModeCards.forEach((card) => {
+  card.addEventListener('click', () => selectRopeMode(card.dataset.ropeMode));
+});
+addRopeNameInput.addEventListener('input', updateAddRopeFormState);
+addRopeNameInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !createRopeFromAddPage.disabled) createNamedRopeFromAddPage();
+});
+createRopeFromAddPage.addEventListener('click', createNamedRopeFromAddPage);
 backHomeAction.addEventListener('click', goHome);
 settingsToggle.addEventListener('click', () => toggleSettingsDock());
 settingsClose.addEventListener('click', () => toggleSettingsDock(false));
