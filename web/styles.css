@@ -157,10 +157,14 @@ button {
   aspect-ratio: 959 / 1640;
 }
 
+.login-cabinet-picture,
 .login-cabinet-image {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.login-cabinet-image {
   object-fit: contain;
   pointer-events: none;
   user-select: none;
@@ -394,11 +398,15 @@ button {
   display: none;
 }
 
+.home-title-picture,
 .home-title-image {
   position: relative;
   z-index: 1;
   display: block;
   width: 100%;
+}
+
+.home-title-image {
   height: auto;
   pointer-events: none;
   user-select: none;

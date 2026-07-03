@@ -12,7 +12,11 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'handle-ring-image-frame-1';
+const assetVersion = 'image-webp-performance-1';
+const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
+const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
+const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
+const homeSignWebpPath = path.join(root, 'web/assets/home-rope-sign-transparent.webp');
 
 function test(name, fn) {
   try {
@@ -91,11 +95,18 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('class="phone kraft-paper home-mode login-mode"'));
   assert.ok(html.includes('class="login-gate image-login-gate"'));
   assert.ok(html.includes('class="login-cabinet-frame"'));
+  assert.ok(html.includes('class="login-cabinet-picture"'));
   assert.ok(html.includes('class="login-cabinet-image"'));
+  assert.ok(html.includes('srcset="./assets/login-cabinet-door.webp"'));
   assert.ok(html.includes('src="./assets/login-cabinet-door.png"'));
+  assert.ok(html.includes('fetchpriority="high"'));
   assert.ok(html.includes('alt="绳记柜门"'));
-  assert.ok(fs.existsSync(path.join(root, 'web/assets/login-cabinet-door.png')));
-  assert.ok(fs.existsSync(path.join(root, 'web/assets/home-rope-sign-transparent.png')));
+  assert.ok(fs.existsSync(loginPngPath));
+  assert.ok(fs.existsSync(loginWebpPath));
+  assert.ok(fs.existsSync(homeSignPngPath));
+  assert.ok(fs.existsSync(homeSignWebpPath));
+  assert.ok(fs.statSync(loginWebpPath).size < fs.statSync(loginPngPath).size / 4);
+  assert.ok(fs.statSync(homeSignWebpPath).size < fs.statSync(homeSignPngPath).size / 4);
   assert.ok(html.includes('id="loginEnterAction"'));
   assert.ok(html.includes('class="login-enter-glow"'));
   assert.ok(!html.includes('login-title'));
@@ -104,11 +115,14 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(pagesHtml.includes('id="loginGate"'));
   assert.ok(pagesHtml.includes('class="login-gate image-login-gate"'));
   assert.ok(pagesHtml.includes('src="./web/assets/login-cabinet-door.png"'));
+  assert.ok(pagesHtml.includes('srcset="./web/assets/login-cabinet-door.webp"'));
   assert.ok(pagesHtml.includes('src="./web/assets/home-rope-sign-transparent.png"'));
+  assert.ok(pagesHtml.includes('srcset="./web/assets/home-rope-sign-transparent.webp"'));
   assert.ok(js.includes("const loginEnterAction = document.querySelector('#loginEnterAction');"));
   assert.ok(js.includes("phone.classList.remove('login-mode');"));
   assert.ok(css.includes('.login-gate'));
   assert.ok(css.includes('.login-cabinet-frame'));
+  assert.ok(css.includes('.login-cabinet-picture'));
   assert.ok(css.includes('.login-cabinet-image'));
   assert.ok(css.includes('.login-enter-action'));
   assert.ok(css.includes('.login-enter-glow'));
@@ -118,7 +132,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(cssBlock('.login-gate').includes('place-items: center'));
   assert.ok(cssBlock('.login-cabinet-frame').includes('width: calc(100% - 2px)'));
   assert.ok(cssBlock('.login-cabinet-frame').includes('aspect-ratio: 959 / 1640'));
-  assert.ok(cssBlock('.login-cabinet-image').includes('object-fit: contain'));
+  assert.ok(css.includes('object-fit: contain'));
   assert.ok(cssBlock('.login-enter-action').includes('top: 59.4%'));
   assert.ok(cssBlock('.login-enter-action').includes('width: 36%'));
   assert.ok(cssBlock('.login-enter-action').includes('aspect-ratio: 1'));
@@ -126,8 +140,11 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('id="pullBridgeRope"'));
   assert.ok(html.includes('我的绳'));
   assert.ok(html.includes('class="home-title" aria-label="我的绳"'));
+  assert.ok(html.includes('class="home-title-picture"'));
   assert.ok(html.includes('class="home-title-image"'));
+  assert.ok(html.includes('srcset="./assets/home-rope-sign-transparent.webp"'));
   assert.ok(html.includes('src="./assets/home-rope-sign-transparent.png"'));
+  assert.ok(html.includes('loading="lazy"'));
   assert.ok(html.includes('alt="我的绳牌匾"'));
   assert.ok(html.includes('id="ropeShelf"'));
   assert.ok(html.includes('class="rope-shelf"'));
