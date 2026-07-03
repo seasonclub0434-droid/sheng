@@ -247,7 +247,6 @@ const addRopePage = document.querySelector('#addRopePage');
 const addRopeBack = document.querySelector('#addRopeBack');
 const addRopeNameInput = document.querySelector('#addRopeNameInput');
 const createRopeFromAddPage = document.querySelector('#createRopeFromAddPage');
-const addRopeHint = document.querySelector('#addRopeHint');
 const ropeModeCards = Array.from(document.querySelectorAll('[data-rope-mode]'));
 const backHomeAction = document.querySelector('#backHomeAction');
 const statsBar = document.querySelector('#statsBar');
@@ -2351,7 +2350,6 @@ function updateAddRopeFormState() {
   const hasName = Boolean(addRopeNameInput.value.trim());
   const canCreate = hasMode && hasName;
   createRopeFromAddPage.disabled = !canCreate;
-  addRopeHint.classList.toggle('ready', canCreate);
 }
 
 function selectRopeMode(mode) {
@@ -2398,11 +2396,7 @@ function addRope() {
 
 function createNamedRopeFromAddPage() {
   const name = addRopeNameInput.value.trim();
-  if (!pendingRopeMode) {
-    addRopeHint.classList.add('shake');
-    setTimeout(() => addRopeHint.classList.remove('shake'), 360);
-    return;
-  }
+  if (!pendingRopeMode) return;
   if (!name) {
     addRopeNameInput.focus();
     return;

@@ -12,13 +12,13 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'add-rope-mode-page-1';
+const assetVersion = 'add-rope-sticker-page-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
 const homeSignWebpPath = path.join(root, 'web/assets/home-rope-sign-transparent.webp');
-const singleModeWebpPath = path.join(root, 'web/assets/rope-mode-single.webp');
-const coupleModeWebpPath = path.join(root, 'web/assets/rope-mode-couple.webp');
+const singleModeWebpPath = path.join(root, 'web/assets/rope-mode-single-cutout.webp');
+const coupleModeWebpPath = path.join(root, 'web/assets/rope-mode-couple-cutout.webp');
 
 function test(name, fn) {
   try {
@@ -167,11 +167,13 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('选择你的绳结模式'));
   assert.ok(html.includes('data-rope-mode="single"'));
   assert.ok(html.includes('data-rope-mode="couple"'));
-  assert.ok(html.includes('src="./assets/rope-mode-single.webp"'));
-  assert.ok(html.includes('src="./assets/rope-mode-couple.webp"'));
+  assert.ok(html.includes('src="./assets/rope-mode-single-cutout.webp"'));
+  assert.ok(html.includes('src="./assets/rope-mode-couple-cutout.webp"'));
   assert.ok(html.includes('id="addRopeNameInput"'));
   assert.ok(html.includes('id="createRopeFromAddPage"'));
-  assert.ok(html.includes('必须提前选择单人或双人并命名后，才可创建'));
+  assert.ok(html.includes('class="add-rope-rope"'));
+  assert.ok(!html.includes('id="addRopeHint"'));
+  assert.ok(!html.includes('必须提前选择单人或双人并命名后，才可创建'));
   assert.ok(!html.includes('id="ropeNameCard"'));
   assert.ok(!html.includes('id="ropeNameInput"'));
   assert.ok(!html.includes('给这根绳命名'));
@@ -183,8 +185,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('placeholder="搜所有绳"'));
   assert.ok(pagesHtml.includes('id="homePage"'));
   assert.ok(pagesHtml.includes('id="addRopePage"'));
-  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-single.webp"'));
-  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-couple.webp"'));
+  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-single-cutout.webp"'));
+  assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-couple-cutout.webp"'));
   assert.ok(pagesHtml.includes('id="globalSearchDock"'));
   assert.ok(js.includes('const HOME_STORAGE_KEY'));
   assert.ok(js.includes("const HOME_STORAGE_KEY = 'rope-talk-web-home-state-v3'"));
@@ -204,6 +206,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('function updateAddRopeFormState('));
   assert.ok(js.includes('function createNamedRopeFromAddPage('));
   assert.ok(js.includes("mode: pendingRopeMode"));
+  assert.ok(!js.includes('addRopeHint'));
   assert.ok(!js.includes('function openRopeNameModal('));
   assert.ok(!js.includes('function addNamedRope('));
   assert.ok(js.includes("activeRopeId = homeState.activeRopeId || homeState.ropes[0]?.id || '';"));
@@ -283,8 +286,8 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(js.includes('class="rope-coil-line rope-coil-line-a"'));
   assert.ok(fs.existsSync(singleModeWebpPath));
   assert.ok(fs.existsSync(coupleModeWebpPath));
-  assert.ok(fs.statSync(singleModeWebpPath).size < 30000);
-  assert.ok(fs.statSync(coupleModeWebpPath).size < 50000);
+  assert.ok(fs.statSync(singleModeWebpPath).size < 60000);
+  assert.ok(fs.statSync(coupleModeWebpPath).size < 70000);
   assert.ok(!css.includes('.rope-photo'));
   assert.ok(cssBlock('.rope-tile::after').includes('repeating-linear-gradient(164deg'));
   assert.ok(cssBlock('.rope-tile::after').includes('background-blend-mode: multiply, screen, normal'));
@@ -370,6 +373,9 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.phone.add-rope-mode .rope-add-page'));
   assert.ok(css.includes('.rope-mode-card.selected'));
   assert.ok(css.includes('.add-rope-name-input'));
+  assert.ok(css.includes('.add-rope-rope'));
+  assert.ok(cssBlock('.rope-mode-orbit').includes('border: 0'));
+  assert.ok(cssBlock('.rope-mode-orbit').includes('box-shadow: none'));
   assert.ok(css.includes('.create-rope-action:disabled'));
   assert.ok(css.includes('.home-control-bar'));
   assert.ok(css.includes('.control-icon'));

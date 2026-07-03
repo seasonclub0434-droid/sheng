@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>绳话</title>
-    <link rel="stylesheet" href="./styles.css?v=add-rope-mode-page-1" />
+    <link rel="stylesheet" href="./styles.css?v=add-rope-sticker-page-1" />
   </head>
   <body>
     <main class="workspace">
@@ -63,13 +63,13 @@
             <div class="rope-mode-options" role="radiogroup" aria-label="绳结模式">
               <button class="rope-mode-card" type="button" data-rope-mode="single" aria-pressed="false">
                 <span class="rope-mode-orbit" aria-hidden="true">
-                  <img src="./assets/rope-mode-single.webp" alt="" loading="lazy" decoding="async" />
+                  <img src="./assets/rope-mode-single-cutout.webp" alt="" loading="lazy" decoding="async" />
                 </span>
                 <span class="rope-mode-label">单人</span>
               </button>
               <button class="rope-mode-card" type="button" data-rope-mode="couple" aria-pressed="false">
                 <span class="rope-mode-orbit" aria-hidden="true">
-                  <img src="./assets/rope-mode-couple.webp" alt="" loading="lazy" decoding="async" />
+                  <img src="./assets/rope-mode-couple-cutout.webp" alt="" loading="lazy" decoding="async" />
                 </span>
                 <span class="rope-mode-label">双人</span>
               </button>
@@ -78,10 +78,9 @@
               <span>命名你的绳结</span>
               <input id="addRopeNameInput" class="add-rope-name-input" maxlength="12" autocomplete="off" />
             </label>
-            <div class="add-rope-arrow" aria-hidden="true">↓</div>
+            <div class="add-rope-rope" aria-hidden="true"></div>
             <button id="createRopeFromAddPage" class="create-rope-action" type="button" disabled>创建</button>
           </div>
-          <div id="addRopeHint" class="add-rope-hint">必须提前选择单人或双人并命名后，才可创建</div>
         </section>
 
         <div id="statsBar" class="stats-bar" aria-live="polite"></div>
@@ -201,6 +200,6 @@
       </aside>
     </main>
 
-    <script type="module" src="./app.js?v=add-rope-mode-page-1"></script>
+    <script type="module" src="./app.js?v=add-rope-sticker-page-1"></script>
   </body>
 </html>
