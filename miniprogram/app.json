@@ -6,6 +6,7 @@
     "navigationBarTitleText": "绳话",
     "navigationBarBackgroundColor": "#f5eedf",
     "navigationBarTextStyle": "black",
+    "navigationStyle": "custom",
     "backgroundColor": "#f5eedf",
     "backgroundTextStyle": "dark"
   },
