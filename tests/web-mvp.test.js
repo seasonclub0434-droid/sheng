@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'add-page-polish-2';
+const assetVersion = 'interaction-fix-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
@@ -54,7 +54,10 @@ test('github pages root serves the browser preview', () => {
   assert.ok(pagesHtml.includes('id="ropeCanvas"'));
   assert.ok(pagesHtml.includes('id="timelineToggle"'));
   assert.ok(pagesHtml.includes(`href="./web/styles.css?v=${assetVersion}"`));
-  assert.ok(pagesHtml.includes(`src="./web/app.js?v=${assetVersion}"`));
+  assert.ok(pagesHtml.includes(`<script defer src="./web/app.js?v=${assetVersion}"></script>`));
+  assert.ok(!pagesHtml.includes('type="module" src="./web/app.js'));
+  assert.ok(html.includes(`<script defer src="./app.js?v=${assetVersion}"></script>`));
+  assert.ok(!html.includes('type="module" src="./app.js'));
   assert.ok(pagesHtml.includes('rel="icon" href="./web/assets/favicon.svg" type="image/svg+xml"'));
   assert.ok(html.includes('rel="icon" href="./assets/favicon.svg" type="image/svg+xml"'));
   assert.ok(fs.existsSync(faviconPath));
@@ -136,6 +139,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(pagesHtml.includes('srcset="./web/assets/home-rope-sign-transparent.webp"'));
   assert.ok(!pagesHtml.includes('src="./web/assets/home-rope-sign-transparent.png"'));
   assert.ok(js.includes("const loginEnterAction = document.querySelector('#loginEnterAction');"));
+  assert.ok(js.includes("loginGate.addEventListener('click', enterLoginGate);"));
   assert.ok(js.includes("phone.classList.remove('login-mode');"));
   assert.ok(css.includes('.login-gate'));
   assert.ok(css.includes('.login-cabinet-frame'));

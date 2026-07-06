@@ -2910,6 +2910,7 @@ document.querySelector('#saveNote').addEventListener('click', saveNote);
 document.querySelector('#closeDetail').addEventListener('click', closeModal);
 document.querySelector('#closeNotebook').addEventListener('click', closeModal);
 loginEnterAction.addEventListener('click', enterLoginGate);
+loginGate.addEventListener('click', enterLoginGate);
 ropeShelf.addEventListener('click', (event) => {
   const button = event.target.closest('[data-rope-id]');
   if (!button) return;
