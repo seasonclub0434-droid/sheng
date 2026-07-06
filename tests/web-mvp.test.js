@@ -12,7 +12,7 @@ const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'rope-isolation-1';
+const assetVersion = 'add-page-polish-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
@@ -23,6 +23,8 @@ const singleModePngPath = path.join(root, 'web/assets/rope-mode-single-cutout.pn
 const singleModeWebpPath = path.join(root, 'web/assets/rope-mode-single-cutout.webp');
 const coupleModePngPath = path.join(root, 'web/assets/rope-mode-couple-cutout.png');
 const coupleModeWebpPath = path.join(root, 'web/assets/rope-mode-couple-cutout.webp');
+const addRopeTailPngPath = path.join(root, 'web/assets/add-rope-tail-v1.png');
+const addRopeTailWebpPath = path.join(root, 'web/assets/add-rope-tail-v1.webp');
 
 function test(name, fn) {
   try {
@@ -185,10 +187,13 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(html.includes('aria-label="选择双人绳结模式"'));
   assert.ok(html.includes('href="./assets/rope-mode-single-cutout.webp"'));
   assert.ok(html.includes('href="./assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(html.includes('href="./assets/add-rope-tail-v1.webp"'));
   assert.ok(html.includes('srcset="./assets/rope-mode-single-cutout.webp"'));
   assert.ok(html.includes('src="./assets/rope-mode-single-cutout.png"'));
   assert.ok(html.includes('srcset="./assets/rope-mode-couple-cutout.webp"'));
   assert.ok(html.includes('src="./assets/rope-mode-couple-cutout.png"'));
+  assert.ok(html.includes('srcset="./assets/add-rope-tail-v1.webp"'));
+  assert.ok(html.includes('src="./assets/add-rope-tail-v1.png"'));
   assert.ok(html.includes('id="addRopeNameInput"'));
   assert.ok(html.includes('placeholder="输入绳子的名字"'));
   assert.ok(html.includes('id="createRopeFromAddPage"'));
@@ -208,11 +213,18 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(pagesHtml.includes('id="addRopePage"'));
   assert.ok(pagesHtml.includes('href="./web/assets/rope-mode-single-cutout.webp"'));
   assert.ok(pagesHtml.includes('href="./web/assets/rope-mode-couple-cutout.webp"'));
+  assert.ok(pagesHtml.includes('href="./web/assets/add-rope-tail-v1.webp"'));
   assert.ok(pagesHtml.includes('srcset="./web/assets/rope-mode-single-cutout.webp"'));
   assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-single-cutout.png"'));
   assert.ok(pagesHtml.includes('srcset="./web/assets/rope-mode-couple-cutout.webp"'));
   assert.ok(pagesHtml.includes('src="./web/assets/rope-mode-couple-cutout.png"'));
+  assert.ok(pagesHtml.includes('srcset="./web/assets/add-rope-tail-v1.webp"'));
+  assert.ok(pagesHtml.includes('src="./web/assets/add-rope-tail-v1.png"'));
   assert.ok(pagesHtml.includes('id="globalSearchDock"'));
+  assert.ok(fs.existsSync(addRopeTailPngPath));
+  assert.ok(fs.existsSync(addRopeTailWebpPath));
+  assert.ok(fs.statSync(addRopeTailPngPath).size < 40000);
+  assert.ok(fs.statSync(addRopeTailWebpPath).size < 16000);
   assert.ok(js.includes('const HOME_STORAGE_KEY'));
   assert.ok(js.includes("const HOME_STORAGE_KEY = 'rope-talk-web-home-state-v3'"));
   assert.ok(js.includes('const ROPE_STATE_PREFIX'));
@@ -412,9 +424,15 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(css.includes('.add-rope-name-input'));
   assert.ok(css.includes('.add-rope-name-input::placeholder'));
   assert.ok(css.includes('.add-rope-rope'));
+  assert.ok(css.includes('.add-rope-tail-picture'));
+  assert.ok(css.includes('.add-rope-tail-image'));
   assert.ok(css.includes('.rope-tile.new-rope-tile'));
-  assert.ok(cssBlock('.rope-mode-orbit').includes('border: 0'));
-  assert.ok(cssBlock('.rope-mode-orbit').includes('box-shadow: none'));
+  assert.ok(cssBlock('.rope-mode-orbit').includes('border-radius: 50%'));
+  assert.ok(cssBlock('.rope-mode-orbit').includes('overflow: hidden'));
+  assert.ok(cssBlock('.add-rope-rope').includes('filter: drop-shadow'));
+  assert.ok(!cssBlock('.add-rope-rope').includes('clip-path'));
+  assert.ok(cssBlock('.create-rope-action').includes('position: absolute'));
+  assert.ok(cssBlock('.create-rope-action').includes('bottom: 0'));
   assert.ok(css.includes('.create-rope-action:disabled'));
   assert.ok(css.includes('.home-control-bar'));
   assert.ok(css.includes('.control-icon'));

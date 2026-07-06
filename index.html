@@ -7,7 +7,8 @@
     <link rel="icon" href="./web/assets/favicon.svg" type="image/svg+xml" />
     <link rel="preload" as="image" href="./web/assets/rope-mode-single-cutout.webp" type="image/webp" />
     <link rel="preload" as="image" href="./web/assets/rope-mode-couple-cutout.webp" type="image/webp" />
-    <link rel="stylesheet" href="./web/styles.css?v=rope-isolation-1" />
+    <link rel="preload" as="image" href="./web/assets/add-rope-tail-v1.webp" type="image/webp" />
+    <link rel="stylesheet" href="./web/styles.css?v=add-page-polish-1" />
   </head>
   <body>
     <main class="workspace">
@@ -87,7 +88,12 @@
               <span>命名你的绳结</span>
               <input id="addRopeNameInput" class="add-rope-name-input" type="text" maxlength="12" autocomplete="off" placeholder="输入绳子的名字" />
             </label>
-            <div class="add-rope-rope" aria-hidden="true"></div>
+            <div class="add-rope-rope" aria-hidden="true">
+              <picture class="add-rope-tail-picture">
+                <source srcset="./web/assets/add-rope-tail-v1.webp" type="image/webp" />
+                <img class="add-rope-tail-image" src="./web/assets/add-rope-tail-v1.png" alt="" width="68" height="520" decoding="async" />
+              </picture>
+            </div>
             <button id="createRopeFromAddPage" class="create-rope-action" type="button" disabled>创建</button>
           </div>
         </section>
@@ -209,6 +215,6 @@
       </aside>
     </main>
 
-    <script type="module" src="./web/app.js?v=rope-isolation-1"></script>
+    <script type="module" src="./web/app.js?v=add-page-polish-1"></script>
   </body>
 </html>
