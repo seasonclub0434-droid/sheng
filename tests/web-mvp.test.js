@@ -972,3 +972,23 @@ test('mini program rope store creates named ropes and keeps rope records isolate
   delete global.wx;
   delete require.cache[require.resolve(storePath)];
 });
+
+test('mini program uses 750rpx layout and unmounts closed overlays so buttons remain tappable', () => {
+  assert.ok(miniWxss.includes('width: 750rpx'));
+  assert.ok(miniWxss.includes('rpx'));
+  assert.ok(!/\d+(?:\.\d+)?px\b/.test(miniWxss));
+  assert.ok(!miniWxss.includes('vw'));
+  assert.ok(!miniWxss.includes('pointer-events'));
+  assert.ok(miniWxml.includes('wx:if="{{viewMode === \'rope\'}}"'));
+  assert.ok(miniWxml.includes('class="rope-canvas"'));
+  assert.ok(!miniWxml.includes('canvas-hidden'));
+  assert.ok(!miniWxss.includes('canvas-hidden'));
+  assert.ok(miniPage.includes('await this.reload();\n    this.initCanvas();'));
+  assert.ok(miniWxml.includes('wx:if="{{settingsOpen}}"'));
+  assert.ok(miniWxml.includes('wx:if="{{globalSearchOpen}}"'));
+  assert.ok(miniWxml.includes('wx:if="{{timelineOpen}}"'));
+  assert.ok(miniWxml.includes('wx:if="{{exchangeOpen}}"'));
+  assert.ok(!miniWxml.includes("{{settingsOpen ? 'open' : ''}}"));
+  assert.ok(!miniWxml.includes("{{globalSearchOpen ? 'open' : ''}}"));
+  assert.ok(!miniWxml.includes("{{timelineOpen ? 'open' : ''}}"));
+});

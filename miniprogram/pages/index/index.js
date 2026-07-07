@@ -256,6 +256,8 @@ Page({
 
   async goHome() {
     this.session = null;
+    this.canvas = null;
+    this.ctx = null;
     this.scrollY = 0;
     this.setData({
       viewMode: 'home',
@@ -274,6 +276,8 @@ Page({
   },
 
   openAddRopePage() {
+    this.canvas = null;
+    this.ctx = null;
     this.setData({
       viewMode: 'add',
       settingsOpen: false,
@@ -328,6 +332,7 @@ Page({
     this.setData({ loading: true, viewMode: 'rope' });
     this.session = await store.setCurrentRope(ropeId);
     await this.reload();
+    this.initCanvas();
   },
 
   toggleSettingsDock() {

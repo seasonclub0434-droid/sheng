@@ -1,9 +1,10 @@
 <view class="page {{viewMode}}-mode">
   <canvas
+    wx:if="{{viewMode === 'rope'}}"
     id="ropeCanvas"
     canvas-id="ropeCanvas"
     type="2d"
-    class="rope-canvas {{viewMode === 'rope' ? '' : 'canvas-hidden'}}"
+    class="rope-canvas"
     style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
     bindtouchstart="onCanvasTouchStart"
     bindtouchmove="onCanvasTouchMove"
@@ -92,7 +93,7 @@
       </button>
     </view>
 
-    <view id="settingsDock" class="settings-dock {{settingsOpen ? 'open' : ''}}" catchtouchmove="noop">
+    <view wx:if="{{settingsOpen}}" id="settingsDock" class="settings-dock open" catchtouchmove="noop">
       <view class="dock-rail">
         <text class="settings-title">设置</text>
         <button class="dock-close" type="button" bindtap="closeSettingsDock">×</button>
@@ -113,7 +114,7 @@
       </view>
     </view>
 
-    <view id="globalSearchDock" class="record-timeline-dock global-search-dock {{globalSearchOpen ? 'open' : ''}}" catchtouchmove="noop">
+    <view wx:if="{{globalSearchOpen}}" id="globalSearchDock" class="record-timeline-dock global-search-dock open" catchtouchmove="noop">
       <view class="dock-rail">
         <text class="record-timeline-title">搜索</text>
         <button class="dock-close" type="button" bindtap="closeGlobalSearchDock">×</button>
@@ -203,7 +204,7 @@
     <button id="backHomeAction" class="back-home-action" type="button" bindtap="goHome">返回</button>
     <button id="timelineToggle" class="timeline-toggle rope-timeline-toggle" type="button" bindtap="toggleTimelineDock">绳历</button>
 
-    <view id="recordTimelineDock" class="record-timeline-dock {{timelineOpen ? 'open' : ''}}" catchtouchmove="noop">
+    <view wx:if="{{timelineOpen}}" id="recordTimelineDock" class="record-timeline-dock open" catchtouchmove="noop">
       <view class="dock-rail">
         <text class="record-timeline-title">绳历</text>
         <button class="dock-close" type="button" bindtap="closeTimelineDock">×</button>
@@ -222,7 +223,7 @@
     </view>
 
     <view id="exchangeDock" class="exchange-dock" aria-label="记绳操作">
-      <view id="exchangeTray" class="exchange-tray {{exchangeOpen ? 'open' : ''}}">
+      <view wx:if="{{exchangeOpen}}" id="exchangeTray" class="exchange-tray open">
         <button class="exchange-action write-action" type="button" bindtap="openWriteKnot">
           <text class="action-label">写一个结</text>
           <text class="action-hint">把没说完的话系上</text>
