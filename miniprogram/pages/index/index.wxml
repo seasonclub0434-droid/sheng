@@ -24,14 +24,13 @@
         src="../../assets/login-cabinet-door.png"
         mode="aspectFit"
       />
-      <button
+      <view
         id="loginEnterAction"
         class="login-enter-action image-login-enter-action"
-        type="button"
         aria-label="进入我的绳"
       >
         <view class="login-enter-glow"></view>
-      </button>
+      </view>
     </view>
   </view>
 

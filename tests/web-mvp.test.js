@@ -908,6 +908,8 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxml.includes('class="login-gate image-login-gate"'));
   assert.ok(miniWxml.includes('../../assets/login-cabinet-door.png'));
   assert.ok(miniWxml.includes('bindtap="enterLoginGate"'));
+  assert.ok(miniWxml.includes('<view\n        id="loginEnterAction"'));
+  assert.ok(!miniWxml.includes('id="loginEnterAction"\n        class="login-enter-action image-login-enter-action"\n        type="button"'));
   assert.ok(miniWxml.includes('id="homePage"'));
   assert.ok(miniWxml.includes('id="ropeShelf"'));
   assert.ok(miniWxml.includes('../../assets/home-rope-sign-transparent.png'));
@@ -931,6 +933,11 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxss.includes('top: 59.4%;'));
   assert.ok(miniWxss.includes('width: 248rpx;'));
   assert.ok(miniWxss.includes('height: 248rpx;'));
+  assert.ok(miniWxss.includes('width: 256rpx;'));
+  assert.ok(miniWxss.includes('height: 256rpx;'));
+  assert.ok(miniWxss.includes('border-radius: 999rpx;'));
+  assert.ok(miniWxss.includes('transform: translate(-50%, -50%);'));
+  assert.ok(miniWxss.includes('transform: translate(-50%, -50%) scale(0.96);'));
   assert.ok(miniWxss.includes('animation: loginGlowBreath 2.8s ease-in-out infinite;'));
   assert.ok(miniWxss.includes('@keyframes loginGlowBreath'));
   assert.ok(miniWxss.includes('.cabinet-stack'));

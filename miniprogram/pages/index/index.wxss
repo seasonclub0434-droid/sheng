@@ -90,11 +90,11 @@
 
 .login-enter-glow {
   position: absolute;
-  left: -2%;
-  right: -2%;
-  top: -2%;
-  bottom: -2%;
-  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  width: 256rpx;
+  height: 256rpx;
+  border-radius: 999rpx;
   border: 4rpx solid rgba(255, 221, 128, 0.44);
   background:
     radial-gradient(ellipse at 50% 48%, rgba(255, 224, 138, 0.15), transparent 50%),
@@ -105,6 +105,7 @@
     inset 0 0 24rpx rgba(255, 229, 158, 0.16);
   opacity: 0.68;
   transform-origin: center;
+  transform: translate(-50%, -50%);
   animation: loginGlowBreath 2.8s ease-in-out infinite;
 }
 
@@ -128,12 +129,12 @@
   0%,
   100% {
     opacity: 0.56;
-    transform: scale(0.96);
+    transform: translate(-50%, -50%) scale(0.96);
   }
 
   50% {
     opacity: 0.96;
-    transform: scale(1.025);
+    transform: translate(-50%, -50%) scale(1.025);
   }
 }
 
