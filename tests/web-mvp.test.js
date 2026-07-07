@@ -941,6 +941,9 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxss.includes('animation: loginGlowBreath 2.8s ease-in-out infinite;'));
   assert.ok(miniWxss.includes('@keyframes loginGlowBreath'));
   assert.ok(miniWxss.includes('.cabinet-stack'));
+  assert.ok(miniWxss.includes('box-sizing: border-box;\n  min-height: 100%;\n  padding: 60rpx 36rpx 84rpx;'));
+  assert.ok(miniWxss.includes('right: 0;\n  left: 0;\n  z-index: 14;\n  height: 26rpx;'));
+  assert.ok(!miniWxss.includes('right: -24rpx;\n  left: -24rpx;'));
   assert.ok(miniWxml.includes('class="rope-coil"'));
   assert.ok(miniWxml.includes('class="rope-coil-line rope-coil-line-a"'));
   assert.ok(!miniWxml.includes('rope-drop'));

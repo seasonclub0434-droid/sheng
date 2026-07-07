@@ -1145,10 +1145,12 @@
   width: 622rpx;
   bottom: 178rpx;
   padding-top: 16rpx;
+  overflow: visible;
 }
 
 .cabinet-stack {
   display: block;
+  box-sizing: border-box;
   min-height: 100%;
   padding: 60rpx 36rpx 84rpx;
   overflow: hidden;
@@ -1209,8 +1211,8 @@
 .cabinet-top,
 .cabinet-bottom {
   position: absolute;
-  right: -24rpx;
-  left: -24rpx;
+  right: 0;
+  left: 0;
   z-index: 14;
   height: 26rpx;
   margin: 0;
