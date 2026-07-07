@@ -4,6 +4,8 @@ const STORAGE_KEY = 'rope-talk-state-v2';
 const LEGACY_STORAGE_KEY = 'rope-talk-state-v1';
 const CURRENT_ROPE_KEY = 'rope-talk-current-rope';
 const LOCAL_OPENID_KEY = 'rope-talk-local-openid';
+const CLOUD_READ_TIMEOUT_MS = 800;
+const CLOUD_SYNC_TIMEOUT_MS = 1800;
 
 function hasWx() {
   return typeof wx !== 'undefined';
@@ -34,6 +36,38 @@ function removeStorage(key) {
     wx.removeStorageSync(key);
   } catch (error) {
     console.warn('remove storage failed', error);
+  }
+}
+
+function syncCloud(task, label) {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('cloud sync timeout')), CLOUD_SYNC_TIMEOUT_MS);
+    if (timer && typeof timer.unref === 'function') timer.unref();
+  });
+
+  Promise.race([Promise.resolve().then(task), timeout])
+    .catch((error) => {
+      console.warn(label, error);
+    })
+    .finally(() => {
+      if (timer) clearTimeout(timer);
+    });
+}
+
+async function readCloud(task, label, fallback) {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('cloud read timeout')), CLOUD_READ_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([Promise.resolve().then(task), timeout]);
+  } catch (error) {
+    console.warn(label, error);
+    return fallback;
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -186,15 +220,17 @@ async function initCloud() {
 async function getOpenId(cloudReady) {
   const localOpenid = getStorage(LOCAL_OPENID_KEY, '');
   if (cloudReady && hasWx() && wx.cloud) {
-    try {
-      const result = await wx.cloud.callFunction({ name: 'login' });
+    const result = await readCloud(
+      () => wx.cloud.callFunction({ name: 'login' }),
+      'login cloud function unavailable, using local id',
+      null,
+    );
+    if (result) {
       const openid = result && result.result && result.result.openid;
       if (openid) {
         setStorage(LOCAL_OPENID_KEY, openid);
         return openid;
       }
-    } catch (error) {
-      console.warn('login cloud function unavailable, using local id', error);
     }
   }
 
@@ -274,11 +310,7 @@ async function createRope(session, payload) {
   setStorage(CURRENT_ROPE_KEY, rope.ropeId);
 
   if (cloudReady) {
-    try {
-      await ensureCloudRope(rope, openid);
-    } catch (error) {
-      console.warn('create cloud rope failed, using local rope', error);
-    }
+    syncCloud(() => ensureCloudRope(rope, openid), 'create cloud rope failed, using local rope');
   }
 
   return toHomeRope(rope, []);
@@ -300,11 +332,11 @@ async function initSession(routeRopeId) {
   const localRope = ensureLocalRope(ropeId, home.openid);
   let rope = localRope;
   if (home.cloudReady) {
-    try {
-      rope = await ensureCloudRope(localRope, home.openid);
-    } catch (error) {
-      console.warn('cloud rope unavailable, using local rope', error);
-    }
+    rope = await readCloud(
+      () => ensureCloudRope(localRope, home.openid),
+      'cloud rope unavailable, using local rope',
+      localRope,
+    );
   }
 
   return {
@@ -335,7 +367,7 @@ async function loadState(session) {
   let events = localState.events[session.ropeId] || [];
 
   if (session.cloudReady && hasWx() && wx.cloud) {
-    try {
+    const cloudState = await readCloud(async () => {
       const db = wx.cloud.database();
       const ropeResult = await db.collection('ropes').doc(session.ropeId).get();
       const eventsResult = await db
@@ -345,10 +377,15 @@ async function loadState(session) {
         .limit(100)
         .get();
 
-      rope = ropeResult.data || rope;
-      events = (eventsResult.data || []).map((event) => upsertLocalEvent(session.ropeId, event));
-    } catch (error) {
-      console.warn('load cloud state failed, using local cache', error);
+      return {
+        rope: ropeResult.data || rope,
+        events: (eventsResult.data || []).map((event) => upsertLocalEvent(session.ropeId, event)),
+      };
+    }, 'load cloud state failed, using local cache', null);
+
+    if (cloudState) {
+      rope = cloudState.rope || rope;
+      events = cloudState.events || events;
     }
   }
 
@@ -376,23 +413,22 @@ async function createKnot(session, payload) {
     resolveRequest: null,
   };
 
+  const localEvent = upsertLocalEvent(session.ropeId, event);
+
   if (session.cloudReady && hasWx() && wx.cloud) {
-    try {
+    syncCloud(async () => {
       const db = wx.cloud.database();
       const cloudEvent = {
-        ...event,
+        ...localEvent,
         createdAt: db.serverDate(),
         updatedAt: db.serverDate(),
       };
       delete cloudEvent._id;
-      const result = await db.collection('rope_events').add({ data: cloudEvent });
-      event._id = result._id;
-    } catch (error) {
-      console.warn('create cloud knot failed, storing locally', error);
-    }
+      await db.collection('rope_events').doc(localEvent._id || localEvent.id).set({ data: cloudEvent });
+    }, 'create cloud knot failed, storing locally');
   }
 
-  return upsertLocalEvent(session.ropeId, event);
+  return localEvent;
 }
 
 async function requestResolve(session, event, line) {
@@ -403,10 +439,17 @@ async function requestResolve(session, event, line) {
     requesterLine: line || '',
   };
 
-  if (session.cloudReady && hasWx() && wx.cloud && event._id) {
-    try {
+  const eventId = event._id || event.id;
+  const updated = updateLocalEvent(session.ropeId, eventId, (item) => ({
+    ...item,
+    resolveRequest,
+    updatedAt: now,
+  }));
+
+  if (session.cloudReady && hasWx() && wx.cloud && eventId) {
+    syncCloud(async () => {
       const db = wx.cloud.database();
-      await db.collection('rope_events').doc(event._id).update({
+      await db.collection('rope_events').doc(eventId).update({
         data: {
           resolveRequest: {
             ...resolveRequest,
@@ -415,16 +458,10 @@ async function requestResolve(session, event, line) {
           updatedAt: db.serverDate(),
         },
       });
-    } catch (error) {
-      console.warn('request resolve cloud update failed', error);
-    }
+    }, 'request resolve cloud update failed');
   }
 
-  return updateLocalEvent(session.ropeId, event._id || event.id, (item) => ({
-    ...item,
-    resolveRequest,
-    updatedAt: now,
-  }));
+  return updated;
 }
 
 async function confirmResolve(session, event, line) {
@@ -436,10 +473,19 @@ async function confirmResolve(session, event, line) {
     accepterLine: line || '',
   };
 
-  if (session.cloudReady && hasWx() && wx.cloud && event._id) {
-    try {
+  const eventId = event._id || event.id;
+  const updated = updateLocalEvent(session.ropeId, eventId, (item) => ({
+    ...item,
+    status: 'resolved',
+    resolvedAt: now,
+    resolveRequest,
+    updatedAt: now,
+  }));
+
+  if (session.cloudReady && hasWx() && wx.cloud && eventId) {
+    syncCloud(async () => {
       const db = wx.cloud.database();
-      await db.collection('rope_events').doc(event._id).update({
+      await db.collection('rope_events').doc(eventId).update({
         data: {
           status: 'resolved',
           resolvedAt: db.serverDate(),
@@ -450,18 +496,10 @@ async function confirmResolve(session, event, line) {
           updatedAt: db.serverDate(),
         },
       });
-    } catch (error) {
-      console.warn('confirm resolve cloud update failed', error);
-    }
+    }, 'confirm resolve cloud update failed');
   }
 
-  return updateLocalEvent(session.ropeId, event._id || event.id, (item) => ({
-    ...item,
-    status: 'resolved',
-    resolvedAt: now,
-    resolveRequest,
-    updatedAt: now,
-  }));
+  return updated;
 }
 
 async function resetAll() {

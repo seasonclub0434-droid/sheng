@@ -35,15 +35,24 @@ const miniAssetPaths = [
   'add-rope-tail-v1.png',
 ].map((file) => path.join(root, 'miniprogram/assets', file));
 
+const queuedTests = [];
+
 function test(name, fn) {
-  try {
-    fn();
-    console.log(`ok - ${name}`);
-  } catch (error) {
-    console.error(`not ok - ${name}`);
-    throw error;
-  }
+  queuedTests.push({ name, fn });
 }
+
+process.nextTick(async () => {
+  for (const { name, fn } of queuedTests) {
+    try {
+      await fn();
+      console.log(`ok - ${name}`);
+    } catch (error) {
+      console.error(`not ok - ${name}`);
+      process.exitCode = 1;
+      throw error;
+    }
+  }
+});
 
 function cssBlock(selector, firstDeclaration = '') {
   const opening = firstDeclaration
@@ -971,6 +980,94 @@ test('mini program rope store creates named ropes and keeps rope records isolate
 
   delete global.wx;
   delete require.cache[require.resolve(storePath)];
+});
+
+test('mini program rope store does not block local writes on slow cloud sync', async () => {
+  const storage = {};
+  const never = new Promise(() => {});
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  global.wx = {
+    getStorageSync(key) {
+      return storage[key];
+    },
+    setStorageSync(key, value) {
+      storage[key] = value;
+    },
+    removeStorageSync(key) {
+      delete storage[key];
+    },
+    cloud: {
+      init() {},
+      database() {
+        return {
+          command: {
+            addToSet(value) {
+              return value;
+            },
+          },
+          serverDate() {
+            return new Date();
+          },
+          collection() {
+            return {
+              doc() {
+                return {
+                  get() {
+                    return never;
+                  },
+                  update() {
+                    return never;
+                  },
+                  set() {
+                    return never;
+                  },
+                };
+              },
+            };
+          },
+        };
+      },
+    },
+  };
+
+  const storePath = path.join(root, 'miniprogram/services/rope-store.js');
+  delete require.cache[require.resolve(storePath)];
+  try {
+    const miniStore = require(storePath);
+
+    const session = { cloudReady: true, openid: 'test-user', ropeId: '' };
+    const timeout = (message, ms = 250) => new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms));
+    const rope = await Promise.race([
+      miniStore.createRope(session, { name: '不等云的绳', mode: 'single' }),
+      timeout('local rope create blocked by cloud sync'),
+    ]);
+
+    const knot = await Promise.race([
+      miniStore.createKnot({ cloudReady: true, openid: 'test-user', ropeId: rope.ropeId }, { content: '先写本地', anchorY: 180 }),
+      timeout('local knot create blocked by cloud sync'),
+    ]);
+
+    const loadedSession = await Promise.race([
+      miniStore.initSession(rope.ropeId),
+      timeout('session init blocked by cloud read', 1500),
+    ]);
+    const state = await Promise.race([
+      miniStore.loadState({ cloudReady: true, openid: 'test-user', ropeId: rope.ropeId }),
+      timeout('state load blocked by cloud read', 1500),
+    ]);
+
+    assert.strictEqual(rope.name, '不等云的绳');
+    assert.strictEqual(knot.content, '先写本地');
+    assert.strictEqual(loadedSession.ropeId, rope.ropeId);
+    assert.strictEqual(state.rope.ropeId, rope.ropeId);
+    assert.strictEqual(state.events[0].content, '先写本地');
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  } finally {
+    console.warn = originalWarn;
+    delete global.wx;
+    delete require.cache[require.resolve(storePath)];
+  }
 });
 
 test('mini program uses 750rpx layout and unmounts closed overlays so buttons remain tappable', () => {
