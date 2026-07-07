@@ -3,6 +3,7 @@ const {
   daysBetween,
   getDustStage,
   layoutTimelineItems,
+  sortByTime,
   toTime,
 } = require('../../utils/timeline');
 const store = require('../../services/rope-store');
@@ -96,10 +97,29 @@ Page({
     safeTop: 0,
     loading: true,
     saving: false,
+    viewMode: 'login',
+    homeRopes: [],
+    homeRows: [],
+    statsItems: [],
+    settingsOpen: false,
+    resetConfirmOpen: false,
+    timelineOpen: false,
+    exchangeOpen: false,
+    globalSearchOpen: false,
+    globalSearchText: '',
+    globalSearchResults: [],
+    recordTimelineItems: [],
+    selectedTimelineId: '',
+    addRopeMode: '',
+    addRopeName: '',
+    canCreateRope: false,
     statusText: '一根共同记下来的绳子',
     events: [],
     showNote: false,
     noteText: '',
+    showNotebook: false,
+    notebookSearchText: '',
+    notebookItems: [],
     showDetail: false,
     selectedEvent: null,
     selectedState: {},
@@ -151,15 +171,304 @@ Page({
 
   noop() {},
 
+  buildHomeRows(ropes) {
+    const rows = Math.max(4, Math.ceil((ropes || []).length / 2));
+    return Array.from({ length: rows }, (_, rowIndex) => {
+      const slots = [0, 1].map((slotIndex) => {
+        const rope = (ropes || [])[rowIndex * 2 + slotIndex];
+        if (!rope) return { slotKey: `empty-${rowIndex}-${slotIndex}` };
+        return {
+          slotKey: rope.ropeId,
+          ropeId: rope.ropeId,
+          name: rope.name,
+          mode: rope.mode,
+          openCount: rope.openCount || 0,
+          resolvedCount: rope.resolvedCount || 0,
+          noteTone: (rowIndex * 2 + slotIndex) % 4,
+        };
+      });
+      return { rowIndex, slots };
+    });
+  },
+
+  buildStatsItems(events, relationshipStartedAt) {
+    const openCount = events.filter((event) => event.type === 'knot' && event.status !== 'resolved').length;
+    const resolvedCount = events.filter((event) => event.type === 'knot' && event.status === 'resolved').length;
+    const days = daysBetween(relationshipStartedAt, Date.now());
+    return [
+      { value: `${days}天`, label: '相伴' },
+      { value: openCount, label: '未解' },
+      { value: resolvedCount, label: '已解' },
+    ];
+  },
+
+  buildRecordTimelineItems(events, relationshipStartedAt) {
+    const ornaments = computeMilestones({ events, relationshipStartedAt, now: Date.now() });
+    return sortByTime(events.concat(ornaments)).map((item) => ({
+      id: item.id || item._id,
+      date: shortDate(item.createdAt),
+      title: item.type === 'ornament'
+        ? `印章 · ${item.title}`
+        : item.status === 'resolved'
+          ? `解开 · ${item.content || '一个结'}`
+          : `记下 · ${item.content || '一个结'}`,
+      y: item.y || item.anchorY || 0,
+    }));
+  },
+
+  buildNotebookItems(events, keyword) {
+    const needle = (keyword || '').trim().toLowerCase();
+    return events
+      .filter((event) => event.type === 'knot' && (event.status === 'resolved' || event.content))
+      .filter((event) => {
+        if (!needle) return true;
+        return [event.content, event.resolutionLine, formatDate(event.createdAt), event.resolvedAt ? formatDate(event.resolvedAt) : '']
+          .join(' ')
+          .toLowerCase()
+          .includes(needle);
+      })
+      .map((event) => ({
+        id: event.id || event._id,
+        title: event.status === 'resolved' ? '已解开的结' : '记下的结',
+        meta: event.status === 'resolved' && event.resolvedAt
+          ? `结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`
+          : `结下 ${formatDate(event.createdAt)}`,
+        content: event.content,
+      }));
+  },
+
+  buildGlobalSearchResults(keyword, ropes) {
+    const needle = (keyword || '').trim().toLowerCase();
+    if (!needle) return [];
+    return (ropes || [])
+      .filter((rope) => [rope.name, rope.mode].join(' ').toLowerCase().includes(needle))
+      .map((rope) => ({
+        id: `rope-${rope.ropeId}`,
+        ropeId: rope.ropeId,
+        ropeName: rope.name,
+        content: `${rope.openCount || 0}结 · ${rope.resolvedCount || 0}解`,
+      }));
+  },
+
+  enterLoginGate() {
+    this.setData({ viewMode: 'home' });
+  },
+
+  async goHome() {
+    this.session = null;
+    this.scrollY = 0;
+    this.setData({
+      viewMode: 'home',
+      showNote: false,
+      showDetail: false,
+      showNotebook: false,
+      exchangeOpen: false,
+      timelineOpen: false,
+      settingsOpen: false,
+      globalSearchOpen: false,
+      addRopeMode: '',
+      addRopeName: '',
+      canCreateRope: false,
+    });
+    await this.reloadHome('home');
+  },
+
+  openAddRopePage() {
+    this.setData({
+      viewMode: 'add',
+      settingsOpen: false,
+      globalSearchOpen: false,
+      addRopeMode: '',
+      addRopeName: '',
+      canCreateRope: false,
+    });
+  },
+
+  selectAddRopeMode(event) {
+    const mode = event.currentTarget.dataset.ropeMode;
+    const name = this.data.addRopeName.trim();
+    this.setData({
+      addRopeMode: mode,
+      canCreateRope: Boolean(mode && name),
+    });
+  },
+
+  onAddRopeNameInput(event) {
+    const name = event.detail.value;
+    this.setData({
+      addRopeName: name,
+      canCreateRope: Boolean(this.data.addRopeMode && name.trim()),
+    });
+  },
+
+  async createNamedRope() {
+    if (!this.data.canCreateRope) return;
+    this.setData({ saving: true });
+    try {
+      await store.createRope(this.homeSession || {}, {
+        name: this.data.addRopeName.trim(),
+        mode: this.data.addRopeMode,
+      });
+      this.setData({ saving: false });
+      await this.reloadHome('home');
+    } catch (error) {
+      console.error(error);
+      this.setData({ saving: false });
+      wx.showToast({ title: '这根绳没放上去', icon: 'none' });
+    }
+  },
+
+  async enterRopeFromShelf(event) {
+    const ropeId = event.currentTarget.dataset.ropeId;
+    if (!ropeId) return;
+    await this.enterRope(ropeId);
+  },
+
+  async enterRope(ropeId) {
+    this.setData({ loading: true, viewMode: 'rope' });
+    this.session = await store.setCurrentRope(ropeId);
+    await this.reload();
+  },
+
+  toggleSettingsDock() {
+    this.setData({
+      settingsOpen: !this.data.settingsOpen,
+      globalSearchOpen: false,
+      resetConfirmOpen: false,
+    });
+  },
+
+  closeSettingsDock() {
+    this.setData({ settingsOpen: false, resetConfirmOpen: false });
+  },
+
+  askResetConfirmation() {
+    this.setData({ resetConfirmOpen: true });
+  },
+
+  cancelResetConfirmation() {
+    this.setData({ resetConfirmOpen: false });
+  },
+
+  async confirmResetPreview() {
+    await store.resetAll();
+    this.session = null;
+    this.setData({
+      resetConfirmOpen: false,
+      settingsOpen: false,
+      globalSearchOpen: false,
+      viewMode: 'home',
+      events: [],
+      showNote: false,
+      showDetail: false,
+      showNotebook: false,
+    });
+    await this.reloadHome('home');
+    this.render();
+  },
+
+  toggleGlobalSearchDock() {
+    this.setData({
+      globalSearchOpen: !this.data.globalSearchOpen,
+      settingsOpen: false,
+    });
+  },
+
+  closeGlobalSearchDock() {
+    this.setData({ globalSearchOpen: false, globalSearchText: '', globalSearchResults: [] });
+  },
+
+  onGlobalSearchInput(event) {
+    const value = event.detail.value;
+    this.setData({
+      globalSearchText: value,
+      globalSearchResults: this.buildGlobalSearchResults(value, this.data.homeRopes),
+    });
+  },
+
+  toggleTimelineDock() {
+    this.setData({ timelineOpen: !this.data.timelineOpen });
+  },
+
+  closeTimelineDock() {
+    this.setData({ timelineOpen: false });
+  },
+
+  selectTimelineItem(event) {
+    const eventId = event.currentTarget.dataset.eventId;
+    const selectedTimelineId = this.data.selectedTimelineId === eventId ? '' : eventId;
+    this.setData({ selectedTimelineId });
+  },
+
+  toggleExchangeDock() {
+    this.setData({ exchangeOpen: !this.data.exchangeOpen });
+  },
+
+  openWriteKnot() {
+    if (!this.session || !this.session.ropeId) return;
+    this.pendingAnchorY = this.scrollY + Math.round(this.data.canvasHeight * 0.76);
+    this.setData({ showNote: true, noteText: '', exchangeOpen: false });
+  },
+
+  openLatestResolve() {
+    const latest = this.data.events
+      .slice()
+      .reverse()
+      .find((event) => event.type === 'knot' && event.status !== 'resolved');
+    if (!latest) {
+      wx.showToast({ title: '还没有未解的结', icon: 'none' });
+      return;
+    }
+    this.setData({ exchangeOpen: false });
+    this.openDetail(latest);
+  },
+
+  openNotebook() {
+    this.setData({
+      showNotebook: true,
+      exchangeOpen: false,
+      notebookSearchText: '',
+      notebookItems: this.buildNotebookItems(this.data.events, ''),
+    });
+  },
+
+  closeNotebook() {
+    this.setData({ showNotebook: false, notebookSearchText: '', notebookItems: [] });
+  },
+
+  onNotebookSearchInput(event) {
+    const value = event.detail.value;
+    this.setData({
+      notebookSearchText: value,
+      notebookItems: this.buildNotebookItems(this.data.events, value),
+    });
+  },
+
   async bootstrap(options) {
     try {
-      this.session = await store.initSession(options.ropeId);
-      await this.reload();
+      if (options.ropeId) {
+        await this.enterRope(options.ropeId);
+        return;
+      }
+      await this.reloadHome();
     } catch (error) {
       console.error(error);
       wx.showToast({ title: '手帐暂时打不开', icon: 'none' });
       this.setData({ loading: false });
     }
+  },
+
+  async reloadHome(nextViewMode) {
+    const home = await store.loadHomeState();
+    const rows = this.buildHomeRows(home.ropes);
+    this.homeSession = home;
+    this.setData({
+      loading: false,
+      viewMode: nextViewMode || this.data.viewMode || 'login',
+      homeRopes: home.ropes,
+      homeRows: rows,
+      globalSearchResults: this.buildGlobalSearchResults(this.data.globalSearchText, home.ropes),
+    });
   },
 
   async reload() {
@@ -171,6 +480,9 @@ Page({
       loading: false,
       events: state.events,
       statusText: this.buildStatusText(state.events, relationshipStartedAt),
+      statsItems: this.buildStatsItems(state.events, relationshipStartedAt),
+      recordTimelineItems: this.buildRecordTimelineItems(state.events, relationshipStartedAt),
+      notebookItems: this.buildNotebookItems(state.events, ''),
     });
     this.shouldScrollToLatest = true;
     this.render();
@@ -207,12 +519,14 @@ Page({
   },
 
   onCanvasTouchStart(event) {
+    if (this.data.viewMode !== 'rope') return;
     if (!event.touches || !event.touches.length) return;
     this.touchStart = pointFromTouch(event.touches[0]);
     this.moved = false;
   },
 
   onCanvasTouchMove(event) {
+    if (this.data.viewMode !== 'rope') return;
     if (!this.touchStart || !event.touches || !event.touches.length) return;
     const point = pointFromTouch(event.touches[0]);
     const deltaY = point.y - this.touchStart.y;
@@ -223,6 +537,7 @@ Page({
   },
 
   onCanvasTouchEnd(event) {
+    if (this.data.viewMode !== 'rope') return;
     const changed = event.changedTouches && event.changedTouches[0];
     if (!changed || !this.touchStart) return;
     const point = pointFromTouch(changed);
@@ -354,6 +669,9 @@ Page({
         showNote: false,
         noteText: '',
         statusText: this.buildStatusText(events, this.session.rope.relationshipStartedAt),
+        statsItems: this.buildStatsItems(events, this.session.rope.relationshipStartedAt),
+        recordTimelineItems: this.buildRecordTimelineItems(events, this.session.rope.relationshipStartedAt),
+        notebookItems: this.buildNotebookItems(events, this.data.notebookSearchText),
       });
       this.shouldScrollToLatest = true;
       this.render();
@@ -403,8 +721,8 @@ Page({
     const request = event.resolveRequest || null;
     const isResolved = event.status === 'resolved';
     const isRequester = Boolean(request && request.requestedBy === this.session.openid);
-    const canRequest = !isResolved && !request;
-    const canAccept = !isResolved && request && request.requestedBy !== this.session.openid;
+    const canRequest = !isResolved;
+    const canAccept = false;
     const dustStage = getDustStage(event, Date.now());
     const dustText = {
       none: '',
@@ -431,7 +749,7 @@ Page({
   },
 
   openResolveRequest() {
-    this.setData({ resolveMode: 'request', resolveText: '' });
+    this.setData({ resolveMode: 'resolve', resolveText: '' });
   },
 
   openResolveAccept() {
@@ -449,10 +767,7 @@ Page({
     try {
       const selected = this.data.selectedEvent;
       const text = this.data.resolveText.trim();
-      const updated =
-        this.data.resolveMode === 'request'
-          ? await store.requestResolve(this.session, selected, text)
-          : await store.confirmResolve(this.session, selected, text);
+      const updated = await store.confirmResolve(this.session, selected, text);
 
       const events = updated ? this.replaceEvent(updated) : this.data.events;
       this.setData({
@@ -464,6 +779,9 @@ Page({
         resolveMode: '',
         resolveText: '',
         statusText: this.buildStatusText(events, this.session.rope.relationshipStartedAt),
+        statsItems: this.buildStatsItems(events, this.session.rope.relationshipStartedAt),
+        recordTimelineItems: this.buildRecordTimelineItems(events, this.session.rope.relationshipStartedAt),
+        notebookItems: this.buildNotebookItems(events, this.data.notebookSearchText),
       });
       this.render();
     } catch (error) {
@@ -487,6 +805,10 @@ Page({
 
   render() {
     if (!this.ctx) return;
+    if (this.data.viewMode !== 'rope') {
+      this.ctx.clearRect(0, 0, this.data.canvasWidth, this.data.canvasHeight);
+      return;
+    }
     const width = this.data.canvasWidth;
     const height = this.data.canvasHeight;
     const events = this.data.events || [];

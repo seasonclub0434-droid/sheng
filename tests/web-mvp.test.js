@@ -9,10 +9,12 @@ const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'web/app.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8');
 const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.js'), 'utf8');
+const miniWxml = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.wxml'), 'utf8');
+const miniWxss = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.wxss'), 'utf8');
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
-const assetVersion = 'add-page-polish-2';
+const assetVersion = 'interaction-fix-1';
 const loginPngPath = path.join(root, 'web/assets/login-cabinet-door.png');
 const loginWebpPath = path.join(root, 'web/assets/login-cabinet-door.webp');
 const homeSignPngPath = path.join(root, 'web/assets/home-rope-sign-transparent.png');
@@ -25,6 +27,13 @@ const coupleModePngPath = path.join(root, 'web/assets/rope-mode-couple-cutout.pn
 const coupleModeWebpPath = path.join(root, 'web/assets/rope-mode-couple-cutout.webp');
 const addRopeTailPngPath = path.join(root, 'web/assets/add-rope-tail-v1.png');
 const addRopeTailWebpPath = path.join(root, 'web/assets/add-rope-tail-v1.webp');
+const miniAssetPaths = [
+  'login-cabinet-door.png',
+  'home-rope-sign-transparent.png',
+  'rope-mode-single-cutout.png',
+  'rope-mode-couple-cutout.png',
+  'add-rope-tail-v1.png',
+].map((file) => path.join(root, 'miniprogram/assets', file));
 
 function test(name, fn) {
   try {
@@ -54,7 +63,10 @@ test('github pages root serves the browser preview', () => {
   assert.ok(pagesHtml.includes('id="ropeCanvas"'));
   assert.ok(pagesHtml.includes('id="timelineToggle"'));
   assert.ok(pagesHtml.includes(`href="./web/styles.css?v=${assetVersion}"`));
-  assert.ok(pagesHtml.includes(`src="./web/app.js?v=${assetVersion}"`));
+  assert.ok(pagesHtml.includes(`<script defer src="./web/app.js?v=${assetVersion}"></script>`));
+  assert.ok(!pagesHtml.includes('type="module" src="./web/app.js'));
+  assert.ok(html.includes(`<script defer src="./app.js?v=${assetVersion}"></script>`));
+  assert.ok(!html.includes('type="module" src="./app.js'));
   assert.ok(pagesHtml.includes('rel="icon" href="./web/assets/favicon.svg" type="image/svg+xml"'));
   assert.ok(html.includes('rel="icon" href="./assets/favicon.svg" type="image/svg+xml"'));
   assert.ok(fs.existsSync(faviconPath));
@@ -136,6 +148,7 @@ test('browser preview adds a cabinet-style rope home with isolated rope states a
   assert.ok(pagesHtml.includes('srcset="./web/assets/home-rope-sign-transparent.webp"'));
   assert.ok(!pagesHtml.includes('src="./web/assets/home-rope-sign-transparent.png"'));
   assert.ok(js.includes("const loginEnterAction = document.querySelector('#loginEnterAction');"));
+  assert.ok(js.includes("loginGate.addEventListener('click', enterLoginGate);"));
   assert.ok(js.includes("phone.classList.remove('login-mode');"));
   assert.ok(css.includes('.login-gate'));
   assert.ok(css.includes('.login-cabinet-frame'));
@@ -879,4 +892,83 @@ test('browser preview labels knot and resolved dates in detail cards', () => {
   assert.ok(js.includes('detailMeta.textContent = `${formatDate(badge.createdAt)} 夹上 · 印章`;'));
   assert.ok(js.includes("badge.subtitle || '这是绳子自动记住的一枚印章。'"));
   assert.ok(miniPage.includes('`结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`'));
+});
+
+test('mini program mirrors the static entry, cabinet home, and add-rope page', () => {
+  assert.ok(miniWxml.includes('id="loginGate"'));
+  assert.ok(miniWxml.includes('class="login-gate image-login-gate"'));
+  assert.ok(miniWxml.includes('../../assets/login-cabinet-door.png'));
+  assert.ok(miniWxml.includes('bindtap="enterLoginGate"'));
+  assert.ok(miniWxml.includes('id="homePage"'));
+  assert.ok(miniWxml.includes('id="ropeShelf"'));
+  assert.ok(miniWxml.includes('../../assets/home-rope-sign-transparent.png'));
+  assert.ok(miniWxml.includes('bindtap="enterRopeFromShelf"'));
+  assert.ok(miniWxml.includes('id="addRopePage"'));
+  assert.ok(miniWxml.includes('data-rope-mode="single"'));
+  assert.ok(miniWxml.includes('data-rope-mode="couple"'));
+  assert.ok(miniWxml.includes('id="addRopeNameInput"'));
+  assert.ok(miniWxml.includes('bindinput="onAddRopeNameInput"'));
+  assert.ok(miniWxml.includes('id="createRopeFromAddPage"'));
+  assert.ok(miniWxml.includes('bindtap="createNamedRope"'));
+  assert.ok(miniWxml.includes('id="settingsDock"'));
+  assert.ok(miniWxml.includes('id="recordTimelineDock"'));
+  assert.ok(miniWxml.includes('id="exchangeDock"'));
+  assert.ok(miniWxml.includes('id="globalSearchDock"'));
+  assert.ok(!miniWxml.includes('brand-title">绳话'));
+  assert.ok(!miniWxml.includes('open-type="share">邀请'));
+  assert.ok(miniWxss.includes('.login-cabinet-image'));
+  assert.ok(miniWxss.includes('.cabinet-stack'));
+  assert.ok(miniWxss.includes('.rope-drop'));
+  assert.ok(miniWxss.includes('.rope-add-page'));
+  assert.ok(miniPage.includes("viewMode: 'login'"));
+  assert.ok(miniPage.includes('enterLoginGate('));
+  assert.ok(miniPage.includes('openAddRopePage('));
+  assert.ok(miniPage.includes('createNamedRope('));
+  assert.ok(miniPage.includes('enterRopeFromShelf('));
+  miniAssetPaths.forEach((assetPath) => {
+    assert.ok(fs.existsSync(assetPath), assetPath);
+    assert.ok(fs.statSync(assetPath).size < 2 * 1024 * 1024, assetPath);
+  });
+});
+
+test('mini program rope store creates named ropes and keeps rope records isolated', async () => {
+  const storage = {};
+  global.wx = {
+    getStorageSync(key) {
+      return storage[key];
+    },
+    setStorageSync(key, value) {
+      storage[key] = value;
+    },
+    removeStorageSync(key) {
+      delete storage[key];
+    },
+    cloud: null,
+  };
+
+  const storePath = path.join(root, 'miniprogram/services/rope-store.js');
+  delete require.cache[require.resolve(storePath)];
+  const miniStore = require(storePath);
+
+  const homeBefore = await miniStore.loadHomeState();
+  assert.deepStrictEqual(homeBefore.ropes, []);
+
+  const first = await miniStore.createRope(homeBefore, { name: '电影绳', mode: 'single' });
+  const second = await miniStore.createRope(homeBefore, { name: '旅行绳', mode: 'couple' });
+  const homeAfter = await miniStore.loadHomeState();
+  assert.deepStrictEqual(homeAfter.ropes.map((rope) => rope.name), ['电影绳', '旅行绳']);
+  assert.strictEqual(homeAfter.activeRopeId, second.ropeId);
+
+  const firstSession = await miniStore.initSession(first.ropeId);
+  const secondSession = await miniStore.initSession(second.ropeId);
+  await miniStore.createKnot(firstSession, { content: '只写在第一根绳上', anchorY: 180 });
+
+  const firstState = await miniStore.loadState(firstSession);
+  const secondState = await miniStore.loadState(secondSession);
+  assert.strictEqual(firstState.events.length, 1);
+  assert.strictEqual(firstState.events[0].content, '只写在第一根绳上');
+  assert.strictEqual(secondState.events.length, 0);
+
+  delete global.wx;
+  delete require.cache[require.resolve(storePath)];
 });

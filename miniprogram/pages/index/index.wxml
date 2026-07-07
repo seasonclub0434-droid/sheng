@@ -1,25 +1,250 @@
-<view class="page">
+<view class="page {{viewMode}}-mode">
   <canvas
     id="ropeCanvas"
     canvas-id="ropeCanvas"
     type="2d"
-    class="rope-canvas"
+    class="rope-canvas {{viewMode === 'rope' ? '' : 'canvas-hidden'}}"
     style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
     bindtouchstart="onCanvasTouchStart"
     bindtouchmove="onCanvasTouchMove"
     bindtouchend="onCanvasTouchEnd"
   ></canvas>
 
-  <view class="topbar" style="padding-top: {{safeTop}}px;">
-    <view class="brand">
-      <view class="brand-title">绳话</view>
-      <view class="brand-subtitle">{{statusText}}</view>
+  <view
+    wx:if="{{viewMode === 'login'}}"
+    id="loginGate"
+    class="login-gate image-login-gate"
+    aria-label="绳记登录"
+    bindtap="enterLoginGate"
+  >
+    <view class="login-cabinet-frame">
+      <image
+        class="login-cabinet-image"
+        src="../../assets/login-cabinet-door.png"
+        mode="aspectFit"
+      />
+      <button
+        id="loginEnterAction"
+        class="login-enter-action image-login-enter-action"
+        type="button"
+        aria-label="进入我的绳"
+      >
+        <view class="login-enter-glow"></view>
+      </button>
     </view>
-    <button class="share-button" open-type="share">邀请</button>
+  </view>
+
+  <view wx:if="{{viewMode === 'home'}}" id="homePage" class="home-page" aria-label="我的绳">
+    <image
+      class="home-title-image"
+      src="../../assets/home-rope-sign-transparent.png"
+      mode="aspectFit"
+    />
+
+    <scroll-view id="ropeShelf" class="rope-shelf" scroll-y enable-flex>
+      <view class="cabinet-stack">
+        <view class="cabinet-top"></view>
+        <block wx:for="{{homeRows}}" wx:key="rowIndex">
+          <view class="cabinet-row">
+            <view class="cabinet-back"></view>
+            <view class="cabinet-slots">
+              <block wx:for="{{item.slots}}" wx:key="slotKey" wx:for-item="slot">
+                <button
+                  wx:if="{{slot.ropeId}}"
+                  class="cabinet-slot rope-tile"
+                  type="button"
+                  data-rope-id="{{slot.ropeId}}"
+                  bindtap="enterRopeFromShelf"
+                  aria-label="打开{{slot.name}}"
+                >
+                  <view class="rope-drop">
+                    <view class="rope-drop-strand strand-a"></view>
+                    <view class="rope-drop-strand strand-b"></view>
+                    <view class="rope-drop-strand strand-c"></view>
+                    <view class="rope-drop-knot"></view>
+                    <view class="rope-drop-tail tail-a"></view>
+                    <view class="rope-drop-tail tail-b"></view>
+                  </view>
+                  <view class="rope-note note-tone-{{slot.noteTone}}">
+                    <text class="rope-note-name">{{slot.name}}</text>
+                    <text class="rope-note-count">{{slot.openCount}}结 · {{slot.resolvedCount}}解</text>
+                  </view>
+                </button>
+                <view wx:else class="cabinet-slot empty-slot"></view>
+              </block>
+            </view>
+            <view class="cabinet-front"></view>
+          </view>
+        </block>
+        <view class="cabinet-bottom"></view>
+      </view>
+    </scroll-view>
+
+    <view class="home-control-bar" aria-label="主页操作">
+      <button id="settingsToggle" class="settings-toggle" type="button" bindtap="toggleSettingsDock" aria-label="打开设置">
+        <text class="control-icon settings-gear-logo">⚙</text>
+      </button>
+      <button id="addRopeAction" class="add-rope-action" type="button" bindtap="openAddRopePage" aria-label="添加绳">
+        <text class="add-rope-plus">+</text>
+      </button>
+      <button id="homeSearchToggle" class="timeline-toggle home-search-toggle" type="button" bindtap="toggleGlobalSearchDock" aria-label="打开搜索">
+        <text class="control-icon search-icon">⌕</text>
+      </button>
+    </view>
+
+    <view id="settingsDock" class="settings-dock {{settingsOpen ? 'open' : ''}}" catchtouchmove="noop">
+      <view class="dock-rail">
+        <text class="settings-title">设置</text>
+        <button class="dock-close" type="button" bindtap="closeSettingsDock">×</button>
+      </view>
+      <view class="settings-list">
+        <text class="drawer-hint">点 × 收起，重置前会再确认。</text>
+        <button class="settings-action reset-preview-action" type="button" bindtap="askResetConfirmation">
+          <text class="settings-action-label">重置预览</text>
+          <text class="settings-action-hint">清空本机记录，回到空柜子</text>
+        </button>
+        <view wx:if="{{resetConfirmOpen}}" class="reset-confirm-panel">
+          <text class="reset-confirm-copy">确认后会清空本机保存的绳、结、印记和选中状态。</text>
+          <view class="reset-confirm-actions">
+            <button class="text-button" type="button" bindtap="cancelResetConfirmation">取消</button>
+            <button class="ink-button" type="button" bindtap="confirmResetPreview">确认重置</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view id="globalSearchDock" class="record-timeline-dock global-search-dock {{globalSearchOpen ? 'open' : ''}}" catchtouchmove="noop">
+      <view class="dock-rail">
+        <text class="record-timeline-title">搜索</text>
+        <button class="dock-close" type="button" bindtap="closeGlobalSearchDock">×</button>
+      </view>
+      <view class="global-search-body">
+        <view class="global-search-box">
+          <text>⌕</text>
+          <input id="globalSearchInput" type="text" value="{{globalSearchText}}" placeholder="搜所有绳" bindinput="onGlobalSearchInput" />
+        </view>
+        <view id="globalSearchList" class="global-search-list">
+          <block wx:for="{{globalSearchResults}}" wx:key="id">
+            <button class="global-search-item" type="button" data-rope-id="{{item.ropeId}}" bindtap="enterRopeFromShelf">
+              <text class="global-search-rope">{{item.ropeName}}</text>
+              <text class="global-search-copy">{{item.content}}</text>
+            </button>
+          </block>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{viewMode === 'add'}}" id="addRopePage" class="rope-add-page" aria-label="添加绳结">
+    <button id="addRopeBack" class="add-rope-back" type="button" bindtap="goHome">返回</button>
+    <view class="add-rope-panel">
+      <view class="add-mode-title">选择你的绳结模式</view>
+      <view class="rope-mode-options" aria-label="绳结模式">
+        <button
+          class="rope-mode-card {{addRopeMode === 'single' ? 'selected' : ''}}"
+          type="button"
+          data-rope-mode="single"
+          bindtap="selectAddRopeMode"
+          aria-label="选择单人绳结模式"
+        >
+          <view class="rope-mode-orbit">
+            <image class="rope-mode-image single-mode-image" src="../../assets/rope-mode-single-cutout.png" mode="aspectFit" />
+          </view>
+          <text class="rope-mode-label">单人</text>
+        </button>
+        <button
+          class="rope-mode-card {{addRopeMode === 'couple' ? 'selected' : ''}}"
+          type="button"
+          data-rope-mode="couple"
+          bindtap="selectAddRopeMode"
+          aria-label="选择双人绳结模式"
+        >
+          <view class="rope-mode-orbit">
+            <image class="rope-mode-image couple-mode-image" src="../../assets/rope-mode-couple-cutout.png" mode="aspectFit" />
+          </view>
+          <text class="rope-mode-label">双人</text>
+        </button>
+      </view>
+      <view class="add-rope-name-card">
+        <text>命名你的绳结</text>
+        <input
+          id="addRopeNameInput"
+          class="add-rope-name-input"
+          type="text"
+          maxlength="12"
+          value="{{addRopeName}}"
+          placeholder="输入绳子的名字"
+          bindinput="onAddRopeNameInput"
+        />
+      </view>
+      <view class="add-rope-rope">
+        <image class="add-rope-tail-image" src="../../assets/add-rope-tail-v1.png" mode="aspectFit" />
+      </view>
+      <button
+        id="createRopeFromAddPage"
+        class="create-rope-action {{canCreateRope ? 'ready' : ''}}"
+        type="button"
+        disabled="{{!canCreateRope}}"
+        bindtap="createNamedRope"
+      >创建</button>
+    </view>
+  </view>
+
+  <view wx:if="{{viewMode === 'rope'}}" class="rope-ui-layer">
+    <view id="statsBar" class="stats-bar">
+      <block wx:for="{{statsItems}}" wx:key="label">
+        <view class="stat-item">
+          <text class="stat-value">{{item.value}}</text>
+          <text class="stat-label">{{item.label}}</text>
+        </view>
+      </block>
+    </view>
+
+    <button id="backHomeAction" class="back-home-action" type="button" bindtap="goHome">返回</button>
+    <button id="timelineToggle" class="timeline-toggle rope-timeline-toggle" type="button" bindtap="toggleTimelineDock">绳历</button>
+
+    <view id="recordTimelineDock" class="record-timeline-dock {{timelineOpen ? 'open' : ''}}" catchtouchmove="noop">
+      <view class="dock-rail">
+        <text class="record-timeline-title">绳历</text>
+        <button class="dock-close" type="button" bindtap="closeTimelineDock">×</button>
+      </view>
+      <view class="record-timeline-body">
+        <text class="drawer-hint timeline-hint">点日期会圈住绳上的位置，再点一次取消。</text>
+        <scroll-view id="recordTimelineList" class="record-timeline-list" scroll-y>
+          <block wx:for="{{recordTimelineItems}}" wx:key="id">
+            <button class="record-timeline-item {{selectedTimelineId === item.id ? 'selected' : ''}}" type="button" data-event-id="{{item.id}}" bindtap="selectTimelineItem">
+              <text class="record-timeline-date">{{item.date}}</text>
+              <text class="record-timeline-copy">{{item.title}}</text>
+            </button>
+          </block>
+        </scroll-view>
+      </view>
+    </view>
+
+    <view id="exchangeDock" class="exchange-dock" aria-label="记绳操作">
+      <view id="exchangeTray" class="exchange-tray {{exchangeOpen ? 'open' : ''}}">
+        <button class="exchange-action write-action" type="button" bindtap="openWriteKnot">
+          <text class="action-label">写一个结</text>
+          <text class="action-hint">把没说完的话系上</text>
+        </button>
+        <button class="exchange-action resolve-action" type="button" bindtap="openLatestResolve">
+          <text class="action-label">解一个结</text>
+          <text class="action-hint">翻开最近的未解</text>
+        </button>
+        <button class="exchange-action notebook-action" type="button" bindtap="openNotebook">
+          <text class="action-label">翻绳本</text>
+          <text class="action-hint">回看已解的结和印章</text>
+        </button>
+      </view>
+      <button id="exchangeButton" class="exchange-button" type="button" bindtap="toggleExchangeDock">
+        <text class="exchange-mark">记绳</text>
+        <text class="exchange-sub">翻开纸签</text>
+      </button>
+    </view>
   </view>
 
   <view wx:if="{{loading}}" class="floating-note loading-note">正在翻开这本手帐</view>
-  <view wx:if="{{!loading && events.length === 0}}" class="floating-note empty-note">今天有什么没说完的事？</view>
+  <view wx:if="{{viewMode === 'home' && !loading && homeRopes.length === 0}}" class="floating-note empty-note">先点下面的 +，给第一根绳命名。</view>
 
   <view wx:if="{{showNote}}" class="modal-mask" catchtouchmove="noop">
     <view class="paper-card note-card">
@@ -51,12 +276,6 @@
         <view wx:if="{{selectedState.accepterLine}}" class="line-note line-note-right">{{selectedState.accepterLine}}</view>
       </view>
 
-      <view wx:if="{{selectedState.hasRequest && !selectedState.isResolved}}" class="pending-box">
-        <view wx:if="{{selectedState.isRequester}}">已递出想解开的心意，等对方轻轻点头。</view>
-        <view wx:else>对方想把这个结解开。</view>
-        <view wx:if="{{selectedState.requesterLine}}" class="pending-line">{{selectedState.requesterLine}}</view>
-      </view>
-
       <view wx:if="{{resolveMode}}" class="resolve-form">
         <textarea
           class="resolve-input"
@@ -74,18 +293,35 @@
           wx:if="{{selectedState.canRequest && !resolveMode}}"
           class="ink-button"
           bindtap="openResolveRequest"
-        >想解</button>
-        <button
-          wx:if="{{selectedState.canAccept && !resolveMode}}"
-          class="ink-button"
-          bindtap="openResolveAccept"
-        >好</button>
+        >解开</button>
         <button
           wx:if="{{resolveMode}}"
           class="ink-button"
           loading="{{saving}}"
           bindtap="submitResolve"
         >写好</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showNotebook}}" class="modal-mask" catchtouchmove="noop">
+    <view class="paper-card notebook-card">
+      <view class="notebook-title-row">
+        <view class="card-title">绳本</view>
+        <input class="notebook-search" type="text" value="{{notebookSearchText}}" placeholder="搜索" bindinput="onNotebookSearchInput" />
+      </view>
+      <view class="card-meta">解开的结、留下的印记和印章</view>
+      <scroll-view class="notebook-list" scroll-y>
+        <block wx:for="{{notebookItems}}" wx:key="id">
+          <view class="notebook-item">
+            <text class="notebook-item-title">{{item.title}}</text>
+            <text class="notebook-item-meta">{{item.meta}}</text>
+            <text class="notebook-item-content">{{item.content}}</text>
+          </view>
+        </block>
+      </scroll-view>
+      <view class="card-actions">
+        <button class="ink-button" bindtap="closeNotebook">收好</button>
       </view>
     </view>
   </view>
