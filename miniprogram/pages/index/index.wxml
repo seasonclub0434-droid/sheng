@@ -86,7 +86,11 @@
         <text class="add-rope-plus">+</text>
       </button>
       <button id="homeSearchToggle" class="timeline-toggle home-search-toggle" type="button" bindtap="toggleGlobalSearchDock" aria-label="打开搜索">
-        <text class="control-icon search-icon">⌕</text>
+        <view class="search-icon" aria-hidden="true">
+          <view class="search-icon-ring"></view>
+          <view class="search-icon-glint"></view>
+          <view class="search-icon-handle"></view>
+        </view>
       </button>
     </view>
 

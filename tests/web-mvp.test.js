@@ -925,6 +925,9 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxml.includes('id="recordTimelineDock"'));
   assert.ok(miniWxml.includes('id="exchangeDock"'));
   assert.ok(miniWxml.includes('id="globalSearchDock"'));
+  assert.ok(miniWxml.includes('class="search-icon-ring"'));
+  assert.ok(miniWxml.includes('class="search-icon-glint"'));
+  assert.ok(miniWxml.includes('class="search-icon-handle"'));
   assert.ok(!miniWxml.includes('先点下面的'));
   assert.ok(!miniWxml.includes('brand-title">绳话'));
   assert.ok(!miniWxml.includes('open-type="share">邀请'));
@@ -944,6 +947,12 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxss.includes('box-sizing: border-box;\n  min-height: 100%;\n  padding: 60rpx 36rpx 84rpx;'));
   assert.ok(miniWxss.includes('right: 0;\n  left: 0;\n  z-index: 14;\n  height: 26rpx;'));
   assert.ok(!miniWxss.includes('right: -24rpx;\n  left: -24rpx;'));
+  assert.ok(miniWxss.includes('grid-template-columns: 96rpx 100rpx 96rpx;'));
+  assert.ok(miniWxss.includes('.home-control-bar .settings-toggle,\n.home-control-bar .home-search-toggle,\n.home-control-bar .add-rope-action'));
+  assert.ok(miniWxss.includes('width: 76rpx;\n  height: 76rpx;\n  min-height: 76rpx;'));
+  assert.ok(miniWxss.includes('.home-control-bar .add-rope-action {\n  width: 92rpx;'));
+  assert.ok(miniWxss.includes('.home-control-bar .search-icon-ring'));
+  assert.ok(miniWxss.includes('.home-control-bar .search-icon-handle'));
   assert.ok(miniWxml.includes('class="rope-coil"'));
   assert.ok(miniWxml.includes('class="rope-coil-line rope-coil-line-a"'));
   assert.ok(!miniWxml.includes('rope-drop'));
