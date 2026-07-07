@@ -928,7 +928,11 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(!miniWxml.includes('open-type="share">邀请'));
   assert.ok(miniWxss.includes('.login-cabinet-image'));
   assert.ok(miniWxss.includes('.cabinet-stack'));
-  assert.ok(miniWxss.includes('.rope-drop'));
+  assert.ok(miniWxml.includes('class="rope-coil"'));
+  assert.ok(miniWxml.includes('class="rope-coil-line rope-coil-line-a"'));
+  assert.ok(!miniWxml.includes('rope-drop'));
+  assert.ok(miniWxss.includes('.rope-coil'));
+  assert.ok(miniWxss.includes('.rope-coil-line'));
   assert.ok(miniWxss.includes('.rope-add-page'));
   assert.ok(miniPage.includes("viewMode: 'login'"));
   assert.ok(miniPage.includes('enterLoginGate('));

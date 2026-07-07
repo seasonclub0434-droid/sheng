@@ -1289,78 +1289,59 @@
 }
 
 .rope-tile {
+  position: relative;
+  display: grid;
+  width: 100%;
   height: 200rpx;
   padding-top: 8rpx;
+  place-items: start center;
   overflow: visible;
   background: transparent;
+  border: 0;
+  transform: rotate(-0.36deg);
 }
 
-.rope-drop {
-  top: 6rpx;
-  width: 76rpx;
-  height: 140rpx;
-}
-
-.rope-drop::before {
+.rope-tile::after {
   position: absolute;
-  top: 0;
+  top: 2rpx;
   left: 50%;
+  z-index: 1;
   width: 26rpx;
   height: 72rpx;
   content: "";
-  transform: translateX(-50%) rotate(-2deg);
-  border-radius: 999rpx;
   background:
     repeating-linear-gradient(164deg, rgba(88, 61, 34, 0.26) 0 2rpx, transparent 2rpx 10rpx),
     repeating-linear-gradient(26deg, rgba(255, 244, 216, 0.22) 0 2rpx, transparent 2rpx 14rpx),
     linear-gradient(90deg, #7f6040 0%, #af8d61 18%, #d8bf99 39%, #f1dfbd 53%, #d4ba92 67%, #a58155 84%, #6d4f31 100%);
+  border-radius: 999rpx;
   box-shadow:
     4rpx 6rpx 0 rgba(86, 63, 37, 0.2),
     inset 3rpx 0 0 rgba(255, 247, 222, 0.42),
     inset -3rpx 0 0 rgba(74, 48, 24, 0.2);
+  opacity: 0.92;
+  transform: translateX(-50%) rotate(-1.6deg);
+  transform-origin: 50% 100%;
 }
 
-.rope-drop-strand,
-.rope-drop-tail {
-  width: 14rpx;
-  border-radius: 999rpx 999rpx 70% 60%;
-  background:
-    repeating-linear-gradient(155deg, rgba(93, 65, 35, 0.34) 0 2rpx, transparent 2rpx 10rpx),
-    repeating-linear-gradient(28deg, rgba(255, 247, 222, 0.24) 0 2rpx, transparent 2rpx 12rpx),
-    linear-gradient(90deg, #b89a72, #ddc8a6 28%, #f3dfbd 48%, #ddc8a6 68%, #ab8b61);
-  box-shadow:
-    4rpx 4rpx 0 rgba(86, 63, 37, 0.18),
-    inset 2rpx 2rpx 0 rgba(248, 235, 205, 0.52),
-    inset -2rpx -4rpx 0 rgba(105, 75, 43, 0.12);
+.rope-coil {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 76rpx;
+  height: 140rpx;
+  margin-top: 8rpx;
+  filter:
+    drop-shadow(0 20rpx 18rpx rgba(43, 25, 9, 0.22))
+    contrast(1.03);
+  transform: rotate(-1deg);
+  transform-origin: 50% 8rpx;
 }
 
-.strand-a {
-  top: 10rpx;
-  left: 30rpx;
-  height: 108rpx;
-  transform: rotate(-3deg);
-}
-
-.strand-b {
-  top: 42rpx;
-  left: 38rpx;
-  width: 8rpx;
-  height: 64rpx;
-  opacity: 0.64;
-  transform: rotate(11deg);
-}
-
-.strand-c {
-  display: none;
-}
-
-.rope-drop-knot {
-  top: 42rpx;
-  left: 12rpx;
-  z-index: 4;
-  width: 62rpx;
-  height: 30rpx;
-  border-radius: 50%;
+.rope-coil::before,
+.rope-coil::after {
+  position: absolute;
+  z-index: 1;
+  content: "";
   background:
     repeating-linear-gradient(144deg, rgba(92, 65, 35, 0.24) 0 2rpx, transparent 2rpx 10rpx),
     repeating-linear-gradient(32deg, rgba(255, 246, 218, 0.24) 0 2rpx, transparent 2rpx 14rpx),
@@ -1371,18 +1352,64 @@
     inset 0 -2rpx 0 rgba(113, 82, 48, 0.16);
 }
 
-.tail-a {
-  top: 92rpx;
-  left: 24rpx;
-  height: 46rpx;
+.rope-coil::before {
+  top: 0;
+  left: 50%;
+  width: 28rpx;
+  height: 16rpx;
+  border-radius: 47% 53% 43% 57%;
+  transform: translateX(-50%) rotate(-6deg);
+}
+
+.rope-coil::after {
+  right: 26rpx;
+  bottom: 10rpx;
+  width: 18rpx;
+  height: 20rpx;
+  border-radius: 50% 48% 56% 42%;
   transform: rotate(8deg);
 }
 
-.tail-b {
-  top: 92rpx;
-  left: 46rpx;
-  height: 42rpx;
-  transform: rotate(-12deg);
+.rope-coil-line {
+  position: absolute;
+  z-index: 2;
+  width: 14rpx;
+  border-radius: 999rpx 999rpx 70% 60%;
+  background:
+    repeating-linear-gradient(155deg, rgba(93, 65, 35, 0.34) 0 2rpx, transparent 2rpx 10rpx),
+    repeating-linear-gradient(28deg, rgba(255, 247, 222, 0.24) 0 2rpx, transparent 2rpx 12rpx),
+    linear-gradient(90deg, #b89a72, #ddc8a6 28%, #f3dfbd 48%, #ddc8a6 68%, #ab8b61);
+  box-shadow:
+    4rpx 4rpx 0 rgba(86, 63, 37, 0.18),
+    inset 2rpx 2rpx 0 rgba(248, 235, 205, 0.52),
+    inset -2rpx -4rpx 0 rgba(105, 75, 43, 0.12);
+  transform-origin: top center;
+}
+
+.rope-coil-line-a {
+  top: 10rpx;
+  left: 30rpx;
+  height: 108rpx;
+  transform: rotate(-3deg);
+}
+
+.rope-coil-line-b {
+  top: 42rpx;
+  left: 38rpx;
+  width: 8rpx;
+  height: 64rpx;
+  opacity: 0.64;
+  transform: rotate(11deg);
+}
+
+.rope-coil-line-c {
+  top: 94rpx;
+  left: 24rpx;
+  width: 12rpx;
+  height: 28rpx;
+  border-radius: 999rpx 999rpx 64% 54%;
+  opacity: 0.74;
+  transform: rotate(-15deg);
 }
 
 .rope-note {

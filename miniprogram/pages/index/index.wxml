@@ -59,13 +59,10 @@
                   bindtap="enterRopeFromShelf"
                   aria-label="打开{{slot.name}}"
                 >
-                  <view class="rope-drop">
-                    <view class="rope-drop-strand strand-a"></view>
-                    <view class="rope-drop-strand strand-b"></view>
-                    <view class="rope-drop-strand strand-c"></view>
-                    <view class="rope-drop-knot"></view>
-                    <view class="rope-drop-tail tail-a"></view>
-                    <view class="rope-drop-tail tail-b"></view>
+                  <view class="rope-coil">
+                    <view class="rope-coil-line rope-coil-line-a"></view>
+                    <view class="rope-coil-line rope-coil-line-b"></view>
+                    <view class="rope-coil-line rope-coil-line-c"></view>
                   </view>
                   <view class="rope-note note-tone-{{slot.noteTone}}">
                     <text class="rope-note-name">{{slot.name}}</text>
