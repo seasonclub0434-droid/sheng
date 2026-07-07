@@ -58,7 +58,7 @@
   position: relative;
   width: 690rpx;
   max-width: 690rpx;
-  height: 92vh;
+  height: 1180rpx;
 }
 
 .login-cabinet-image {
@@ -69,26 +69,72 @@
 
 .login-enter-action {
   position: absolute;
-  left: 31.8%;
-  top: 57.2%;
-  width: 36.4%;
-  height: 18%;
+  z-index: 5;
+  left: 50%;
+  top: 59.4%;
+  display: grid;
+  width: 248rpx;
+  height: 248rpx;
+  padding: 0;
+  place-items: center;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: transparent;
+  border: 0;
+  overflow: visible;
+}
+
+.login-enter-action::after {
+  border: 0;
 }
 
 .login-enter-glow {
   position: absolute;
-  left: 3%;
-  right: 3%;
-  top: 3%;
-  bottom: 3%;
+  left: -2%;
+  right: -2%;
+  top: -2%;
+  bottom: -2%;
   border-radius: 50%;
-  border: 4rpx solid rgba(244, 208, 112, 0.72);
+  border: 4rpx solid rgba(255, 221, 128, 0.44);
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(255, 224, 138, 0.15), transparent 50%),
+    radial-gradient(ellipse at 60% 60%, rgba(255, 206, 98, 0.12), transparent 30%);
   box-shadow:
-    0 0 24rpx rgba(255, 224, 132, 0.48),
-    inset 0 0 36rpx rgba(255, 235, 174, 0.22);
-  opacity: 0.78;
+    0 0 0 2rpx rgba(81, 38, 10, 0.1),
+    0 0 28rpx rgba(255, 207, 96, 0.28),
+    inset 0 0 24rpx rgba(255, 229, 158, 0.16);
+  opacity: 0.68;
+  transform-origin: center;
+  animation: loginGlowBreath 2.8s ease-in-out infinite;
+}
+
+.login-enter-glow::after {
+  position: absolute;
+  top: 26%;
+  left: 18%;
+  width: 42%;
+  height: 18%;
+  content: "";
+  border-radius: 50%;
+  opacity: 0.72;
+  background:
+    radial-gradient(ellipse at 45% 50%, rgba(255, 242, 184, 0.78), transparent 36%),
+    linear-gradient(90deg, rgba(255, 209, 112, 0), rgba(255, 211, 116, 0.64), rgba(255, 209, 112, 0));
+  filter: blur(3rpx);
+  transform: rotate(-16deg);
+}
+
+@keyframes loginGlowBreath {
+  0%,
+  100% {
+    opacity: 0.56;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.96;
+    transform: scale(1.025);
+  }
 }
 
 .home-page,

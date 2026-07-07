@@ -927,6 +927,12 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(!miniWxml.includes('brand-title">绳话'));
   assert.ok(!miniWxml.includes('open-type="share">邀请'));
   assert.ok(miniWxss.includes('.login-cabinet-image'));
+  assert.ok(miniWxss.includes('height: 1180rpx;'));
+  assert.ok(miniWxss.includes('top: 59.4%;'));
+  assert.ok(miniWxss.includes('width: 248rpx;'));
+  assert.ok(miniWxss.includes('height: 248rpx;'));
+  assert.ok(miniWxss.includes('animation: loginGlowBreath 2.8s ease-in-out infinite;'));
+  assert.ok(miniWxss.includes('@keyframes loginGlowBreath'));
   assert.ok(miniWxss.includes('.cabinet-stack'));
   assert.ok(miniWxml.includes('class="rope-coil"'));
   assert.ok(miniWxml.includes('class="rope-coil-line rope-coil-line-a"'));
