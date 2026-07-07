@@ -13,7 +13,7 @@ const ROPE_SHADOW = 'rgba(86, 63, 37, 0.22)';
 const ROPE_LIGHT = 'rgba(248, 235, 205, 0.58)';
 const ROPE_EDGE = '#b89a72';
 const INK = '#342d27';
-const PAPER = '#f5eedf';
+const PAPER = '#caa36f';
 const BADGE_TONES = [
   'paper',
   'brass',
@@ -170,6 +170,10 @@ Page({
   },
 
   noop() {},
+
+  setDataAsync(data) {
+    return new Promise((resolve) => this.setData(data, resolve));
+  },
 
   buildHomeRows(ropes) {
     const rows = Math.max(4, Math.ceil((ropes || []).length / 2));
@@ -329,7 +333,10 @@ Page({
   },
 
   async enterRope(ropeId) {
-    this.setData({ loading: true, viewMode: 'rope' });
+    this.canvas = null;
+    this.ctx = null;
+    await this.setDataAsync({ loading: true, viewMode: 'rope' });
+    this.initCanvas();
     this.session = await store.setCurrentRope(ropeId);
     await this.reload();
     this.initCanvas();
@@ -493,14 +500,20 @@ Page({
     this.render();
   },
 
-  initCanvas() {
+  initCanvas(retryCount) {
+    const retries = retryCount || 0;
     wx.createSelectorQuery()
       .in(this)
       .select('#ropeCanvas')
       .fields({ node: true, size: true })
       .exec((result) => {
         const canvasInfo = result && result[0];
-        if (!canvasInfo || !canvasInfo.node) return;
+        if (!canvasInfo || !canvasInfo.node) {
+          if (this.data.viewMode === 'rope' && retries < 5) {
+            setTimeout(() => this.initCanvas(retries + 1), 60);
+          }
+          return;
+        }
 
         this.canvas = canvasInfo.node;
         this.ctx = this.canvas.getContext('2d');
@@ -867,13 +880,49 @@ Page({
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, width, height);
 
-    for (let i = 0; i < 130; i += 1) {
+    for (let i = 0; i < 44; i += 1) {
+      const x = noise(i + 401) * width;
+      const y = noise(i + 409) * height;
+      const radius = 24 + noise(i + 419) * 78;
+      const gradient = ctx.createRadialGradient(x, y, 1, x, y, radius);
+      const warm = noise(i + 431) > 0.48;
+      gradient.addColorStop(0, warm ? 'rgba(232, 187, 109, 0.09)' : 'rgba(91, 58, 30, 0.07)');
+      gradient.addColorStop(0.45, warm ? 'rgba(214, 160, 82, 0.04)' : 'rgba(82, 52, 27, 0.034)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+
+    for (let i = 0; i < 420; i += 1) {
       const x = noise(i + 3) * width;
       const y = noise(i + 19) * height;
-      const alpha = 0.04 + noise(i + 29) * 0.05;
-      ctx.fillStyle = `rgba(78, 63, 45, ${alpha})`;
-      ctx.fillRect(x, y, 0.7 + noise(i + 31) * 1.2, 0.7 + noise(i + 41) * 1.2);
+      const length = 4 + noise(i + 23) * 15;
+      const alpha = 0.018 + noise(i + 29) * 0.042;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate((noise(i + 31) - 0.5) * 0.55);
+      ctx.fillStyle = `rgba(92, 59, 30, ${alpha})`;
+      ctx.fillRect(0, 0, length, 0.55 + noise(i + 37) * 0.75);
+      ctx.restore();
     }
+
+    for (let i = 0; i < 160; i += 1) {
+      const x = noise(i + 457) * width;
+      const y = noise(i + 463) * height;
+      const radius = 0.7 + noise(i + 467) * 2.6;
+      const alpha = 0.025 + noise(i + 479) * 0.052;
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(91, 56, 28, ${alpha})`;
+      ctx.ellipse(x, y, radius * (1 + noise(i + 487)), radius, noise(i + 491) * Math.PI, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const vignette = ctx.createRadialGradient(width / 2, height * 0.42, height * 0.08, width / 2, height * 0.45, height * 0.72);
+    vignette.addColorStop(0, 'rgba(255, 236, 178, 0.03)');
+    vignette.addColorStop(0.72, 'rgba(78, 48, 22, 0.03)');
+    vignette.addColorStop(1, 'rgba(46, 28, 12, 0.12)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, width, height);
   },
 
   ropePoint(y, pass) {

@@ -28,7 +28,7 @@
 
 .rope-canvas {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: 0;
   left: 0;
   width: 750rpx;
@@ -93,10 +93,13 @@
 
 .home-page,
 .rope-add-page {
-  margin: 68rpx auto 56rpx;
-  width: 682rpx;
-  max-width: 682rpx;
-  border-radius: 48rpx;
+  margin: 0;
+  width: 750rpx;
+  max-width: none;
+  border-radius: 0;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   background:
     linear-gradient(92deg, rgba(255, 239, 191, 0.17), transparent 18%, rgba(90, 58, 30, 0.08) 62%, transparent 82%),
     linear-gradient(rgba(71, 52, 34, 0.04) 2rpx, transparent 2rpx),
@@ -112,7 +115,7 @@
 .home-title-image {
   position: absolute;
   z-index: 4;
-  top: 40rpx;
+  top: 0;
   left: 50%;
   width: 340rpx;
   height: 164rpx;
@@ -122,15 +125,17 @@
 .rope-shelf {
   position: absolute;
   z-index: 2;
-  top: 210rpx;
-  left: 68rpx;
-  right: 68rpx;
-  bottom: 192rpx;
+  top: 168rpx;
+  left: 50%;
+  width: 638rpx;
+  bottom: 154rpx;
+  transform: translateX(-50%);
   overflow: hidden;
 }
 
 .cabinet-stack {
   position: relative;
+  width: 100%;
   min-height: 100%;
   padding-top: 24rpx;
   padding-bottom: 24rpx;
@@ -362,7 +367,7 @@
   position: absolute;
   z-index: 6;
   left: 50%;
-  bottom: 44rpx;
+  bottom: 32rpx;
   width: 412rpx;
   height: 116rpx;
   transform: translateX(-50%);
@@ -415,28 +420,39 @@
 .rope-timeline-toggle {
   position: absolute;
   z-index: 7;
-  left: 16rpx;
-  top: 180rpx;
-  width: 116rpx;
-  height: 152rpx;
+  left: 0;
+  top: 156rpx;
+  width: 78rpx;
+  min-height: 98rpx;
+  padding: 12rpx 8rpx;
+  box-sizing: border-box;
   border-radius: 12rpx 10rpx 14rpx 10rpx;
   color: #4c4036;
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 700;
+  line-height: 1.2;
   background: rgba(249, 236, 203, 0.78);
   box-shadow: 0 12rpx 26rpx rgba(64, 43, 22, 0.16);
 }
 
 .rope-timeline-toggle {
   left: auto;
-  right: 16rpx;
+  right: 0;
+}
+
+.back-home-action,
+.rope-timeline-toggle {
+  top: 232rpx;
+  width: 72rpx;
+  min-height: 128rpx;
+  writing-mode: vertical-rl;
 }
 
 .add-rope-panel {
   position: absolute;
   left: 0;
   right: 0;
-  top: 92rpx;
+  top: 112rpx;
   bottom: 0;
 }
 
@@ -541,7 +557,7 @@
 .create-rope-action {
   position: absolute;
   left: 50%;
-  bottom: 32rpx;
+  bottom: 0;
   width: 296rpx;
   height: 128rpx;
   transform: translateX(-50%);
@@ -566,11 +582,11 @@
 
 .rope-ui-layer {
   position: static;
-  z-index: 3;
 }
 
 .stats-bar {
   position: absolute;
+  z-index: 4;
   top: 80rpx;
   left: 36rpx;
   right: 36rpx;
@@ -608,6 +624,7 @@
 
 .exchange-dock {
   position: absolute;
+  z-index: 4;
   left: 40rpx;
   right: 40rpx;
   bottom: 40rpx;
@@ -1045,4 +1062,737 @@
   color: #4b4036;
   font-size: 26rpx;
   line-height: 1.5;
+}
+
+/* Browser-preview parity overrides for the WeChat Mini Program. */
+.page {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(110, 83, 52, 0.1), transparent 28%),
+    radial-gradient(circle at 82% 86%, rgba(75, 57, 38, 0.08), transparent 30%),
+    #a99b7c;
+}
+
+.rope-canvas {
+  z-index: 1;
+}
+
+.home-page,
+.rope-add-page {
+  background:
+    linear-gradient(98deg, transparent 0 18%, rgba(255, 241, 194, 0.14) 19%, rgba(72, 45, 23, 0.08) 20%, transparent 22% 100%),
+    repeating-linear-gradient(0deg, rgba(67, 43, 22, 0.055) 0 2rpx, transparent 2rpx 30rpx),
+    repeating-linear-gradient(90deg, rgba(246, 216, 158, 0.055) 0 2rpx, transparent 2rpx 26rpx),
+    radial-gradient(ellipse at 18% 19%, rgba(83, 52, 24, 0.09), transparent 24%),
+    radial-gradient(ellipse at 84% 62%, rgba(245, 219, 162, 0.1), transparent 28%),
+    #caa36f;
+  box-shadow: none;
+}
+
+.home-title-image {
+  width: 452rpx;
+  height: 130rpx;
+  filter: drop-shadow(0 20rpx 24rpx rgba(41, 25, 12, 0.22));
+}
+
+.rope-shelf {
+  width: 622rpx;
+  bottom: 178rpx;
+  padding-top: 16rpx;
+}
+
+.cabinet-stack {
+  display: block;
+  min-height: 100%;
+  padding: 60rpx 36rpx 84rpx;
+  overflow: hidden;
+  border: 2rpx solid rgba(47, 26, 10, 0.36);
+  border-radius: 26rpx 20rpx 32rpx 24rpx;
+  background:
+    radial-gradient(ellipse at 12% 10%, rgba(239, 178, 87, 0.2), transparent 28%),
+    radial-gradient(ellipse at 84% 22%, rgba(54, 28, 9, 0.22), transparent 34%),
+    radial-gradient(ellipse at 50% 96%, rgba(49, 24, 6, 0.3), transparent 38%),
+    linear-gradient(90deg, rgba(74, 39, 13, 0.9), rgba(153, 91, 34, 0.86) 13%, rgba(111, 65, 24, 0.82) 50%, rgba(160, 94, 35, 0.85) 87%, rgba(61, 31, 10, 0.92)),
+    repeating-linear-gradient(96deg, rgba(236, 171, 86, 0.12) 0 2rpx, transparent 2rpx 26rpx);
+  box-shadow:
+    0 36rpx 60rpx rgba(47, 28, 11, 0.2),
+    inset 28rpx 0 36rpx rgba(38, 20, 8, 0.3),
+    inset -24rpx 0 40rpx rgba(244, 169, 73, 0.08),
+    inset 0 24rpx 36rpx rgba(245, 184, 91, 0.08),
+    inset 0 -28rpx 36rpx rgba(39, 20, 7, 0.2);
+}
+
+.cabinet-stack::before,
+.cabinet-stack::after {
+  position: absolute;
+  content: "";
+}
+
+.cabinet-stack::before {
+  top: 24rpx;
+  right: 26rpx;
+  bottom: 36rpx;
+  left: 26rpx;
+  z-index: 0;
+  border: 2rpx solid rgba(34, 18, 7, 0.28);
+  border-radius: 16rpx;
+  background:
+    linear-gradient(90deg, rgba(31, 16, 6, 0.28), transparent 6% 94%, rgba(31, 16, 6, 0.28)),
+    repeating-linear-gradient(90deg, rgba(255, 203, 116, 0.05) 0 2rpx, transparent 2rpx 34rpx),
+    radial-gradient(circle at 23% 18%, rgba(53, 25, 8, 0.18), transparent 8%),
+    radial-gradient(circle at 78% 72%, rgba(255, 214, 144, 0.08), transparent 9%);
+  box-shadow:
+    inset 0 36rpx 48rpx rgba(28, 14, 5, 0.2),
+    inset 0 -20rpx 36rpx rgba(234, 158, 65, 0.06);
+}
+
+.cabinet-stack::after {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 13;
+  opacity: 0.5;
+  border-radius: inherit;
+  background:
+    linear-gradient(108deg, transparent 0 21%, rgba(255, 213, 133, 0.14) 22%, rgba(42, 21, 7, 0.11) 23%, transparent 24% 100%),
+    radial-gradient(circle at 17% 32%, rgba(30, 15, 5, 0.15) 0 2rpx, transparent 4rpx),
+    repeating-linear-gradient(7deg, transparent 0 22rpx, rgba(43, 21, 7, 0.08) 22rpx 24rpx, transparent 24rpx 58rpx);
+}
+
+.cabinet-top,
+.cabinet-bottom {
+  position: absolute;
+  right: -24rpx;
+  left: -24rpx;
+  z-index: 14;
+  height: 26rpx;
+  margin: 0;
+  border-radius: 20rpx 20rpx 4rpx 4rpx;
+  background:
+    linear-gradient(180deg, rgba(150, 83, 29, 0.78), rgba(73, 37, 12, 0.9)),
+    radial-gradient(ellipse at 28% 38%, rgba(255, 203, 118, 0.08), transparent 22%),
+    repeating-linear-gradient(8deg, rgba(255, 211, 130, 0.07) 0 2rpx, transparent 2rpx 20rpx);
+  box-shadow:
+    0 10rpx 18rpx rgba(33, 17, 6, 0.14),
+    inset 0 4rpx 0 rgba(231, 158, 66, 0.06),
+    inset 0 -8rpx 14rpx rgba(33, 15, 4, 0.16);
+}
+
+.cabinet-top {
+  top: 16rpx;
+}
+
+.cabinet-bottom {
+  bottom: 16rpx;
+  border-radius: 4rpx 4rpx 20rpx 20rpx;
+}
+
+.cabinet-row {
+  position: relative;
+  z-index: 1;
+  height: 270rpx;
+  box-sizing: border-box;
+  padding: 18rpx 34rpx 58rpx;
+  overflow: visible;
+}
+
+.cabinet-row::before,
+.cabinet-row::after {
+  position: absolute;
+  content: "";
+}
+
+.cabinet-row::before {
+  top: 14rpx;
+  right: 20rpx;
+  bottom: 66rpx;
+  left: 20rpx;
+  z-index: 1;
+  border-radius: 10rpx;
+  background:
+    radial-gradient(ellipse at 20% 16%, rgba(255, 210, 127, 0.08), transparent 34%),
+    radial-gradient(ellipse at 78% 70%, rgba(36, 17, 5, 0.18), transparent 42%),
+    linear-gradient(180deg, rgba(38, 20, 7, 0.32), rgba(96, 55, 19, 0.18) 18%, rgba(139, 87, 35, 0.08) 68%, rgba(29, 14, 4, 0.22));
+  box-shadow:
+    inset 0 24rpx 40rpx rgba(20, 10, 4, 0.26),
+    inset 0 -16rpx 36rpx rgba(228, 156, 64, 0.05);
+}
+
+.cabinet-row::after {
+  top: 14rpx;
+  bottom: 64rpx;
+  left: 50%;
+  z-index: 5;
+  width: 28rpx;
+  margin-left: -14rpx;
+  border-radius: 8rpx;
+  background:
+    linear-gradient(90deg, rgba(52, 27, 9, 0.62), rgba(162, 99, 38, 0.78) 48%, rgba(42, 21, 7, 0.62)),
+    repeating-linear-gradient(180deg, rgba(255, 203, 110, 0.09) 0 2rpx, transparent 2rpx 24rpx);
+  box-shadow:
+    8rpx 0 24rpx rgba(24, 12, 4, 0.2),
+    -6rpx 0 20rpx rgba(24, 12, 4, 0.2);
+}
+
+.cabinet-back {
+  top: 16rpx;
+  right: 20rpx;
+  bottom: 70rpx;
+  left: 20rpx;
+  z-index: 0;
+  border-radius: 10rpx;
+  background:
+    linear-gradient(90deg, rgba(24, 12, 5, 0.2), transparent 12% 88%, rgba(24, 12, 5, 0.18)),
+    radial-gradient(circle at 24% 24%, rgba(65, 32, 11, 0.16), transparent 24%),
+    radial-gradient(circle at 72% 65%, rgba(238, 186, 104, 0.08), transparent 28%),
+    repeating-linear-gradient(91deg, rgba(80, 49, 23, 0.08) 0 2rpx, transparent 2rpx 30rpx);
+  box-shadow: none;
+}
+
+.cabinet-back::after {
+  display: none;
+}
+
+.cabinet-slots {
+  z-index: 9;
+  top: 18rpx;
+  right: 34rpx;
+  left: 34rpx;
+  height: 182rpx;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cabinet-slot {
+  width: 43%;
+  height: 192rpx;
+}
+
+.cabinet-front {
+  right: -38rpx;
+  bottom: 0;
+  left: -38rpx;
+  z-index: 8;
+  height: 80rpx;
+  border-radius: 4rpx 4rpx 12rpx 12rpx;
+  background:
+    linear-gradient(180deg, rgba(185, 116, 38, 0.96), rgba(125, 70, 18, 0.98) 50%, rgba(63, 34, 10, 0.99)),
+    repeating-linear-gradient(8deg, rgba(255, 216, 135, 0.13) 0 2rpx, transparent 2rpx 18rpx),
+    radial-gradient(ellipse at 21% 42%, rgba(46, 23, 7, 0.3), transparent 16%),
+    radial-gradient(ellipse at 75% 34%, rgba(230, 166, 72, 0.15), transparent 18%);
+  border-top: 2rpx solid rgba(246, 188, 94, 0.22);
+  border-bottom: 2rpx solid rgba(38, 18, 5, 0.5);
+  box-shadow:
+    0 24rpx 36rpx rgba(36, 18, 6, 0.3),
+    inset 0 8rpx 0 rgba(232, 171, 86, 0.08),
+    inset 0 -18rpx 24rpx rgba(43, 22, 7, 0.32);
+}
+
+.rope-tile {
+  height: 200rpx;
+  padding-top: 8rpx;
+  overflow: visible;
+  background: transparent;
+}
+
+.rope-drop {
+  top: 6rpx;
+  width: 76rpx;
+  height: 140rpx;
+}
+
+.rope-drop::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 26rpx;
+  height: 72rpx;
+  content: "";
+  transform: translateX(-50%) rotate(-2deg);
+  border-radius: 999rpx;
+  background:
+    repeating-linear-gradient(164deg, rgba(88, 61, 34, 0.26) 0 2rpx, transparent 2rpx 10rpx),
+    repeating-linear-gradient(26deg, rgba(255, 244, 216, 0.22) 0 2rpx, transparent 2rpx 14rpx),
+    linear-gradient(90deg, #7f6040 0%, #af8d61 18%, #d8bf99 39%, #f1dfbd 53%, #d4ba92 67%, #a58155 84%, #6d4f31 100%);
+  box-shadow:
+    4rpx 6rpx 0 rgba(86, 63, 37, 0.2),
+    inset 3rpx 0 0 rgba(255, 247, 222, 0.42),
+    inset -3rpx 0 0 rgba(74, 48, 24, 0.2);
+}
+
+.rope-drop-strand,
+.rope-drop-tail {
+  width: 14rpx;
+  border-radius: 999rpx 999rpx 70% 60%;
+  background:
+    repeating-linear-gradient(155deg, rgba(93, 65, 35, 0.34) 0 2rpx, transparent 2rpx 10rpx),
+    repeating-linear-gradient(28deg, rgba(255, 247, 222, 0.24) 0 2rpx, transparent 2rpx 12rpx),
+    linear-gradient(90deg, #b89a72, #ddc8a6 28%, #f3dfbd 48%, #ddc8a6 68%, #ab8b61);
+  box-shadow:
+    4rpx 4rpx 0 rgba(86, 63, 37, 0.18),
+    inset 2rpx 2rpx 0 rgba(248, 235, 205, 0.52),
+    inset -2rpx -4rpx 0 rgba(105, 75, 43, 0.12);
+}
+
+.strand-a {
+  top: 10rpx;
+  left: 30rpx;
+  height: 108rpx;
+  transform: rotate(-3deg);
+}
+
+.strand-b {
+  top: 42rpx;
+  left: 38rpx;
+  width: 8rpx;
+  height: 64rpx;
+  opacity: 0.64;
+  transform: rotate(11deg);
+}
+
+.strand-c {
+  display: none;
+}
+
+.rope-drop-knot {
+  top: 42rpx;
+  left: 12rpx;
+  z-index: 4;
+  width: 62rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(144deg, rgba(92, 65, 35, 0.24) 0 2rpx, transparent 2rpx 10rpx),
+    repeating-linear-gradient(32deg, rgba(255, 246, 218, 0.24) 0 2rpx, transparent 2rpx 14rpx),
+    linear-gradient(180deg, #f3dfbd, #ddc8a6 52%, #b89a72);
+  box-shadow:
+    0 4rpx 0 rgba(86, 63, 37, 0.22),
+    inset 0 2rpx 0 rgba(255, 247, 222, 0.56),
+    inset 0 -2rpx 0 rgba(113, 82, 48, 0.16);
+}
+
+.tail-a {
+  top: 92rpx;
+  left: 24rpx;
+  height: 46rpx;
+  transform: rotate(8deg);
+}
+
+.tail-b {
+  top: 92rpx;
+  left: 46rpx;
+  height: 42rpx;
+  transform: rotate(-12deg);
+}
+
+.rope-note {
+  bottom: -50rpx;
+  z-index: 12;
+  width: 144rpx;
+  min-height: 78rpx;
+  padding: 12rpx 10rpx 10rpx;
+  border-radius: 6rpx 10rpx 10rpx 8rpx;
+  box-shadow:
+    0 6rpx 10rpx rgba(31, 15, 4, 0.18),
+    inset 0 -16rpx 24rpx rgba(62, 80, 47, 0.07);
+}
+
+.rope-note::before {
+  position: absolute;
+  top: -14rpx;
+  left: 24rpx;
+  width: 72rpx;
+  height: 26rpx;
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(145, 103, 62, 0.15), rgba(241, 219, 177, 0.26), rgba(101, 67, 35, 0.1));
+  border: 2rpx solid rgba(73, 46, 23, 0.07);
+  transform: rotate(-6deg);
+}
+
+.rope-note-name {
+  font-size: 24rpx;
+  line-height: 1.15;
+}
+
+.rope-note-count {
+  margin-top: 6rpx;
+  font-size: 18rpx;
+}
+
+.home-control-bar {
+  bottom: 50rpx;
+  width: 404rpx;
+  height: 116rpx;
+  border-radius: 48rpx 44rpx 46rpx 40rpx;
+  background:
+    linear-gradient(107deg, rgba(247, 238, 211, 0.68), rgba(210, 188, 142, 0.44)),
+    radial-gradient(circle at 28% 24%, rgba(255, 250, 226, 0.42), transparent 34%),
+    radial-gradient(circle at 78% 70%, rgba(97, 64, 34, 0.12), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(94, 68, 42, 0.07) 0 2rpx, transparent 2rpx 14rpx);
+  box-shadow:
+    0 20rpx 36rpx rgba(61, 42, 24, 0.11),
+    inset 0 0 36rpx rgba(94, 65, 37, 0.07);
+  transform: translateX(-50%) rotate(-0.6deg);
+}
+
+.settings-toggle,
+.timeline-toggle,
+.add-rope-action {
+  width: 76rpx;
+  height: 76rpx;
+  min-height: 76rpx;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 250, 226, 0.54), transparent 32%),
+    linear-gradient(145deg, rgba(237, 223, 190, 0.6), rgba(190, 163, 116, 0.42));
+  box-shadow:
+    0 14rpx 26rpx rgba(61, 42, 24, 0.1),
+    inset 0 -14rpx 22rpx rgba(95, 61, 27, 0.08);
+}
+
+.home-control-bar .add-rope-action {
+  width: 92rpx;
+  height: 92rpx;
+  transform: translateY(6rpx) rotate(-1.5deg);
+}
+
+.add-rope-plus,
+.control-icon {
+  line-height: 76rpx;
+}
+
+.add-rope-plus {
+  font-size: 52rpx;
+  line-height: 92rpx;
+  transform: translateY(2rpx);
+}
+
+.settings-gear-logo {
+  font-size: 44rpx;
+}
+
+.search-icon {
+  font-size: 56rpx;
+}
+
+.add-rope-back,
+.back-home-action,
+.rope-timeline-toggle {
+  left: 0;
+  width: 76rpx;
+  min-height: 92rpx;
+  padding: 20rpx 16rpx;
+  border-radius: 10rpx 14rpx 12rpx 10rpx;
+  background:
+    linear-gradient(104deg, rgba(255, 247, 218, 0.74), rgba(218, 184, 124, 0.52)),
+    radial-gradient(circle at 20% 18%, rgba(99, 66, 31, 0.12), transparent 34%);
+  box-shadow:
+    0 14rpx 24rpx rgba(70, 43, 18, 0.12),
+    inset 0 0 24rpx rgba(255, 246, 216, 0.22);
+  font-size: 28rpx;
+}
+
+.back-home-action,
+.rope-timeline-toggle {
+  width: 76rpx;
+  min-height: 176rpx;
+  line-height: 1.12;
+}
+
+.rope-timeline-toggle {
+  right: 0;
+}
+
+.stats-bar {
+  right: 36rpx;
+  left: 36rpx;
+  height: 92rpx;
+  border-radius: 14rpx 10rpx 16rpx 12rpx;
+  background:
+    linear-gradient(105deg, rgba(255, 248, 228, 0.68), rgba(213, 181, 121, 0.34)),
+    radial-gradient(circle at 13% 20%, rgba(102, 67, 34, 0.11), transparent 34%),
+    repeating-linear-gradient(90deg, rgba(89, 62, 37, 0.07) 0 2rpx, transparent 2rpx 20rpx);
+  box-shadow: 0 20rpx 56rpx rgba(65, 52, 38, 0.08);
+}
+
+.stat-value {
+  font-size: 36rpx;
+}
+
+.stat-label {
+  font-size: 22rpx;
+}
+
+.exchange-dock {
+  right: 36rpx;
+  bottom: 40rpx;
+  left: 36rpx;
+}
+
+.exchange-tray {
+  margin-bottom: 18rpx;
+}
+
+.exchange-action {
+  min-height: 110rpx;
+  margin-top: 16rpx;
+  background:
+    linear-gradient(112deg, rgba(255, 255, 255, 0.28), transparent 38%),
+    #fbf3dc;
+}
+
+.exchange-button {
+  width: 244rpx;
+  min-height: 116rpx;
+  border-radius: 20rpx 16rpx 22rpx 18rpx;
+  background:
+    radial-gradient(circle at 36% 22%, rgba(255, 255, 255, 0.34), transparent 36%),
+    linear-gradient(135deg, #f3e6c7, #dfcda9);
+}
+
+.record-timeline-dock,
+.settings-dock {
+  bottom: 236rpx;
+  width: 276rpx;
+  max-width: 276rpx;
+  padding: 24rpx 16rpx 24rpx 14rpx;
+  border: 2rpx solid rgba(83, 61, 37, 0.2);
+  border-radius: 18rpx 12rpx 20rpx 14rpx;
+  background:
+    linear-gradient(90deg, rgba(252, 242, 214, 0.82), rgba(238, 219, 177, 0.7)),
+    radial-gradient(circle at 14% 18%, rgba(112, 76, 41, 0.1), transparent 30%);
+  box-shadow: 0 20rpx 56rpx rgba(65, 52, 38, 0.08);
+}
+
+.settings-dock {
+  left: 24rpx;
+  width: 356rpx;
+  max-width: 356rpx;
+}
+
+.record-timeline-dock {
+  right: 24rpx;
+}
+
+.global-search-dock {
+  left: auto;
+  right: 24rpx;
+  transform: translateX(0);
+}
+
+.global-search-dock.open {
+  transform: translateX(0);
+}
+
+.dock-rail,
+.settings-list,
+.record-timeline-body,
+.global-search-body {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.dock-rail {
+  position: absolute;
+  top: 24rpx;
+  left: 14rpx;
+  width: 40rpx;
+  height: auto;
+  min-height: 120rpx;
+  padding: 0;
+  display: block;
+}
+
+.settings-title,
+.record-timeline-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.15;
+  writing-mode: vertical-rl;
+}
+
+.dock-close {
+  width: 40rpx;
+  height: 40rpx;
+  margin-top: 16rpx;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, rgba(255, 248, 224, 0.92), rgba(224, 190, 132, 0.74)),
+    repeating-linear-gradient(110deg, rgba(98, 68, 39, 0.1) 0 2rpx, transparent 2rpx 12rpx);
+  font-size: 34rpx;
+}
+
+.settings-list,
+.record-timeline-body,
+.global-search-body {
+  min-height: 0;
+  margin-left: 56rpx;
+  padding: 0;
+}
+
+.drawer-hint {
+  padding: 14rpx;
+  font-size: 20rpx;
+  background:
+    linear-gradient(108deg, rgba(255, 251, 237, 0.72), rgba(224, 194, 139, 0.38)),
+    radial-gradient(circle at 84% 22%, rgba(112, 72, 35, 0.11), transparent 38%);
+  border: 2rpx dashed rgba(101, 74, 46, 0.2);
+  border-radius: 12rpx 10rpx 14rpx 10rpx;
+}
+
+.record-timeline-list {
+  max-height: 100%;
+}
+
+.record-timeline-item,
+.global-search-item {
+  min-height: 76rpx;
+  margin-bottom: 18rpx;
+  padding: 12rpx;
+  border-radius: 14rpx 10rpx 16rpx 12rpx;
+  background:
+    linear-gradient(105deg, rgba(255, 250, 236, 0.64), rgba(229, 207, 162, 0.54)),
+    radial-gradient(circle at 78% 18%, rgba(118, 77, 38, 0.1), transparent 40%);
+}
+
+.rope-add-page {
+  padding: 0 68rpx 16rpx;
+}
+
+.add-rope-panel {
+  right: 68rpx;
+  bottom: 0;
+  left: 68rpx;
+}
+
+.add-mode-title,
+.add-rope-name-card {
+  width: 496rpx;
+  min-height: 144rpx;
+  margin: 0 auto;
+  padding: 28rpx 40rpx 24rpx;
+  border-radius: 14rpx 8rpx 16rpx 10rpx;
+  background:
+    linear-gradient(100deg, rgba(238, 215, 166, 0.62), rgba(205, 170, 106, 0.32)),
+    repeating-linear-gradient(0deg, rgba(83, 58, 31, 0.05) 0 2rpx, transparent 2rpx 26rpx),
+    radial-gradient(circle at 18% 24%, rgba(76, 51, 28, 0.08), transparent 30%);
+  font-size: 32rpx;
+}
+
+.rope-mode-options {
+  width: 620rpx;
+  margin: 68rpx auto 0;
+}
+
+.rope-mode-card {
+  width: 272rpx;
+  min-height: 328rpx;
+}
+
+.rope-mode-orbit {
+  width: 272rpx;
+  height: 272rpx;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 48% 42%, rgba(255, 255, 248, 0.95), rgba(250, 239, 209, 0.9) 55%, rgba(231, 206, 155, 0.72) 100%),
+    repeating-linear-gradient(0deg, rgba(99, 69, 35, 0.04) 0 2rpx, transparent 2rpx 20rpx);
+  box-shadow:
+    0 20rpx 32rpx rgba(69, 42, 18, 0.12),
+    inset 0 0 36rpx rgba(255, 247, 219, 0.36),
+    inset 0 -24rpx 36rpx rgba(121, 82, 43, 0.08);
+}
+
+.selected .rope-mode-orbit {
+  border-color: rgba(116, 56, 32, 0.44);
+  box-shadow:
+    0 24rpx 36rpx rgba(69, 42, 18, 0.14),
+    inset 0 0 36rpx rgba(255, 247, 219, 0.42),
+    0 0 0 8rpx rgba(255, 236, 178, 0.28);
+}
+
+.selected::after {
+  position: absolute;
+  top: 16rpx;
+  right: 12rpx;
+  z-index: 4;
+  width: 70rpx;
+  height: 54rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  content: "已选";
+  color: rgba(100, 40, 25, 0.86);
+  font-size: 26rpx;
+  font-weight: 900;
+  background: rgba(255, 245, 214, 0.58);
+  border: 4rpx solid rgba(112, 44, 30, 0.42);
+  border-radius: 46% 40% 44% 38%;
+  transform: rotate(-10deg);
+}
+
+.rope-mode-image {
+  width: 288rpx;
+  height: 170rpx;
+}
+
+.couple-mode-image {
+  width: 316rpx;
+  height: 154rpx;
+}
+
+.rope-mode-label {
+  margin-top: 16rpx;
+  font-size: 32rpx;
+}
+
+.add-rope-name-card {
+  min-height: 164rpx;
+  margin-top: 30rpx;
+}
+
+.add-rope-name-input {
+  width: 100%;
+  height: 64rpx;
+  margin-top: 20rpx;
+  font-size: 36rpx;
+  border-radius: 10rpx 8rpx 12rpx 6rpx;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 229, 0.72), rgba(238, 213, 166, 0.45)),
+    repeating-linear-gradient(0deg, rgba(91, 61, 31, 0.045) 0 2rpx, transparent 2rpx 22rpx);
+  border-bottom: 4rpx solid rgba(78, 50, 28, 0.38);
+}
+
+.add-rope-rope {
+  width: 140rpx;
+  height: 320rpx;
+  margin: 24rpx auto 0;
+  filter: drop-shadow(12rpx 18rpx 24rpx rgba(70, 43, 19, 0.18));
+}
+
+.add-rope-tail-image {
+  width: 140rpx;
+  height: 320rpx;
+}
+
+.create-rope-action {
+  bottom: 0;
+  width: 232rpx;
+  height: 76rpx;
+  min-height: 76rpx;
+  color: rgba(84, 66, 46, 0.52);
+  border-radius: 999rpx 999rpx 42% 42%;
+  background:
+    linear-gradient(104deg, rgba(255, 248, 226, 0.66), rgba(214, 185, 130, 0.4)),
+    repeating-linear-gradient(8deg, rgba(112, 81, 43, 0.05) 0 2rpx, transparent 2rpx 18rpx);
+  font-size: 36rpx;
+}
+
+.create-rope-action.ready {
+  color: #f8efd9;
+  background:
+    linear-gradient(180deg, rgba(151, 93, 37, 0.96), rgba(89, 50, 19, 0.98)),
+    repeating-linear-gradient(8deg, rgba(255, 211, 130, 0.1) 0 2rpx, transparent 2rpx 18rpx);
 }

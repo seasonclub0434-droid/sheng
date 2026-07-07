@@ -40,9 +40,10 @@
       class="home-title-image"
       src="../../assets/home-rope-sign-transparent.png"
       mode="aspectFit"
+      style="top: {{safeTop + 8}}px;"
     />
 
-    <scroll-view id="ropeShelf" class="rope-shelf" scroll-y enable-flex>
+    <scroll-view id="ropeShelf" class="rope-shelf" scroll-y enable-flex style="top: {{safeTop + 118}}px;">
       <view class="cabinet-stack">
         <view class="cabinet-top"></view>
         <block wx:for="{{homeRows}}" wx:key="rowIndex">
@@ -93,7 +94,7 @@
       </button>
     </view>
 
-    <view wx:if="{{settingsOpen}}" id="settingsDock" class="settings-dock open" catchtouchmove="noop">
+    <view wx:if="{{settingsOpen}}" id="settingsDock" class="settings-dock open" catchtouchmove="noop" style="top: {{safeTop + 112}}px;">
       <view class="dock-rail">
         <text class="settings-title">设置</text>
         <button class="dock-close" type="button" bindtap="closeSettingsDock">×</button>
@@ -114,7 +115,7 @@
       </view>
     </view>
 
-    <view wx:if="{{globalSearchOpen}}" id="globalSearchDock" class="record-timeline-dock global-search-dock open" catchtouchmove="noop">
+    <view wx:if="{{globalSearchOpen}}" id="globalSearchDock" class="record-timeline-dock global-search-dock open" catchtouchmove="noop" style="top: {{safeTop + 112}}px;">
       <view class="dock-rail">
         <text class="record-timeline-title">搜索</text>
         <button class="dock-close" type="button" bindtap="closeGlobalSearchDock">×</button>
@@ -137,8 +138,8 @@
   </view>
 
   <view wx:if="{{viewMode === 'add'}}" id="addRopePage" class="rope-add-page" aria-label="添加绳结">
-    <button id="addRopeBack" class="add-rope-back" type="button" bindtap="goHome">返回</button>
-    <view class="add-rope-panel">
+    <button id="addRopeBack" class="add-rope-back" type="button" bindtap="goHome" style="top: {{safeTop + 44}}px;">返回</button>
+    <view class="add-rope-panel" style="top: {{safeTop + 62}}px;">
       <view class="add-mode-title">选择你的绳结模式</view>
       <view class="rope-mode-options" aria-label="绳结模式">
         <button
@@ -192,7 +193,7 @@
   </view>
 
   <view wx:if="{{viewMode === 'rope'}}" class="rope-ui-layer">
-    <view id="statsBar" class="stats-bar">
+    <view id="statsBar" class="stats-bar" style="top: {{safeTop + 22}}px;">
       <block wx:for="{{statsItems}}" wx:key="label">
         <view class="stat-item">
           <text class="stat-value">{{item.value}}</text>
@@ -201,10 +202,10 @@
       </block>
     </view>
 
-    <button id="backHomeAction" class="back-home-action" type="button" bindtap="goHome">返回</button>
-    <button id="timelineToggle" class="timeline-toggle rope-timeline-toggle" type="button" bindtap="toggleTimelineDock">绳历</button>
+    <button id="backHomeAction" class="back-home-action" type="button" bindtap="goHome" style="top: {{safeTop + 122}}px;">返回</button>
+    <button id="timelineToggle" class="timeline-toggle rope-timeline-toggle" type="button" bindtap="toggleTimelineDock" style="top: {{safeTop + 122}}px;">绳历</button>
 
-    <view wx:if="{{timelineOpen}}" id="recordTimelineDock" class="record-timeline-dock open" catchtouchmove="noop">
+    <view wx:if="{{timelineOpen}}" id="recordTimelineDock" class="record-timeline-dock open" catchtouchmove="noop" style="top: {{safeTop + 112}}px;">
       <view class="dock-rail">
         <text class="record-timeline-title">绳历</text>
         <button class="dock-close" type="button" bindtap="closeTimelineDock">×</button>
@@ -244,8 +245,7 @@
     </view>
   </view>
 
-  <view wx:if="{{loading}}" class="floating-note loading-note">正在翻开这本手帐</view>
-  <view wx:if="{{viewMode === 'home' && !loading && homeRopes.length === 0}}" class="floating-note empty-note">先点下面的 +，给第一根绳命名。</view>
+  <view wx:if="{{loading}}" class="floating-note loading-note">正在翻开</view>
 
   <view wx:if="{{showNote}}" class="modal-mask" catchtouchmove="noop">
     <view class="paper-card note-card">

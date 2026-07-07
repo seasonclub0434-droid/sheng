@@ -923,6 +923,7 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxml.includes('id="recordTimelineDock"'));
   assert.ok(miniWxml.includes('id="exchangeDock"'));
   assert.ok(miniWxml.includes('id="globalSearchDock"'));
+  assert.ok(!miniWxml.includes('先点下面的'));
   assert.ok(!miniWxml.includes('brand-title">绳话'));
   assert.ok(!miniWxml.includes('open-type="share">邀请'));
   assert.ok(miniWxss.includes('.login-cabinet-image'));
@@ -1080,6 +1081,15 @@ test('mini program uses 750rpx layout and unmounts closed overlays so buttons re
   assert.ok(miniWxml.includes('class="rope-canvas"'));
   assert.ok(!miniWxml.includes('canvas-hidden'));
   assert.ok(!miniWxss.includes('canvas-hidden'));
+  assert.ok(!miniWxml.includes('rope-paper-fallback'));
+  assert.ok(miniPage.includes("const PAPER = '#caa36f';"));
+  assert.ok(miniWxss.includes('.home-page,\n.rope-add-page {\n  margin: 0;'));
+  assert.ok(miniWxss.includes('width: 750rpx;\n  max-width: none;\n  border-radius: 0;'));
+  assert.ok(miniWxss.includes('.home-title-image {\n  position: absolute;\n  z-index: 4;\n  top: 0;'));
+  assert.ok(miniWxss.includes('.create-rope-action {\n  position: absolute;\n  left: 50%;\n  bottom: 0;'));
+  assert.ok(miniWxss.includes('writing-mode: vertical-rl'));
+  assert.ok(miniPage.includes('setDataAsync(data)'));
+  assert.ok(miniPage.includes('retries < 5'));
   assert.ok(miniPage.includes('await this.reload();\n    this.initCanvas();'));
   assert.ok(miniWxml.includes('wx:if="{{settingsOpen}}"'));
   assert.ok(miniWxml.includes('wx:if="{{globalSearchOpen}}"'));
