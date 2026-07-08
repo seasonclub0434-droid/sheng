@@ -4,8 +4,6 @@ const STORAGE_KEY = 'rope-talk-state-v2';
 const LEGACY_STORAGE_KEY = 'rope-talk-state-v1';
 const CURRENT_ROPE_KEY = 'rope-talk-current-rope';
 const LOCAL_OPENID_KEY = 'rope-talk-local-openid';
-const CLOUD_READ_TIMEOUT_MS = 800;
-const CLOUD_SYNC_TIMEOUT_MS = 1800;
 
 function hasWx() {
   return typeof wx !== 'undefined';
@@ -36,38 +34,6 @@ function removeStorage(key) {
     wx.removeStorageSync(key);
   } catch (error) {
     console.warn('remove storage failed', error);
-  }
-}
-
-function syncCloud(task, label) {
-  let timer = null;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error('cloud sync timeout')), CLOUD_SYNC_TIMEOUT_MS);
-    if (timer && typeof timer.unref === 'function') timer.unref();
-  });
-
-  Promise.race([Promise.resolve().then(task), timeout])
-    .catch((error) => {
-      console.warn(label, error);
-    })
-    .finally(() => {
-      if (timer) clearTimeout(timer);
-    });
-}
-
-async function readCloud(task, label, fallback) {
-  let timer = null;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error('cloud read timeout')), CLOUD_READ_TIMEOUT_MS);
-  });
-
-  try {
-    return await Promise.race([Promise.resolve().then(task), timeout]);
-  } catch (error) {
-    console.warn(label, error);
-    return fallback;
-  } finally {
-    if (timer) clearTimeout(timer);
   }
 }
 
@@ -203,80 +169,16 @@ function updateLocalEvent(ropeId, eventId, updater) {
   return updated;
 }
 
-async function initCloud() {
-  const app = hasWx() && typeof getApp === 'function' ? getApp() : null;
-  if (app && app.globalData && app.globalData.cloudReady) return true;
-  if (!hasWx() || !wx.cloud) return false;
-
-  try {
-    wx.cloud.init({ traceUser: true });
-    if (app && app.globalData) app.globalData.cloudReady = true;
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-async function getOpenId(cloudReady) {
+function getLocalOpenId() {
   const localOpenid = getStorage(LOCAL_OPENID_KEY, '');
-  if (cloudReady && hasWx() && wx.cloud) {
-    const result = await readCloud(
-      () => wx.cloud.callFunction({ name: 'login' }),
-      'login cloud function unavailable, using local id',
-      null,
-    );
-    if (result) {
-      const openid = result && result.result && result.result.openid;
-      if (openid) {
-        setStorage(LOCAL_OPENID_KEY, openid);
-        return openid;
-      }
-    }
-  }
-
   if (localOpenid) return localOpenid;
   const generated = createLocalId('local-user');
   setStorage(LOCAL_OPENID_KEY, generated);
   return generated;
 }
 
-async function ensureCloudRope(rope, openid) {
-  if (!hasWx() || !wx.cloud) return null;
-  const db = wx.cloud.database();
-  const _ = db.command;
-  const now = db.serverDate();
-  const ref = db.collection('ropes').doc(rope.ropeId);
-
-  try {
-    const result = await ref.get();
-    await ref.update({
-      data: {
-        name: rope.name,
-        mode: rope.mode,
-        members: _.addToSet(openid),
-        updatedAt: now,
-      },
-    });
-    return result.data;
-  } catch (error) {
-    await ref.set({
-      data: {
-        ropeId: rope.ropeId,
-        name: rope.name,
-        mode: rope.mode,
-        members: [openid],
-        relationshipStartedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
-    return rope;
-  }
-}
-
 async function loadHomeState() {
-  const cloudReady = await initCloud();
-  const openid = await getOpenId(cloudReady);
+  const openid = getLocalOpenId();
   const state = getLocalState();
   const ropes = Object.keys(state.ropes)
     .map((ropeId) => toHomeRope(state.ropes[ropeId], state.events[ropeId]))
@@ -289,12 +191,11 @@ async function loadHomeState() {
       : '';
 
   if (activeRopeId) setStorage(CURRENT_ROPE_KEY, activeRopeId);
-  return { cloudReady, openid, ropes, activeRopeId };
+  return { openid, ropes, activeRopeId };
 }
 
 async function createRope(session, payload) {
-  const cloudReady = session && session.cloudReady != null ? session.cloudReady : await initCloud();
-  const openid = session && session.openid ? session.openid : await getOpenId(cloudReady);
+  const openid = session && session.openid ? session.openid : getLocalOpenId();
   const now = new Date().toISOString();
   const rope = {
     ropeId: createLocalId('rope'),
@@ -309,10 +210,6 @@ async function createRope(session, payload) {
   upsertLocalRope(rope, openid);
   setStorage(CURRENT_ROPE_KEY, rope.ropeId);
 
-  if (cloudReady) {
-    syncCloud(() => ensureCloudRope(rope, openid), 'create cloud rope failed, using local rope');
-  }
-
   return toHomeRope(rope, []);
 }
 
@@ -321,7 +218,6 @@ async function initSession(routeRopeId) {
   const ropeId = routeRopeId || home.activeRopeId;
   if (!ropeId) {
     return {
-      cloudReady: home.cloudReady,
       openid: home.openid,
       ropeId: '',
       rope: null,
@@ -330,23 +226,12 @@ async function initSession(routeRopeId) {
 
   setStorage(CURRENT_ROPE_KEY, ropeId);
   const localRope = ensureLocalRope(ropeId, home.openid);
-  let rope = localRope;
-  if (home.cloudReady) {
-    rope = await readCloud(
-      () => ensureCloudRope(localRope, home.openid),
-      'cloud rope unavailable, using local rope',
-      localRope,
-    );
-  }
-
   return {
-    cloudReady: home.cloudReady,
     openid: home.openid,
     ropeId,
     rope: {
       ...localRope,
-      ...rope,
-      relationshipStartedAt: toIso((rope && rope.relationshipStartedAt) || localRope.relationshipStartedAt),
+      relationshipStartedAt: toIso(localRope.relationshipStartedAt),
     },
   };
 }
@@ -363,36 +248,12 @@ async function loadState(session) {
 
   const localState = getLocalState();
   const localRope = ensureLocalRope(session.ropeId, session.openid);
-  let rope = localRope;
-  let events = localState.events[session.ropeId] || [];
-
-  if (session.cloudReady && hasWx() && wx.cloud) {
-    const cloudState = await readCloud(async () => {
-      const db = wx.cloud.database();
-      const ropeResult = await db.collection('ropes').doc(session.ropeId).get();
-      const eventsResult = await db
-        .collection('rope_events')
-        .where({ ropeId: session.ropeId })
-        .orderBy('createdAt', 'asc')
-        .limit(100)
-        .get();
-
-      return {
-        rope: ropeResult.data || rope,
-        events: (eventsResult.data || []).map((event) => upsertLocalEvent(session.ropeId, event)),
-      };
-    }, 'load cloud state failed, using local cache', null);
-
-    if (cloudState) {
-      rope = cloudState.rope || rope;
-      events = cloudState.events || events;
-    }
-  }
+  const events = localState.events[session.ropeId] || [];
 
   return {
     rope: {
-      ...rope,
-      relationshipStartedAt: toIso(rope.relationshipStartedAt),
+      ...localRope,
+      relationshipStartedAt: toIso(localRope.relationshipStartedAt),
     },
     events: sortByTime(events.map(normalizeEvent)),
   };
@@ -414,20 +275,6 @@ async function createKnot(session, payload) {
   };
 
   const localEvent = upsertLocalEvent(session.ropeId, event);
-
-  if (session.cloudReady && hasWx() && wx.cloud) {
-    syncCloud(async () => {
-      const db = wx.cloud.database();
-      const cloudEvent = {
-        ...localEvent,
-        createdAt: db.serverDate(),
-        updatedAt: db.serverDate(),
-      };
-      delete cloudEvent._id;
-      await db.collection('rope_events').doc(localEvent._id || localEvent.id).set({ data: cloudEvent });
-    }, 'create cloud knot failed, storing locally');
-  }
-
   return localEvent;
 }
 
@@ -445,21 +292,6 @@ async function requestResolve(session, event, line) {
     resolveRequest,
     updatedAt: now,
   }));
-
-  if (session.cloudReady && hasWx() && wx.cloud && eventId) {
-    syncCloud(async () => {
-      const db = wx.cloud.database();
-      await db.collection('rope_events').doc(eventId).update({
-        data: {
-          resolveRequest: {
-            ...resolveRequest,
-            requestedAt: db.serverDate(),
-          },
-          updatedAt: db.serverDate(),
-        },
-      });
-    }, 'request resolve cloud update failed');
-  }
 
   return updated;
 }
@@ -481,23 +313,6 @@ async function confirmResolve(session, event, line) {
     resolveRequest,
     updatedAt: now,
   }));
-
-  if (session.cloudReady && hasWx() && wx.cloud && eventId) {
-    syncCloud(async () => {
-      const db = wx.cloud.database();
-      await db.collection('rope_events').doc(eventId).update({
-        data: {
-          status: 'resolved',
-          resolvedAt: db.serverDate(),
-          resolveRequest: {
-            ...resolveRequest,
-            acceptedAt: db.serverDate(),
-          },
-          updatedAt: db.serverDate(),
-        },
-      });
-    }, 'confirm resolve cloud update failed');
-  }
 
   return updated;
 }

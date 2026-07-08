@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf3df"/>
+      <stop offset="0.52" stop-color="#f1e3c8"/>
+      <stop offset="1" stop-color="#e7d0aa"/>
+    </linearGradient>
+    <pattern id="grain" width="72" height="72" patternUnits="userSpaceOnUse">
+      <rect width="72" height="72" fill="transparent"/>
+      <path d="M9 18h1M28 49h1M61 14h1M54 62h1M18 66h1M40 28h1" stroke="#795b35" stroke-width="1.2" opacity="0.11"/>
+      <path d="M8 42c14-5 26-2 38-6M31 13c10 2 20-1 31 1M43 59c8 2 15 1 22 3" stroke="#fff0cd" stroke-width="1.2" opacity="0.25"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="5" dy="8" stdDeviation="7" flood-color="#5a3920" flood-opacity="0.24"/>
+    </filter>
+    <filter id="fiberWobble" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035 0.18" numOctaves="3" seed="31" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.9" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <!-- Two independent ropes. Together they form the infinity symbol. -->
+    <path id="beigeRope" d="M180 410 C272 318 405 318 488 438 C530 499 553 525 596 586 C675 698 798 690 872 612"/>
+    <path id="redRope" d="M180 612 C272 704 405 704 488 586 C530 525 553 499 596 438 C675 326 798 334 872 412"/>
+
+    <!-- Top redraw segments used to make the over/under knot readable. -->
+    <path id="beigeCenterOver" d="M449 390 C505 452 530 498 558 540"/>
+    <path id="redCenterOver" d="M470 624 C516 562 548 506 586 452"/>
+    <path id="beigeRightOver" d="M610 606 C688 704 799 684 872 612"/>
+    <path id="redLeftOver" d="M180 612 C266 696 391 705 474 604"/>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#paper)"/>
+  <g opacity="0.13" stroke-linecap="round">
+    <path d="M136 222c98-10 204 2 304-4 118-8 220-19 338-8" fill="none" stroke="#735634" stroke-width="1.1"/>
+    <path d="M118 798c132 14 252 2 392 10 140 8 260 12 396-8" fill="none" stroke="#735634" stroke-width="1.1"/>
+    <path d="M178 352h1M272 686h1M746 300h1M842 652h1M424 314h1M558 720h1" stroke="#6e5534" stroke-width="2"/>
+    <path d="M236 274c20-5 38-2 58-6M676 746c28 6 52 2 78 8M402 764c22 2 40-1 60 1" fill="none" stroke="#fff0cd" stroke-width="1.4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <g filter="url(#fiberWobble)">
+      <!-- Base beige rope: pure oatmeal/linen color family only. -->
+      <use href="#beigeRope" fill="none" stroke="#8d6b42" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#beigeRope" fill="none" stroke="#d8bf91" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#beigeRope" fill="none" stroke="#f2dfb9" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+      <use href="#beigeRope" fill="none" stroke="#6d5434" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="18 18" opacity="0.36"/>
+      <use href="#beigeRope" fill="none" stroke="#fff0cd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="32 28" stroke-dashoffset="14" opacity="0.5"/>
+
+      <!-- Base red-brown rope: pure red-brown color family only. -->
+      <use href="#redRope" fill="none" stroke="#642d24" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#redRope" fill="none" stroke="#9a4936" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#redRope" fill="none" stroke="#c8785b" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity="0.58"/>
+      <use href="#redRope" fill="none" stroke="#55231d" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="18 18" opacity="0.4"/>
+      <use href="#redRope" fill="none" stroke="#da9578" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="32 28" stroke-dashoffset="12" opacity="0.42"/>
+    </g>
+
+    <!-- Background cuts create real separation at crossings before top segments are redrawn. -->
+    <g stroke="#f1e3c8" stroke-linecap="round" stroke-linejoin="round" opacity="0.96">
+      <use href="#beigeCenterOver" fill="none" stroke-width="88"/>
+      <use href="#redCenterOver" fill="none" stroke-width="88"/>
+      <use href="#beigeRightOver" fill="none" stroke-width="84"/>
+      <use href="#redLeftOver" fill="none" stroke-width="84"/>
+    </g>
+
+    <!-- Redraw selected segments above the other rope: alternating over/under knot. -->
+    <g filter="url(#fiberWobble)">
+      <use href="#beigeCenterOver" fill="none" stroke="#5a3920" stroke-width="76" stroke-linecap="round" stroke-linejoin="round" opacity="0.16" transform="translate(5 8)"/>
+      <use href="#beigeCenterOver" fill="none" stroke="#8d6b42" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#beigeCenterOver" fill="none" stroke="#d8bf91" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#beigeCenterOver" fill="none" stroke="#f2dfb9" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+
+      <use href="#redCenterOver" fill="none" stroke="#5a3920" stroke-width="76" stroke-linecap="round" stroke-linejoin="round" opacity="0.16" transform="translate(5 8)"/>
+      <use href="#redCenterOver" fill="none" stroke="#642d24" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#redCenterOver" fill="none" stroke="#9a4936" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#redCenterOver" fill="none" stroke="#c8785b" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity="0.58"/>
+
+      <use href="#beigeRightOver" fill="none" stroke="#5a3920" stroke-width="74" stroke-linecap="round" stroke-linejoin="round" opacity="0.13" transform="translate(5 8)"/>
+      <use href="#beigeRightOver" fill="none" stroke="#8d6b42" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#beigeRightOver" fill="none" stroke="#d8bf91" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#beigeRightOver" fill="none" stroke="#f2dfb9" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+
+      <use href="#redLeftOver" fill="none" stroke="#5a3920" stroke-width="74" stroke-linecap="round" stroke-linejoin="round" opacity="0.13" transform="translate(5 8)"/>
+      <use href="#redLeftOver" fill="none" stroke="#642d24" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#redLeftOver" fill="none" stroke="#9a4936" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#redLeftOver" fill="none" stroke="#c8785b" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity="0.58"/>
+    </g>
+  </g>
+</svg>

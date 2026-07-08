@@ -1,0 +1,95 @@
+<view class="page rope-mode">
+  <canvas
+    wx:if="{{!showNote && !showDetail && !showNotebook}}"
+    id="ropeCanvas"
+    canvas-id="ropeCanvas"
+    type="2d"
+    class="rope-canvas"
+    style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+    bindtouchstart="onCanvasTouchStart"
+    bindtouchmove="onCanvasTouchMove"
+    bindtouchend="onCanvasTouchEnd"
+  ></canvas>
+
+  <view wx:if="{{loading}}" class="floating-note loading-note">正在翻开</view>
+
+  <view wx:if="{{showNote}}" class="modal-mask" catchtouchmove="noop">
+    <view class="paper-card note-card">
+      <view class="card-title">写成一个结</view>
+      <textarea
+        class="note-input"
+        maxlength="500"
+        auto-focus
+        value="{{noteText}}"
+        placeholder="发生了什么"
+        placeholder-class="input-placeholder"
+        bindinput="onNoteInput"
+      ></textarea>
+      <view class="card-actions">
+        <button class="text-button" bindtap="closeNote">先不写</button>
+        <button class="ink-button" loading="{{saving}}" bindtap="submitKnot">完成</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showDetail}}" class="modal-mask" catchtouchmove="noop">
+    <view class="paper-card detail-card">
+      <view class="card-title">{{selectedState.title}}</view>
+      <view class="card-meta">{{selectedState.meta}}</view>
+      <view class="detail-content">{{selectedState.content}}</view>
+
+      <view wx:if="{{selectedState.isResolved}}" class="resolution-lines">
+        <view wx:if="{{selectedState.requesterLine}}" class="line-note">{{selectedState.requesterLine}}</view>
+        <view wx:if="{{selectedState.accepterLine}}" class="line-note line-note-right">{{selectedState.accepterLine}}</view>
+      </view>
+
+      <view wx:if="{{resolveMode}}" class="resolve-form">
+        <textarea
+          class="resolve-input"
+          maxlength="80"
+          value="{{resolveText}}"
+          placeholder="留一句和解的话"
+          placeholder-class="input-placeholder"
+          bindinput="onResolveInput"
+        ></textarea>
+      </view>
+
+      <view class="card-actions">
+        <button class="text-button" bindtap="closeDetail">收起</button>
+        <button
+          wx:if="{{selectedState.canRequest && !resolveMode}}"
+          class="ink-button"
+          bindtap="openResolveRequest"
+        >解开</button>
+        <button
+          wx:if="{{resolveMode}}"
+          class="ink-button"
+          loading="{{saving}}"
+          bindtap="submitResolve"
+        >写好</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showNotebook}}" class="modal-mask" catchtouchmove="noop">
+    <view class="paper-card notebook-card">
+      <view class="notebook-title-row">
+        <view class="card-title">绳本</view>
+        <input class="notebook-search" type="text" value="{{notebookSearchText}}" placeholder="搜索" bindinput="onNotebookSearchInput" />
+      </view>
+      <view class="card-meta">解开的结、留下的印记和印章</view>
+      <scroll-view class="notebook-list" scroll-y>
+        <block wx:for="{{notebookItems}}" wx:key="id">
+          <view class="notebook-item">
+            <text class="notebook-item-title">{{item.title}}</text>
+            <text class="notebook-item-meta">{{item.meta}}</text>
+            <text class="notebook-item-content">{{item.content}}</text>
+          </view>
+        </block>
+      </scroll-view>
+      <view class="card-actions">
+        <button class="ink-button" bindtap="closeNotebook">收好</button>
+      </view>
+    </view>
+  </view>
+</view>

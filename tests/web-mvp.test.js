@@ -9,9 +9,17 @@ const html = fs.readFileSync(path.join(root, 'web/index.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'web/app.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8');
 const miniPage = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.js'), 'utf8');
+const miniAddPage = fs.readFileSync(path.join(root, 'miniprogram/pages/add-rope/add-rope.js'), 'utf8');
+const miniRopePage = fs.readFileSync(path.join(root, 'miniprogram/pages/rope/rope.js'), 'utf8');
 const miniWxml = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.wxml'), 'utf8');
 const miniWxss = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.wxss'), 'utf8');
+const miniAddWxml = fs.readFileSync(path.join(root, 'miniprogram/pages/add-rope/add-rope.wxml'), 'utf8');
+const miniAddWxss = fs.readFileSync(path.join(root, 'miniprogram/pages/add-rope/add-rope.wxss'), 'utf8');
+const miniAppJson = fs.readFileSync(path.join(root, 'miniprogram/app.json'), 'utf8');
+const miniApp = fs.readFileSync(path.join(root, 'miniprogram/app.js'), 'utf8');
+const miniStoreSource = fs.readFileSync(path.join(root, 'miniprogram/services/rope-store.js'), 'utf8');
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
+const rootProjectConfig = fs.readFileSync(path.join(root, 'project.config.json'), 'utf8');
 const badgeMechanismPath = path.join(root, 'docs/badge-system.md');
 const badgeMechanismDoc = fs.existsSync(badgeMechanismPath) ? fs.readFileSync(badgeMechanismPath, 'utf8') : '';
 const assetVersion = 'interaction-fix-1';
@@ -27,12 +35,18 @@ const coupleModePngPath = path.join(root, 'web/assets/rope-mode-couple-cutout.pn
 const coupleModeWebpPath = path.join(root, 'web/assets/rope-mode-couple-cutout.webp');
 const addRopeTailPngPath = path.join(root, 'web/assets/add-rope-tail-v1.png');
 const addRopeTailWebpPath = path.join(root, 'web/assets/add-rope-tail-v1.webp');
+const miniHomeIconFiles = [
+  'home-icon-settings.png',
+  'home-icon-create.png',
+  'home-icon-search.png',
+];
 const miniAssetPaths = [
   'login-cabinet-door.png',
   'home-rope-sign-transparent.png',
   'rope-mode-single-cutout.png',
   'rope-mode-couple-cutout.png',
   'add-rope-tail-v1.png',
+  ...miniHomeIconFiles,
 ].map((file) => path.join(root, 'miniprogram/assets', file));
 
 const queuedTests = [];
@@ -65,6 +79,106 @@ function cssBlock(selector, firstDeclaration = '') {
   const end = css.indexOf('\n}', start);
   assert.notStrictEqual(end, -1);
   return css.slice(start, end);
+}
+
+function cssBlockFrom(source, selector, firstDeclaration = '', useLast = false) {
+  const opening = firstDeclaration
+    ? `\n${selector} {\n  ${firstDeclaration}`
+    : `\n${selector} {`;
+  let start = useLast ? source.lastIndexOf(opening) : source.indexOf(opening);
+  if (start !== -1) start += 1;
+  if (start === -1 && source.startsWith(opening.slice(1))) start = 0;
+  assert.notStrictEqual(start, -1);
+  const end = source.indexOf('\n}', start);
+  assert.notStrictEqual(end, -1);
+  return source.slice(start, end);
+}
+
+function miniCssBlockLast(selector, firstDeclaration = '') {
+  return cssBlockFrom(miniWxss, selector, firstDeclaration, true);
+}
+
+function miniAddCssBlock(selector, firstDeclaration = '') {
+  return cssBlockFrom(miniAddWxss, selector, firstDeclaration, false);
+}
+
+function pngSize(filePath) {
+  const buffer = fs.readFileSync(filePath);
+  assert.strictEqual(buffer.toString('ascii', 1, 4), 'PNG');
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+}
+
+function pngAlphaStats(filePath) {
+  const zlib = require('zlib');
+  const buffer = fs.readFileSync(filePath);
+  assert.strictEqual(buffer.toString('ascii', 1, 4), 'PNG');
+  const width = buffer.readUInt32BE(16);
+  const height = buffer.readUInt32BE(20);
+  const bitDepth = buffer[24];
+  const colorType = buffer[25];
+  assert.strictEqual(bitDepth, 8);
+  assert.strictEqual(colorType, 6);
+
+  let offset = 8;
+  const idat = [];
+  while (offset < buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.toString('ascii', offset + 4, offset + 8);
+    const dataStart = offset + 8;
+    if (type === 'IDAT') idat.push(buffer.subarray(dataStart, dataStart + length));
+    offset = dataStart + length + 4;
+  }
+
+  const inflated = zlib.inflateSync(Buffer.concat(idat));
+  const stride = width * 4;
+  let sourceOffset = 0;
+  const previous = Buffer.alloc(stride);
+  const current = Buffer.alloc(stride);
+  let alphaAbove32 = 0;
+  let cornerAlphaAbove32 = 0;
+  let paleHighlightPixels = 0;
+
+  for (let y = 0; y < height; y += 1) {
+    const filter = inflated[sourceOffset];
+    sourceOffset += 1;
+    for (let x = 0; x < stride; x += 1) {
+      const raw = inflated[sourceOffset + x];
+      const left = x >= 4 ? current[x - 4] : 0;
+      const up = previous[x];
+      const upLeft = x >= 4 ? previous[x - 4] : 0;
+      let value = raw;
+      if (filter === 1) value = (raw + left) & 255;
+      else if (filter === 2) value = (raw + up) & 255;
+      else if (filter === 3) value = (raw + Math.floor((left + up) / 2)) & 255;
+      else if (filter === 4) {
+        const p = left + up - upLeft;
+        const pa = Math.abs(p - left);
+        const pb = Math.abs(p - up);
+        const pc = Math.abs(p - upLeft);
+        value = (raw + (pa <= pb && pa <= pc ? left : pb <= pc ? up : upLeft)) & 255;
+      }
+      current[x] = value;
+    }
+    sourceOffset += stride;
+    for (let x = 0; x < width; x += 1) {
+      const alpha = current[x * 4 + 3];
+      if (alpha > 32) {
+        alphaAbove32 += 1;
+        const red = current[x * 4];
+        const green = current[x * 4 + 1];
+        const blue = current[x * 4 + 2];
+        if (red > 230 && green > 200 && blue > 120) paleHighlightPixels += 1;
+        const inCorner = (x < 48 || x >= width - 48) && (y < 48 || y >= height - 48);
+        if (inCorner) cornerAlphaAbove32 += 1;
+      }
+    }
+    current.copy(previous);
+  }
+
+  return { alphaAbove32, cornerAlphaAbove32, paleHighlightPixels };
 }
 
 test('github pages root serves the browser preview', () => {
@@ -904,35 +1018,95 @@ test('browser preview labels knot and resolved dates in detail cards', () => {
 });
 
 test('mini program mirrors the static entry, cabinet home, and add-rope page', () => {
+  const miniCabinetSlots = miniCssBlockLast('.cabinet-slots');
+  const miniCabinetSlot = miniCssBlockLast('.cabinet-slot');
+  const miniCabinetChrome = cssBlockFrom(
+    miniWxss,
+    '.cabinet-stack::before,\n.cabinet-stack::after,\n.cabinet-top,\n.cabinet-bottom',
+  );
+  const miniCabinetRowChrome = cssBlockFrom(miniWxss, '.cabinet-row::before,\n.cabinet-row::after');
+  const miniCabinetFront = miniCssBlockLast('.cabinet-front');
+  const miniRopeTile = miniCssBlockLast('.rope-tile');
+  const miniRopeStem = miniCssBlockLast('.rope-tile::after');
+  const miniHomeControlBar = miniCssBlockLast('.home-control-bar');
+  const miniHomeControlTape = miniCssBlockLast('.home-control-bar::before');
+  const miniHomeControlButtons = cssBlockFrom(
+    miniWxss,
+    '.home-control-bar .settings-toggle,\n.home-control-bar .home-search-toggle,\n.home-control-bar .add-rope-action',
+    '',
+    true,
+  );
+  const miniConfig = JSON.parse(miniAppJson);
+  assert.ok(miniConfig.pages.includes('pages/add-rope/add-rope'));
   assert.ok(miniWxml.includes('id="loginGate"'));
   assert.ok(miniWxml.includes('class="login-gate image-login-gate"'));
   assert.ok(miniWxml.includes('../../assets/login-cabinet-door.png'));
+  assert.ok(miniWxml.includes('class="login-cabinet-image"\n        src="../../assets/login-cabinet-door.png"\n        mode="aspectFill"'));
   assert.ok(miniWxml.includes('bindtap="enterLoginGate"'));
-  assert.ok(miniWxml.includes('<view\n        id="loginEnterAction"'));
-  assert.ok(!miniWxml.includes('id="loginEnterAction"\n        class="login-enter-action image-login-enter-action"\n        type="button"'));
+  assert.ok(miniWxml.includes('<button\n        id="loginEnterAction"'));
+  assert.ok(miniWxml.includes('id="loginEnterAction"\n        class="login-enter-action image-login-enter-action"\n        type="button"\n        bindtap="enterLoginGate"'));
   assert.ok(miniWxml.includes('id="homePage"'));
   assert.ok(miniWxml.includes('id="ropeShelf"'));
+  assert.ok(!miniWxml.includes('id="homeShelfCanvas"'));
+  assert.ok(!miniWxml.includes('canvas-id="homeShelfCanvas"'));
+  assert.ok(!miniWxml.includes('class="home-shelf-canvas"'));
+  assert.ok(miniWxml.includes('class="home-shelf-stage"'));
+  assert.ok(miniWxml.includes('class="cabinet-stack home-hit-stack"'));
+  assert.ok(miniWxml.includes('style="height: {{homeShelfHeight}}px;"'));
   assert.ok(miniWxml.includes('../../assets/home-rope-sign-transparent.png'));
   assert.ok(miniWxml.includes('bindtap="enterRopeFromShelf"'));
-  assert.ok(miniWxml.includes('id="addRopePage"'));
-  assert.ok(miniWxml.includes('data-rope-mode="single"'));
-  assert.ok(miniWxml.includes('data-rope-mode="couple"'));
-  assert.ok(miniWxml.includes('id="addRopeNameInput"'));
-  assert.ok(miniWxml.includes('bindinput="onAddRopeNameInput"'));
-  assert.ok(miniWxml.includes('id="createRopeFromAddPage"'));
-  assert.ok(miniWxml.includes('bindtap="createNamedRope"'));
+  assert.ok(!miniWxml.includes('id="addRopePage"'));
+  assert.ok(miniWxml.includes('bindtap="openAddRopePage"'));
+  assert.ok(miniPage.includes("this.navigateOnce('/pages/add-rope/add-rope');"));
+  assert.ok(miniAddWxml.includes('id="addRopePage"'));
+  assert.ok(miniAddWxml.includes('data-rope-mode="single"'));
+  assert.ok(miniAddWxml.includes('data-rope-mode="couple"'));
+  assert.ok(miniAddWxml.includes('id="addRopeNameInput"'));
+  assert.ok(miniAddWxml.includes('bindinput="onAddRopeNameInput"'));
+  assert.ok(miniAddWxml.includes('id="createRopeFromAddPage"'));
+  assert.ok(miniAddWxml.includes('bindtap="createNamedRope"'));
   assert.ok(miniWxml.includes('id="settingsDock"'));
   assert.ok(miniWxml.includes('id="recordTimelineDock"'));
   assert.ok(miniWxml.includes('id="exchangeDock"'));
   assert.ok(miniWxml.includes('id="globalSearchDock"'));
-  assert.ok(miniWxml.includes('class="search-icon-ring"'));
-  assert.ok(miniWxml.includes('class="search-icon-glint"'));
-  assert.ok(miniWxml.includes('class="search-icon-handle"'));
+  assert.ok(miniWxml.includes('<block wx:if="{{viewMode === \'rope\' && !showNote && !showDetail && !showNotebook}}">'));
+  assert.ok(miniWxml.includes('<cover-view id="statsBar" class="stats-bar"'));
+  assert.ok(miniWxml.includes('class="stat-item stat-item-{{index}}"'));
+  assert.ok(miniWxml.includes('<cover-view id="backHomeAction" class="back-home-action" bindtap="goHome"'));
+  assert.ok(miniWxml.includes('<cover-view class="rope-tab-char">返</cover-view>'));
+  assert.ok(miniWxml.includes('<cover-view class="rope-tab-char">绳</cover-view>'));
+  assert.ok(miniWxml.includes('<cover-view id="timelineToggle" class="timeline-toggle rope-timeline-toggle" bindtap="toggleTimelineDock"'));
+  assert.ok(miniWxml.includes('<cover-view id="exchangeDock" class="exchange-dock"'));
+  assert.ok(miniWxml.includes('<cover-view id="exchangeButton" class="exchange-button" bindtap="toggleExchangeDock"'));
+  assert.ok(!miniWxml.includes('<view wx:if="{{viewMode === \'rope\' && !showNote && !showDetail && !showNotebook}}" class="rope-ui-layer">'));
+  assert.ok(!miniWxml.includes('<button id="backHomeAction"'));
+  assert.ok(!miniWxml.includes('<button id="timelineToggle"'));
+  assert.ok(!miniWxml.includes('<button id="exchangeButton"'));
+  assert.ok(miniWxml.includes('class="home-control-icon settings-icon-image"'));
+  assert.ok(miniWxml.includes('class="home-control-icon create-icon-image"'));
+  assert.ok(miniWxml.includes('class="home-control-icon search-icon-image"'));
+  assert.ok(miniWxml.includes('../../assets/home-icon-settings.png'));
+  assert.ok(miniWxml.includes('../../assets/home-icon-create.png'));
+  assert.ok(miniWxml.includes('../../assets/home-icon-search.png'));
+  assert.ok(miniWxml.includes('style="--row-index: {{item.rowIndex}}; --row-center: {{item.rowCenter}};"'));
+  assert.ok(miniWxml.includes('style="--tile-index: {{slot.tileIndex}}; --tile-shift-x: {{slot.visualShiftX}}rpx;"'));
+  assert.ok(miniPage.includes('visualShiftX: slotIndex === 0 ? -46 : 46'));
+  assert.ok(!miniWxml.includes('settings-gear-logo'));
+  assert.ok(!miniWxml.includes('add-rope-plus'));
+  assert.ok(!miniWxml.includes('class="search-icon-ring"'));
+  assert.ok(!miniWxml.includes('class="search-icon-glint"'));
+  assert.ok(!miniWxml.includes('class="search-icon-handle"'));
   assert.ok(!miniWxml.includes('先点下面的'));
   assert.ok(!miniWxml.includes('brand-title">绳话'));
   assert.ok(!miniWxml.includes('open-type="share">邀请'));
   assert.ok(miniWxss.includes('.login-cabinet-image'));
-  assert.ok(miniWxss.includes('height: 1180rpx;'));
+  assert.ok(miniCssBlockLast('.login-gate').includes('padding: 0;'));
+  assert.ok(miniCssBlockLast('.login-cabinet-frame').includes('top: 0;'));
+  assert.ok(miniCssBlockLast('.login-cabinet-frame').includes('bottom: 0;'));
+  assert.ok(!miniCssBlockLast('.login-cabinet-frame').includes('top: 44rpx;'));
+  assert.ok(!miniCssBlockLast('.login-cabinet-frame').includes('bottom: -44rpx;'));
+  assert.ok(miniCssBlockLast('.login-cabinet-frame').includes('width: 760rpx;'));
+  assert.ok(miniCssBlockLast('.login-cabinet-image').includes('height: 100%;'));
   assert.ok(miniWxss.includes('top: 59.4%;'));
   assert.ok(miniWxss.includes('width: 248rpx;'));
   assert.ok(miniWxss.includes('height: 248rpx;'));
@@ -941,33 +1115,164 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxss.includes('border-radius: 999rpx;'));
   assert.ok(miniWxss.includes('transform: translate(-50%, -50%);'));
   assert.ok(miniWxss.includes('transform: translate(-50%, -50%) scale(0.96);'));
+  assert.ok(miniCssBlockLast('.login-enter-glow::after').includes('top: 22%;'));
+  assert.ok(miniCssBlockLast('.login-enter-glow::after').includes('left: 12%;'));
+  assert.ok(miniCssBlockLast('.login-enter-glow::after').includes('width: 58%;'));
+  assert.ok(miniCssBlockLast('.login-enter-glow::after').includes('height: 25%;'));
+  assert.ok(miniCssBlockLast('.login-enter-glow::after').includes('opacity: 0.52;'));
+  assert.ok(miniCssBlockLast('.login-enter-glow::after').includes('filter: blur(8rpx);'));
   assert.ok(miniWxss.includes('animation: loginGlowBreath 2.8s ease-in-out infinite;'));
   assert.ok(miniWxss.includes('@keyframes loginGlowBreath'));
   assert.ok(miniWxss.includes('.cabinet-stack'));
+  assert.ok(miniWxss.includes('.home-shelf-stage'));
+  assert.ok(!miniWxss.includes('.home-shelf-canvas'));
+  assert.ok(!cssBlockFrom(miniWxss, '.home-hit-stack').includes('background: transparent;'));
+  assert.ok(!miniWxss.includes('.home-hit-stack .rope-coil,\n.home-hit-stack .rope-note {\n  display: none;'));
+  assert.ok(!miniWxss.includes('.home-hit-stack .cabinet-front,\n.home-hit-stack .cabinet-row::before,\n.home-hit-stack .cabinet-row::after'));
+  assert.ok(miniWxss.includes('.home-hit-stack {\n  position: relative;\n  z-index: 2;'));
   assert.ok(miniWxss.includes('box-sizing: border-box;\n  min-height: 100%;\n  padding: 60rpx 36rpx 84rpx;'));
   assert.ok(miniWxss.includes('right: 0;\n  left: 0;\n  z-index: 14;\n  height: 26rpx;'));
   assert.ok(!miniWxss.includes('right: -24rpx;\n  left: -24rpx;'));
-  assert.ok(miniWxss.includes('grid-template-columns: 96rpx 100rpx 96rpx;'));
+  assert.ok(miniCabinetSlots.includes('display: grid'));
+  assert.ok(miniCssBlockLast('.rope-shelf').includes('padding-top: 0;'));
+  assert.ok(miniCabinetSlots.includes('position: relative;'));
+  assert.ok(miniCabinetSlots.includes('z-index: 16;'));
+  assert.ok(miniCabinetSlots.includes('pointer-events: auto;'));
+  assert.ok(miniCabinetSlots.includes('grid-template-columns: repeat(2, minmax(0, 1fr));'));
+  assert.ok(miniCabinetSlots.includes('gap: 56rpx;'));
+  assert.ok(miniCabinetSlots.includes('min-height: 182rpx;'));
+  assert.ok(!miniCabinetSlots.includes('bottom: 78rpx;'));
+  assert.ok(miniCabinetSlot.includes('min-height: 192rpx;'));
+  assert.ok(!miniCabinetSlots.includes('display: flex'));
+  assert.ok(!miniCabinetSlots.includes('justify-content: space-between'));
+  assert.ok(!miniCabinetSlot.includes('width: 43%'));
+  assert.ok(miniCabinetChrome.includes('pointer-events: none;'));
+  assert.ok(miniCabinetRowChrome.includes('pointer-events: none;'));
+  assert.ok(miniCabinetFront.includes('pointer-events: none;'));
+  assert.ok(miniRopeStem.includes('pointer-events: none;'));
+  assert.ok(!miniWxss.includes('filter:\n  filter:'));
+  assert.ok(miniCssBlockLast('.cabinet-row').includes('transform: none;'));
+  assert.ok(!miniWxss.includes('transform: rotate(calc((var(--row-index) - var(--row-center)) * 0.14deg));'));
+  assert.ok(miniRopeTile.includes('z-index: 17;'));
+  assert.ok(miniRopeTile.includes('pointer-events: auto;'));
+  assert.ok(miniRopeTile.includes('transform: none;'));
+  assert.ok(miniRopeTile.includes('display: block;'));
+  assert.ok(miniRopeTile.includes('height: 200rpx;'));
+  assert.ok(miniRopeTile.includes('box-sizing: border-box;'));
+  assert.ok(miniRopeTile.includes('margin: 0;'));
+  assert.ok(miniRopeTile.includes('padding: 8rpx 0 0;'));
+  assert.ok(!miniRopeTile.includes('padding-top: 8rpx;'));
+  assert.ok(miniRopeTile.includes('line-height: 1;'));
+  assert.ok(miniRopeTile.includes('--tile-shift-x: 0rpx;'));
+  assert.ok(miniRopeTile.includes('--tile-rope-x: calc(50% + var(--tile-shift-x));'));
+  assert.ok(!miniRopeTile.includes('place-items: start center;'));
+  assert.ok(miniCssBlockLast('.rope-tile::after').includes('left: var(--tile-rope-x);'));
+  assert.ok(miniCssBlockLast('.rope-tile::after').includes('transform: translateX(-50%);'));
+  assert.ok(miniCssBlockLast('.rope-coil').includes('position: absolute;'));
+  assert.ok(miniCssBlockLast('.rope-coil').includes('left: var(--tile-rope-x);'));
+  assert.ok(miniCssBlockLast('.rope-coil').includes('transform: translateX(-50%);'));
+  assert.ok(miniCssBlockLast('.rope-coil-line-a').includes('left: 30rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil-line-a').includes('transform: rotate(-3deg);'));
+  assert.ok(miniCssBlockLast('.rope-coil-line-b').includes('left: 38rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil-line-b').includes('transform: rotate(11deg);'));
+  assert.ok(miniCssBlockLast('.rope-coil-line-c').includes('left: 24rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil-line-c').includes('transform: rotate(-15deg);'));
+  assert.ok(miniCssBlockLast('.rope-note').includes('left: var(--tile-rope-x);'));
+  assert.ok(miniCssBlockLast('.rope-note').includes('bottom: -50rpx;'));
+  assert.ok(miniCssBlockLast('.rope-note').includes('transform: translateX(-50%) rotate(-0.5deg);'));
+  assert.ok(!miniWxss.includes('transform: rotate(calc((var(--tile-index) - 2) * 0.18deg));'));
+  assert.ok(miniWxss.includes('background-blend-mode: multiply, screen, normal;'));
+  assert.ok(miniWxss.includes('grid-template-columns: repeat(3, 88rpx);'));
+  assert.ok(miniHomeControlBar.includes('z-index: 30;'));
+  assert.ok(miniHomeControlBar.includes('pointer-events: auto;'));
+  assert.ok(miniHomeControlBar.includes('overflow: visible;'));
+  assert.ok(miniHomeControlTape.includes('content: "";'));
+  assert.ok(miniHomeControlTape.includes('right: 34rpx;'));
+  assert.ok(miniHomeControlTape.includes('top: -14rpx;'));
+  assert.ok(miniHomeControlTape.includes('width: 86rpx;'));
+  assert.ok(miniHomeControlTape.includes('height: 30rpx;'));
+  assert.ok(miniHomeControlTape.includes('pointer-events: none;'));
+  assert.ok(miniHomeControlTape.includes('transform: rotate(-7deg);'));
   assert.ok(miniWxss.includes('.home-control-bar .settings-toggle,\n.home-control-bar .home-search-toggle,\n.home-control-bar .add-rope-action'));
-  assert.ok(miniWxss.includes('width: 76rpx;\n  height: 76rpx;\n  min-height: 76rpx;'));
-  assert.ok(miniWxss.includes('.home-control-bar .add-rope-action {\n  width: 92rpx;'));
-  assert.ok(miniWxss.includes('.home-control-bar .search-icon-ring'));
-  assert.ok(miniWxss.includes('.home-control-bar .search-icon-handle'));
+  assert.ok(miniHomeControlButtons.includes('pointer-events: auto;'));
+  assert.ok(miniWxss.includes('width: 88rpx;\n  height: 88rpx;\n  min-height: 88rpx;'));
+  assert.ok(miniWxss.includes('.home-control-icon'));
+  assert.ok(miniWxss.includes('width: 64rpx;\n  height: 64rpx;'));
+  assert.ok(!miniWxss.includes('.home-control-bar .add-rope-action {\n  width: 92rpx;'));
+  assert.ok(!miniWxss.includes('.home-control-bar .search-icon-ring'));
+  assert.ok(!miniWxss.includes('.home-control-bar .search-icon-handle'));
+  assert.ok(miniWxss.includes('.back-home-action,\n.rope-timeline-toggle,\n.record-timeline-dock,\n.exchange-dock {\n  pointer-events: auto;'));
+  assert.ok(miniWxss.includes('background-color: rgba(249, 238, 207, 0.86);'));
+  assert.ok(miniWxss.includes('background-color: rgba(249, 236, 203, 0.82);'));
+  assert.ok(miniWxss.includes('background-color: rgba(250, 237, 203, 0.94);'));
+  assert.ok(miniWxss.includes('background-color: rgba(252, 242, 214, 0.86);'));
+  assert.ok(miniWxss.includes('.stat-item-0'));
+  assert.ok(miniWxss.includes('.rope-tab-char'));
   assert.ok(miniWxml.includes('class="rope-coil"'));
   assert.ok(miniWxml.includes('class="rope-coil-line rope-coil-line-a"'));
   assert.ok(!miniWxml.includes('rope-drop'));
   assert.ok(miniWxss.includes('.rope-coil'));
   assert.ok(miniWxss.includes('.rope-coil-line'));
-  assert.ok(miniWxss.includes('.rope-add-page'));
+  assert.ok(miniAddWxss.includes('.rope-add-page'));
+  assert.ok(miniPage.includes('rowCenter: (rows - 1) / 2'));
+  assert.ok(miniPage.includes('tileIndex: rowIndex * 2 + slotIndex'));
+  assert.ok(miniPage.includes('homeShelfHeight'));
+  assert.ok(miniPage.includes('homeShelfMetrics('));
+  assert.ok(!miniPage.includes('homeShelfWidth'));
+  assert.ok(!miniPage.includes('drawHomeShelfCanvas('));
+  assert.ok(!miniPage.includes('drawHomeCabinetRow('));
+  assert.ok(!miniPage.includes('drawHomeRopeTile('));
   assert.ok(miniPage.includes("viewMode: 'login'"));
   assert.ok(miniPage.includes('enterLoginGate('));
   assert.ok(miniPage.includes('openAddRopePage('));
-  assert.ok(miniPage.includes('createNamedRope('));
+  assert.ok(miniAddPage.includes('createNamedRope('));
   assert.ok(miniPage.includes('enterRopeFromShelf('));
+  assert.ok(miniAddWxml.includes('class="add-rope-board"'));
+  assert.ok(miniAddCssBlock('.add-rope-board').includes('width: 690rpx;'));
+  assert.ok(miniAddCssBlock('.add-rope-board').includes('height: calc(100vh - 112rpx);'));
+  assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">返</text>'));
+  assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">回</text>'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('left: 8rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('width: 76rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('height: 176rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back::before').includes('width: 44rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back::before').includes('height: 28rpx'));
+  assert.ok(cssBlockFrom(miniAddWxss, '.add-mode-title,\n.add-rope-name-card').includes('width: 496rpx'));
+  assert.ok(miniAddCssBlock('.rope-mode-options').includes('width: 620rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-rope').includes('width: 112rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-rope').includes('height: 550rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-tail-image').includes('width: 96rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-tail-image').includes('height: 550rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-tail-image').includes('transform: scaleX(1.18)'));
+  assert.ok(miniAddCssBlock('.create-rope-action').includes('position: relative'));
+  assert.ok(!miniAddCssBlock('.create-rope-action').includes('bottom: 0'));
+  assert.ok(miniAddCssBlock('.create-rope-action').includes('width: 148rpx'));
+  assert.ok(miniAddCssBlock('.create-rope-action').includes('height: 122rpx'));
   miniAssetPaths.forEach((assetPath) => {
     assert.ok(fs.existsSync(assetPath), assetPath);
     assert.ok(fs.statSync(assetPath).size < 2 * 1024 * 1024, assetPath);
   });
+  miniHomeIconFiles.forEach((file) => {
+    const size = pngSize(path.join(root, 'miniprogram/assets', file));
+    assert.strictEqual(size.width, size.height, file);
+  });
+  const searchIconStats = pngAlphaStats(path.join(root, 'miniprogram/assets/home-icon-search.png'));
+  assert.ok(searchIconStats.alphaAbove32 > 30000);
+  assert.ok(searchIconStats.cornerAlphaAbove32 < 16);
+  assert.ok(searchIconStats.paleHighlightPixels < 400);
+});
+
+test('mini program is local-only and does not expose cloud service hooks', () => {
+  assert.ok(!miniApp.includes('wx.cloud'));
+  assert.ok(!miniApp.includes('cloudReady'));
+  assert.ok(!miniStoreSource.includes('wx.cloud'));
+  assert.ok(!miniStoreSource.includes('cloudReady'));
+  assert.ok(!miniStoreSource.includes('callFunction'));
+  assert.ok(!miniStoreSource.includes('database()'));
+  assert.ok(!miniStoreSource.includes('CLOUD_'));
+  assert.ok(!rootProjectConfig.includes('cloudfunctionRoot'));
+  assert.ok(!pkg.includes('cloudfunctions/login'));
+  assert.ok(!fs.existsSync(path.join(root, 'cloudfunctions/login')));
 });
 
 test('mini program rope store creates named ropes and keeps rope records isolated', async () => {
@@ -1012,11 +1317,9 @@ test('mini program rope store creates named ropes and keeps rope records isolate
   delete require.cache[require.resolve(storePath)];
 });
 
-test('mini program rope store does not block local writes on slow cloud sync', async () => {
+test('mini program rope store ignores wx.cloud and stays local-only', async () => {
   const storage = {};
-  const never = new Promise(() => {});
-  const originalWarn = console.warn;
-  console.warn = () => {};
+  let cloudCalls = 0;
   global.wx = {
     getStorageSync(key) {
       return storage[key];
@@ -1028,35 +1331,17 @@ test('mini program rope store does not block local writes on slow cloud sync', a
       delete storage[key];
     },
     cloud: {
-      init() {},
+      init() {
+        cloudCalls += 1;
+        throw new Error('cloud should not be initialized');
+      },
+      callFunction() {
+        cloudCalls += 1;
+        throw new Error('cloud function should not be called');
+      },
       database() {
-        return {
-          command: {
-            addToSet(value) {
-              return value;
-            },
-          },
-          serverDate() {
-            return new Date();
-          },
-          collection() {
-            return {
-              doc() {
-                return {
-                  get() {
-                    return never;
-                  },
-                  update() {
-                    return never;
-                  },
-                  set() {
-                    return never;
-                  },
-                };
-              },
-            };
-          },
-        };
+        cloudCalls += 1;
+        throw new Error('cloud database should not be opened');
       },
     },
   };
@@ -1066,35 +1351,35 @@ test('mini program rope store does not block local writes on slow cloud sync', a
   try {
     const miniStore = require(storePath);
 
-    const session = { cloudReady: true, openid: 'test-user', ropeId: '' };
+    const homeBefore = await miniStore.loadHomeState();
+    const session = { openid: homeBefore.openid, ropeId: '' };
     const timeout = (message, ms = 250) => new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms));
     const rope = await Promise.race([
-      miniStore.createRope(session, { name: '不等云的绳', mode: 'single' }),
-      timeout('local rope create blocked by cloud sync'),
+      miniStore.createRope(session, { name: '只存本地的绳', mode: 'single' }),
+      timeout('local rope create blocked'),
     ]);
 
     const knot = await Promise.race([
-      miniStore.createKnot({ cloudReady: true, openid: 'test-user', ropeId: rope.ropeId }, { content: '先写本地', anchorY: 180 }),
-      timeout('local knot create blocked by cloud sync'),
+      miniStore.createKnot({ openid: session.openid, ropeId: rope.ropeId }, { content: '先写本地', anchorY: 180 }),
+      timeout('local knot create blocked'),
     ]);
 
     const loadedSession = await Promise.race([
       miniStore.initSession(rope.ropeId),
-      timeout('session init blocked by cloud read', 1500),
+      timeout('session init blocked'),
     ]);
     const state = await Promise.race([
-      miniStore.loadState({ cloudReady: true, openid: 'test-user', ropeId: rope.ropeId }),
-      timeout('state load blocked by cloud read', 1500),
+      miniStore.loadState({ openid: session.openid, ropeId: rope.ropeId }),
+      timeout('state load blocked'),
     ]);
 
-    assert.strictEqual(rope.name, '不等云的绳');
+    assert.strictEqual(rope.name, '只存本地的绳');
     assert.strictEqual(knot.content, '先写本地');
     assert.strictEqual(loadedSession.ropeId, rope.ropeId);
     assert.strictEqual(state.rope.ropeId, rope.ropeId);
     assert.strictEqual(state.events[0].content, '先写本地');
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    assert.strictEqual(cloudCalls, 0);
   } finally {
-    console.warn = originalWarn;
     delete global.wx;
     delete require.cache[require.resolve(storePath)];
   }
@@ -1103,9 +1388,12 @@ test('mini program rope store does not block local writes on slow cloud sync', a
 test('mini program uses 750rpx layout and unmounts closed overlays so buttons remain tappable', () => {
   assert.ok(miniWxss.includes('width: 750rpx'));
   assert.ok(miniWxss.includes('rpx'));
+  assert.ok(miniAddWxss.includes('width: 750rpx'));
+  assert.ok(miniAddWxss.includes('rpx'));
   assert.ok(!/\d+(?:\.\d+)?px\b/.test(miniWxss));
+  assert.ok(!/\d+(?:\.\d+)?px\b/.test(miniAddWxss));
   assert.ok(!miniWxss.includes('vw'));
-  assert.ok(!miniWxss.includes('pointer-events'));
+  assert.ok(!miniAddWxss.includes('vw'));
   assert.ok(miniWxml.includes('wx:if="{{viewMode === \'rope\'}}"'));
   assert.ok(miniWxml.includes('class="rope-canvas"'));
   assert.ok(!miniWxml.includes('canvas-hidden'));
@@ -1113,18 +1401,96 @@ test('mini program uses 750rpx layout and unmounts closed overlays so buttons re
   assert.ok(!miniWxml.includes('rope-paper-fallback'));
   assert.ok(miniPage.includes("const PAPER = '#caa36f';"));
   assert.ok(miniWxss.includes('.home-page,\n.rope-add-page {\n  margin: 0;'));
+  assert.ok(miniAddWxss.includes('.rope-add-page'));
   assert.ok(miniWxss.includes('width: 750rpx;\n  max-width: none;\n  border-radius: 0;'));
   assert.ok(miniWxss.includes('.home-title-image {\n  position: absolute;\n  z-index: 4;\n  top: 0;'));
-  assert.ok(miniWxss.includes('.create-rope-action {\n  position: absolute;\n  left: 50%;\n  bottom: 0;'));
+  assert.ok(miniAddWxss.includes('.create-rope-action'));
+  assert.ok(miniAddWxss.includes('position: relative;'));
+  assert.ok(!miniAddCssBlock('.create-rope-action').includes('bottom: 0;'));
   assert.ok(miniWxss.includes('writing-mode: vertical-rl'));
   assert.ok(miniPage.includes('setDataAsync(data)'));
+  assert.ok(miniPage.includes('isNavigating: false'));
+  assert.ok(miniPage.includes('navigateOnce(url)'));
+  assert.ok(miniPage.includes('if (this.isNavigating) return;'));
+  assert.ok(miniPage.includes('this.isNavigating = true;'));
+  assert.ok(miniPage.includes('this.isNavigating = false;'));
   assert.ok(miniPage.includes('retries < 5'));
-  assert.ok(miniPage.includes('await this.reload();\n    this.initCanvas();'));
+  assert.ok(miniRopePage.includes('await this.reload();\n      this.initCanvas();'));
   assert.ok(miniWxml.includes('wx:if="{{settingsOpen}}"'));
   assert.ok(miniWxml.includes('wx:if="{{globalSearchOpen}}"'));
+  assert.ok(miniWxml.includes('id="globalSearchDock" class="record-timeline-dock global-search-dock open"'));
+  assert.ok(miniWxml.includes('style="top: {{safeTop + 90}}px;"'));
+  assert.ok(miniWxml.includes('style="top: {{safeTop + 88}}px;"'));
+  assert.ok(miniWxml.includes('class="global-search-empty"'));
+  assert.ok(miniWxml.includes('写下关键词，会从每根绳里一起找。'));
+  assert.ok(miniWxml.includes('class="global-search-entry"'));
   assert.ok(miniWxml.includes('wx:if="{{timelineOpen}}"'));
   assert.ok(miniWxml.includes('wx:if="{{exchangeOpen}}"'));
   assert.ok(!miniWxml.includes("{{settingsOpen ? 'open' : ''}}"));
   assert.ok(!miniWxml.includes("{{globalSearchOpen ? 'open' : ''}}"));
   assert.ok(!miniWxml.includes("{{timelineOpen ? 'open' : ''}}"));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('bottom: auto;'));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('display: grid;'));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('grid-template-columns: 40rpx 1fr;'));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('gap: 16rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('width: 356rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('height: auto;'));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('max-height: none;'));
+  assert.ok(miniCssBlockLast('.settings-dock').includes('transform-origin: left center;'));
+  assert.ok(miniCssBlockLast('.settings-dock.open').includes('transform: translateX(0) rotate(-0.8deg) scale(1);'));
+  assert.ok(miniCssBlockLast('.settings-dock::before').includes('left: 62rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock::after').includes('top: -20rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock .dock-rail').includes('position: relative;'));
+  assert.ok(miniCssBlockLast('.settings-dock .dock-rail').includes('display: grid;'));
+  assert.ok(miniCssBlockLast('.settings-dock .dock-close').includes('min-height: 40rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock .dock-close::after').includes('border: 0;'));
+  assert.ok(miniCssBlockLast('.settings-dock .settings-list').includes('grid-column: 2;'));
+  assert.ok(miniCssBlockLast('.settings-dock .settings-list').includes('gap: 20rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock .settings-list').includes('overflow: hidden;'));
+  assert.ok(miniCssBlockLast('.settings-dock .drawer-hint').includes('box-sizing: border-box;'));
+  assert.ok(miniCssBlockLast('.settings-dock .drawer-hint').includes('width: 100%;'));
+  assert.ok(miniCssBlockLast('.settings-dock .drawer-hint').includes('min-width: 0;'));
+  assert.ok(miniCssBlockLast('.settings-dock .settings-action').includes('min-height: 136rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock .settings-action').includes('box-sizing: border-box;'));
+  assert.ok(miniCssBlockLast('.settings-dock .settings-action').includes('width: 100%;'));
+  assert.ok(miniCssBlockLast('.settings-dock .settings-action').includes('min-width: 0;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-panel').includes('box-sizing: border-box;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-panel').includes('width: 100%;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-panel').includes('display: grid;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-panel').includes('overflow: hidden;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-copy').includes('box-sizing: border-box;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-copy').includes('font-size: 20rpx;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-actions').includes('display: grid;'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-actions').includes('grid-template-columns: repeat(2, minmax(0, 1fr));'));
+  assert.ok(miniCssBlockLast('.settings-dock .reset-confirm-actions').includes('gap: 12rpx;'));
+  const settingsResetButtons = cssBlockFrom(
+    miniWxss,
+    '.settings-dock .reset-confirm-actions .text-button,\n.settings-dock .reset-confirm-actions .ink-button',
+    '',
+    true,
+  );
+  assert.ok(settingsResetButtons.includes('margin-left: 0;'));
+  assert.ok(settingsResetButtons.includes('min-width: 0;'));
+  assert.ok(settingsResetButtons.includes('padding: 0 8rpx;'));
+  assert.ok(!miniCssBlockLast('.settings-dock').includes('bottom: 236rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-dock').includes('width: 318rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-dock').includes('right: 16rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-dock').includes('bottom: 244rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-dock').includes('grid-template-columns: 40rpx 1fr;'));
+  assert.ok(miniCssBlockLast('.global-search-dock .dock-rail').includes('position: relative;'));
+  assert.ok(miniCssBlockLast('.global-search-dock .dock-rail').includes('display: grid;'));
+  assert.ok(miniCssBlockLast('.global-search-dock .dock-rail').includes('gap: 16rpx;'));
+  assert.ok(!miniCssBlockLast('.global-search-dock .dock-rail').includes('position: absolute;'));
+  assert.ok(miniCssBlockLast('.global-search-dock .dock-close').includes('min-height: 40rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-dock .dock-close').includes('padding: 0;'));
+  assert.ok(miniCssBlockLast('.global-search-dock .dock-close::after').includes('border: 0;'));
+  assert.ok(miniCssBlockLast('.global-search-dock::before').includes('left: 58rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-dock::after').includes('top: -20rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-body').includes('display: grid;'));
+  assert.ok(miniCssBlockLast('.global-search-body').includes('grid-column: 2;'));
+  assert.ok(miniCssBlockLast('.global-search-body').includes('min-width: 0;'));
+  assert.ok(miniCssBlockLast('.global-search-body').includes('gap: 18rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-box').includes('width: 100%;'));
+  assert.ok(miniCssBlockLast('.global-search-box').includes('min-height: 76rpx;'));
+  assert.ok(miniCssBlockLast('.global-search-empty').includes('border: 2rpx dashed'));
 });

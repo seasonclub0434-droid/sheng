@@ -1,0 +1,61 @@
+<view id="addRopePage" class="page rope-add-page" aria-label="添加绳结">
+  <view class="add-rope-board">
+    <button id="addRopeBack" class="add-rope-back" type="button" bindtap="goHome">
+      <text class="add-rope-back-char">返</text>
+      <text class="add-rope-back-char">回</text>
+    </button>
+    <view class="add-rope-panel">
+      <view class="add-mode-title">选择你的绳结模式</view>
+      <view class="rope-mode-options" aria-label="绳结模式">
+        <button
+          class="rope-mode-card {{addRopeMode === 'single' ? 'selected' : ''}}"
+          type="button"
+          data-rope-mode="single"
+          bindtap="selectAddRopeMode"
+          aria-label="选择单人绳结模式"
+        >
+          <view class="rope-mode-orbit">
+            <image class="rope-mode-image single-mode-image" src="../../assets/rope-mode-single-cutout.png" mode="aspectFit" />
+          </view>
+          <text class="rope-mode-label">单人</text>
+        </button>
+        <button
+          class="rope-mode-card {{addRopeMode === 'couple' ? 'selected' : ''}}"
+          type="button"
+          data-rope-mode="couple"
+          bindtap="selectAddRopeMode"
+          aria-label="选择双人绳结模式"
+        >
+          <view class="rope-mode-orbit">
+            <image class="rope-mode-image couple-mode-image" src="../../assets/rope-mode-couple-cutout.png" mode="aspectFit" />
+          </view>
+          <text class="rope-mode-label">双人</text>
+        </button>
+      </view>
+      <view wx:if="{{addRopeMode}}" class="add-rope-name-card progressive-reveal">
+        <text>命名你的绳结</text>
+        <input
+          id="addRopeNameInput"
+          class="add-rope-name-input"
+          type="text"
+          maxlength="12"
+          value="{{addRopeName}}"
+          placeholder="输入绳子的名字"
+          placeholder-class="add-rope-input-placeholder"
+          bindinput="onAddRopeNameInput"
+        />
+      </view>
+      <view wx:if="{{addRopeMode}}" class="add-rope-rope progressive-reveal">
+        <image class="add-rope-tail-image" src="../../assets/add-rope-tail-v1.png" mode="aspectFit" />
+      </view>
+      <button
+        wx:if="{{canCreateRope}}"
+        id="createRopeFromAddPage"
+        class="create-rope-action ready progressive-reveal"
+        type="button"
+        aria-disabled="{{!canCreateRope}}"
+        bindtap="createNamedRope"
+      >创建</button>
+    </view>
+  </view>
+</view>

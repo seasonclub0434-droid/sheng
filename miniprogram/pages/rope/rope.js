@@ -96,9 +96,11 @@ Page({
     canvasHeight: 667,
     homeShelfHeight: 612,
     safeTop: 0,
+    menuButtonLeft: 0,
+    menuButtonBottom: 0,
     loading: true,
     saving: false,
-    viewMode: 'login',
+    viewMode: 'rope',
     homeRopes: [],
     homeRows: [],
     statsItems: [],
@@ -137,14 +139,15 @@ Page({
   maxScrollY: 0,
   contentHeight: 0,
   layoutItems: [],
+  uiHits: [],
   touchStart: null,
   moved: false,
   pendingAnchorY: 180,
   shouldScrollToLatest: true,
-  isNavigating: false,
 
   onLoad(options) {
     const info = wx.getSystemInfoSync();
+    const menuButton = typeof wx.getMenuButtonBoundingClientRect === 'function' ? wx.getMenuButtonBoundingClientRect() : null;
     const safeTop = info.safeArea ? Math.max(info.safeArea.top - 6, 0) : 0;
     const homeShelfHeight = Math.round((info.windowWidth * (60 + 4 * 270 + 84)) / 750);
     this.setData({
@@ -152,6 +155,8 @@ Page({
       canvasHeight: info.windowHeight,
       homeShelfHeight,
       safeTop,
+      menuButtonLeft: menuButton && Number.isFinite(menuButton.left) ? menuButton.left : info.windowWidth,
+      menuButtonBottom: menuButton && Number.isFinite(menuButton.bottom) ? menuButton.bottom : 0,
     });
     this.ropeX = Math.round(info.windowWidth / 2);
     this.bootstrap(options || {});
@@ -165,20 +170,11 @@ Page({
     this.reload().finally(() => wx.stopPullDownRefresh());
   },
 
-  onShow() {
-    this.isNavigating = false;
-    if (this.data.viewMode === 'home') {
-      this.reloadHome('home').catch((error) => {
-        console.error(error);
-      });
-    }
-  },
-
   onShareAppMessage() {
     const ropeId = this.session && this.session.ropeId ? this.session.ropeId : '';
     return {
       title: '和我一起看这根绳子',
-      path: ropeId ? `/pages/rope/rope?ropeId=${ropeId}` : '/pages/index/index',
+      path: `/pages/rope/rope?ropeId=${ropeId}`,
     };
   },
 
@@ -186,6 +182,12 @@ Page({
 
   setDataAsync(data) {
     return new Promise((resolve) => this.setData(data, resolve));
+  },
+
+  resumeCanvas() {
+    this.canvas = null;
+    this.ctx = null;
+    setTimeout(() => this.initCanvas(), 0);
   },
 
   buildHomeRows(ropes) {
@@ -199,7 +201,6 @@ Page({
           slotKey: rope.ropeId,
           ropeId: rope.ropeId,
           tileIndex: rowIndex * 2 + slotIndex,
-          visualShiftX: slotIndex === 0 ? -46 : 46,
           name: rope.name,
           mode: rope.mode,
           openCount: rope.openCount || 0,
@@ -238,11 +239,12 @@ Page({
     return sortByTime(events.concat(ornaments)).map((item) => ({
       id: item.id || item._id,
       date: shortDate(item.createdAt),
-      title: item.type === 'ornament'
-        ? `印章 · ${item.title}`
+      kind: item.type === 'ornament'
+        ? '印章'
         : item.status === 'resolved'
-          ? `解开 · ${item.content || '一个结'}`
-          : `记下 · ${item.content || '一个结'}`,
+          ? '印记'
+          : '绳结',
+      status: item.type === 'ornament' ? 'badge' : item.status === 'resolved' ? 'resolved' : 'open',
       y: item.y || item.anchorY || 0,
     }));
   },
@@ -285,46 +287,37 @@ Page({
     this.setData({ viewMode: 'home' });
   },
 
-  async goHome() {
+  goHome() {
     this.session = null;
     this.canvas = null;
     this.ctx = null;
-    this.isNavigating = false;
     this.scrollY = 0;
     this.setData({
-      viewMode: 'home',
       showNote: false,
       showDetail: false,
       showNotebook: false,
       exchangeOpen: false,
       timelineOpen: false,
+    });
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
+    wx.redirectTo({ url: '/pages/index/index' });
+  },
+
+  openAddRopePage() {
+    this.canvas = null;
+    this.ctx = null;
+    this.setData({
+      viewMode: 'add',
       settingsOpen: false,
       globalSearchOpen: false,
       addRopeMode: '',
       addRopeName: '',
       canCreateRope: false,
     });
-    await this.reloadHome('home');
-  },
-
-  navigateOnce(url) {
-    if (this.isNavigating) return;
-    this.isNavigating = true;
-    wx.navigateTo({
-      url,
-      fail: (error) => {
-        this.isNavigating = false;
-        console.error(error);
-        wx.showToast({ title: '页面暂时打不开', icon: 'none' });
-      },
-    });
-  },
-
-  openAddRopePage() {
-    this.canvas = null;
-    this.ctx = null;
-    this.setData({ settingsOpen: false, globalSearchOpen: false });
-    this.navigateOnce('/pages/add-rope/add-rope');
   },
 
   selectAddRopeMode(event) {
@@ -377,12 +370,17 @@ Page({
   async enterRopeFromShelf(event) {
     const ropeId = event.currentTarget.dataset.ropeId;
     if (!ropeId) return;
-    this.navigateOnce(`/pages/rope/rope?ropeId=${ropeId}`);
+    await this.enterRope(ropeId);
   },
 
   async enterRope(ropeId) {
-    if (!ropeId) return;
-    this.navigateOnce(`/pages/rope/rope?ropeId=${ropeId}`);
+    this.canvas = null;
+    this.ctx = null;
+    await this.setDataAsync({ loading: true, viewMode: 'rope' });
+    this.initCanvas();
+    this.session = await store.setCurrentRope(ropeId);
+    await this.reload();
+    this.initCanvas();
   },
 
   toggleSettingsDock() {
@@ -442,21 +440,41 @@ Page({
   },
 
   toggleTimelineDock() {
-    this.setData({ timelineOpen: !this.data.timelineOpen });
+    this.setData({
+      timelineOpen: !this.data.timelineOpen,
+      exchangeOpen: false,
+    }, () => this.render());
   },
 
   closeTimelineDock() {
-    this.setData({ timelineOpen: false });
+    this.setData({ timelineOpen: false }, () => this.render());
   },
 
   selectTimelineItem(event) {
     const eventId = event.currentTarget.dataset.eventId;
+    this.selectTimelineId(eventId);
+  },
+
+  selectTimelineId(eventId) {
     const selectedTimelineId = this.data.selectedTimelineId === eventId ? '' : eventId;
-    this.setData({ selectedTimelineId });
+    if (selectedTimelineId) {
+      const target = this.layoutItems.find((item) => (item.id || item._id) === selectedTimelineId);
+      if (target) {
+        this.scrollY = Math.max(
+          0,
+          Math.min(this.maxScrollY, target.y - Math.round(this.data.canvasHeight * 0.46))
+        );
+        this.shouldScrollToLatest = false;
+      }
+    }
+    this.setData({ selectedTimelineId }, () => this.render());
   },
 
   toggleExchangeDock() {
-    this.setData({ exchangeOpen: !this.data.exchangeOpen });
+    this.setData({
+      exchangeOpen: !this.data.exchangeOpen,
+      timelineOpen: false,
+    }, () => this.render());
   },
 
   openWriteKnot() {
@@ -488,7 +506,9 @@ Page({
   },
 
   closeNotebook() {
-    this.setData({ showNotebook: false, notebookSearchText: '', notebookItems: [] });
+    this.setData({ showNotebook: false, notebookSearchText: '', notebookItems: [] }, () => {
+      this.resumeCanvas();
+    });
   },
 
   onNotebookSearchInput(event) {
@@ -501,11 +521,16 @@ Page({
 
   async bootstrap(options) {
     try {
-      if (options.ropeId) {
-        wx.redirectTo({ url: `/pages/rope/rope?ropeId=${options.ropeId}` });
+      this.session = options.ropeId
+        ? await store.setCurrentRope(options.ropeId)
+        : await store.initSession();
+      if (!this.session || !this.session.ropeId) {
+        wx.redirectTo({ url: '/pages/index/index' });
         return;
       }
-      await this.reloadHome();
+      await this.setDataAsync({ loading: true, viewMode: 'rope' });
+      await this.reload();
+      this.initCanvas();
     } catch (error) {
       console.error(error);
       wx.showToast({ title: '手帐暂时打不开', icon: 'none' });
@@ -609,6 +634,12 @@ Page({
   },
 
   handleCanvasTap(point) {
+    const uiHit = this.findUiHit(point.x, point.y);
+    if (uiHit) {
+      this.handleCanvasUiHit(uiHit);
+      return;
+    }
+
     const hit = this.findHitItem(point.x, point.y);
     if (hit) {
       if (hit.type === 'ornament') {
@@ -620,6 +651,41 @@ Page({
     }
 
     // Blank rope taps are intentionally inert; writing starts from the journal action.
+  },
+
+  findUiHit(x, y) {
+    for (let index = this.uiHits.length - 1; index >= 0; index -= 1) {
+      const hit = this.uiHits[index];
+      if (
+        x >= hit.x &&
+        x <= hit.x + hit.width &&
+        y >= hit.y &&
+        y <= hit.y + hit.height
+      ) {
+        return hit;
+      }
+    }
+    return null;
+  },
+
+  handleCanvasUiHit(hit) {
+    if (hit.id === 'back') {
+      this.goHome();
+    } else if (hit.id === 'timeline') {
+      this.toggleTimelineDock();
+    } else if (hit.id === 'timeline-close') {
+      this.closeTimelineDock();
+    } else if (hit.id === 'timeline-item') {
+      this.selectTimelineId(hit.eventId);
+    } else if (hit.id === 'exchange') {
+      this.toggleExchangeDock();
+    } else if (hit.id === 'write') {
+      this.openWriteKnot();
+    } else if (hit.id === 'resolve') {
+      this.openLatestResolve();
+    } else if (hit.id === 'notebook') {
+      this.openNotebook();
+    }
   },
 
   findHitItem(x, y) {
@@ -704,8 +770,406 @@ Page({
     return visuals;
   },
 
+  addUiHit(id, x, y, width, height, extra) {
+    this.uiHits.push({
+      id,
+      x,
+      y,
+      width,
+      height,
+      ...(extra || {}),
+    });
+  },
+
+  roundRectPath(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+    ctx.lineTo(x + width, y + height - r);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+    ctx.lineTo(x + r, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  },
+
+  fillPaperRect(ctx, x, y, width, height, radius, seed) {
+    const gradient = ctx.createLinearGradient(x, y, x + width, y + height);
+    gradient.addColorStop(0, 'rgba(255, 249, 225, 0.86)');
+    gradient.addColorStop(1, 'rgba(219, 190, 132, 0.72)');
+    ctx.save();
+    ctx.shadowColor = 'rgba(64, 43, 22, 0.14)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 7;
+    this.roundRectPath(ctx, x, y, width, height, radius);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(92, 67, 39, 0.18)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.18;
+    for (let i = 0; i < 9; i += 1) {
+      const lineY = y + 8 + noise(seed + i * 5) * Math.max(8, height - 16);
+      this.drawHandLine(ctx, x + 8, lineY, x + width - 8, lineY + (noise(seed + i * 9) - 0.5) * 3, 'rgba(91, 62, 33, 0.18)', 0.45, seed + i * 13);
+    }
+    ctx.restore();
+  },
+
+  drawTapeCanvas(ctx, x, y, width, height, rotation, seed) {
+    ctx.save();
+    ctx.translate(x + width / 2, y + height / 2);
+    ctx.rotate(rotation || 0);
+
+    const tx = -width / 2;
+    const ty = -height / 2;
+    const gradient = ctx.createLinearGradient(tx, ty, tx + width, ty + height);
+    gradient.addColorStop(0, 'rgba(109, 75, 42, 0.12)');
+    gradient.addColorStop(0.45, 'rgba(255, 238, 194, 0.24)');
+    gradient.addColorStop(1, 'rgba(109, 75, 42, 0.1)');
+
+    this.roundRectPath(ctx, tx, ty, width, height, this.rpx(2));
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(93, 64, 38, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.32;
+    this.drawHandLine(
+      ctx,
+      tx + this.rpx(5),
+      ty + height * 0.54,
+      tx + width - this.rpx(5),
+      ty + height * (0.48 + noise(seed || 0) * 0.1),
+      'rgba(255, 248, 224, 0.34)',
+      0.7,
+      (seed || 0) + 17,
+    );
+    ctx.restore();
+  },
+
+  getRopeChromeMetrics(width) {
+    const statsWidth = Math.min(width - this.rpx(88), this.rpx(620));
+    const statsX = (width - statsWidth) / 2;
+    const capsuleClearY = this.data.menuButtonBottom ? this.data.menuButtonBottom + this.rpx(12) : 0;
+    const statsY = Math.max(this.data.safeTop + this.rpx(72), capsuleClearY);
+    const sideTabY = Math.max(statsY + this.rpx(92 + 68), this.data.safeTop + this.rpx(188));
+
+    return {
+      statsX,
+      statsY,
+      statsWidth,
+      sideTabY,
+    };
+  },
+
+  drawCanvasUi(ctx, width, height) {
+    this.uiHits = [];
+    if (this.data.showNote || this.data.showDetail || this.data.showNotebook) return;
+
+    const chrome = this.getRopeChromeMetrics(width);
+    this.drawStatsCanvas(ctx, width, chrome);
+    this.drawSideTabCanvas(ctx, 'back', '返回', this.rpx(8), chrome.sideTabY);
+    this.drawSideTabCanvas(ctx, 'timeline', '绳历', width - this.rpx(84), chrome.sideTabY);
+    if (this.data.timelineOpen) this.drawTimelineDockCanvas(ctx, width, height);
+    this.drawExchangeCanvas(ctx, width, height);
+  },
+
+  drawStatsCanvas(ctx, width, chrome) {
+    const metrics = chrome || this.getRopeChromeMetrics(width);
+    const x = metrics.statsX;
+    const y = metrics.statsY;
+    const barWidth = metrics.statsWidth;
+    const barHeight = this.rpx(92);
+    this.fillPaperRect(ctx, x, y, barWidth, barHeight, this.rpx(14), 9001);
+    this.drawTapeCanvas(ctx, x + barWidth - this.rpx(120), y - this.rpx(10), this.rpx(84), this.rpx(28), -5 * Math.PI / 180, 9101);
+
+    const items = this.data.statsItems && this.data.statsItems.length
+      ? this.data.statsItems
+      : [
+        { value: '0天', label: '相伴' },
+        { value: 0, label: '未解' },
+        { value: 0, label: '已解' },
+      ];
+    items.forEach((item, index) => {
+      const centerX = x + (barWidth * (index + 0.5)) / 3;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#342d27';
+      ctx.font = `bold ${Math.round(this.rpx(36))}px sans-serif`;
+      ctx.fillText(String(item.value), centerX, y + this.rpx(34));
+      ctx.fillStyle = '#766756';
+      ctx.font = `${Math.round(this.rpx(22))}px sans-serif`;
+      ctx.fillText(String(item.label), centerX, y + this.rpx(66));
+      ctx.restore();
+    });
+  },
+
+  drawSideTabCanvas(ctx, id, text, x, y) {
+    const width = this.rpx(76);
+    const height = this.rpx(176);
+    this.fillPaperRect(ctx, x, y, width, height, this.rpx(12), id === 'back' ? 610 : 720);
+    const tapeWidth = this.rpx(44);
+    const tapeHeight = this.rpx(28);
+    const tapeX = id === 'back' ? x + this.rpx(16) : x + width - this.rpx(16) - tapeWidth;
+    const tapeRotation = id === 'back' ? 9 * Math.PI / 180 : -9 * Math.PI / 180;
+    this.drawTapeCanvas(ctx, tapeX, y - this.rpx(14), tapeWidth, tapeHeight, tapeRotation, id === 'back' ? 618 : 728);
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#4c4036';
+    ctx.font = `bold ${Math.round(this.rpx(28))}px sans-serif`;
+    const chars = text.split('');
+    const startY = y + height / 2 - ((chars.length - 1) * this.rpx(30)) / 2;
+    chars.forEach((char, index) => {
+      ctx.fillText(char, x + width / 2, startY + index * this.rpx(30));
+    });
+    ctx.restore();
+    this.addUiHit(id, x, y, width, height);
+  },
+
+  drawExchangeCanvas(ctx, width, height) {
+    const buttonWidth = this.rpx(244);
+    const buttonHeight = this.rpx(116);
+    const buttonX = (width - buttonWidth) / 2;
+    const buttonY = height - this.rpx(40) - buttonHeight;
+
+    if (this.data.exchangeOpen) {
+      const trayX = this.rpx(36);
+      const trayWidth = width - this.rpx(72);
+      const columnGap = this.rpx(24);
+      const rowGap = this.rpx(24);
+      const columnWidth = (trayWidth - columnGap) / 2;
+      const rowHeight = this.rpx(144);
+      const notebookHeight = this.rpx(124);
+      const firstY = buttonY - this.rpx(36) - rowHeight - rowGap - notebookHeight;
+      const actions = [
+        {
+          id: 'write',
+          label: '写一个结',
+          hint: '把没说完的话系上',
+          x: trayX,
+          y: firstY,
+          width: columnWidth,
+          height: rowHeight,
+          rotate: -0.036,
+        },
+        {
+          id: 'resolve',
+          label: '解一个结',
+          hint: '翻开最近的未解',
+          x: trayX + columnWidth + columnGap,
+          y: firstY,
+          width: columnWidth,
+          height: rowHeight,
+          rotate: 0.031,
+        },
+        {
+          id: 'notebook',
+          label: '翻绳本',
+          hint: '回看已解的结和挂上的印章',
+          x: trayX,
+          y: firstY + rowHeight + rowGap,
+          width: trayWidth,
+          height: notebookHeight,
+          rotate: -0.01,
+        },
+      ];
+      actions.forEach((action, index) => {
+        this.drawExchangeActionCanvas(ctx, action, 820 + index * 20);
+        this.addUiHit(action.id, action.x, action.y, action.width, action.height);
+      });
+    }
+
+    this.fillPaperRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, this.rpx(20), 760);
+    this.drawTapeCanvas(ctx, buttonX + buttonWidth - this.rpx(78), buttonY - this.rpx(12), this.rpx(58), this.rpx(24), -7 * Math.PI / 180, 768);
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#342d27';
+    ctx.font = `bold ${Math.round(this.rpx(34))}px sans-serif`;
+    ctx.fillText('记绳', buttonX + buttonWidth / 2, buttonY + this.rpx(42));
+    ctx.fillStyle = '#766a5d';
+    ctx.font = `${Math.round(this.rpx(22))}px sans-serif`;
+    ctx.fillText('翻开纸签', buttonX + buttonWidth / 2, buttonY + this.rpx(76));
+    ctx.restore();
+    this.addUiHit('exchange', buttonX, buttonY, buttonWidth, buttonHeight);
+  },
+
+  drawExchangeActionCanvas(ctx, action, seed) {
+    const centerX = action.x + action.width / 2;
+    const centerY = action.y + action.height / 2;
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(action.rotate || 0);
+    this.fillPaperRect(ctx, -action.width / 2, -action.height / 2, action.width, action.height, this.rpx(14), seed);
+
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#3e342c';
+    ctx.font = `bold ${Math.round(this.rpx(30))}px sans-serif`;
+    ctx.fillText(action.label, -action.width / 2 + this.rpx(24), -action.height / 2 + this.rpx(46));
+    ctx.fillStyle = '#786b5d';
+    ctx.font = `${Math.round(this.rpx(22))}px sans-serif`;
+    const hint = action.hint.length > 11 ? `${action.hint.slice(0, 11)}...` : action.hint;
+    ctx.fillText(hint, -action.width / 2 + this.rpx(24), -action.height / 2 + this.rpx(86));
+
+    ctx.strokeStyle = 'rgba(122, 87, 51, 0.12)';
+    ctx.lineWidth = 1;
+    this.drawHandLine(
+      ctx,
+      -action.width / 2 + this.rpx(20),
+      -action.height / 2 + this.rpx(18),
+      action.width / 2 - this.rpx(20),
+      -action.height / 2 + this.rpx(17),
+      'rgba(122, 87, 51, 0.12)',
+      0.8,
+      seed + 7
+    );
+
+    ctx.fillStyle = 'rgba(126, 96, 64, 0.08)';
+    ctx.strokeStyle = 'rgba(104, 77, 49, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.translate(action.width / 2 - this.rpx(20), action.height / 2 - this.rpx(20));
+    ctx.rotate(0.73);
+    ctx.fillRect(-this.rpx(22), -this.rpx(22), this.rpx(44), this.rpx(44));
+    ctx.strokeRect(-this.rpx(22), -this.rpx(22), this.rpx(44), this.rpx(44));
+    ctx.restore();
+  },
+
+  drawTimelineDockCanvas(ctx, width, height) {
+    const dockWidth = this.rpx(276);
+    const x = width - this.rpx(24) - dockWidth;
+    const y = this.data.safeTop + 112;
+    const dockHeight = Math.max(this.rpx(320), height - y - this.rpx(236));
+    this.fillPaperRect(ctx, x, y, dockWidth, dockHeight, this.rpx(18), 1180);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(89, 63, 38, 0.24)';
+    ctx.lineWidth = 1;
+    if (ctx.setLineDash) ctx.setLineDash([this.rpx(12), this.rpx(12)]);
+    ctx.beginPath();
+    ctx.moveTo(x + this.rpx(62), y + this.rpx(26));
+    ctx.lineTo(x + this.rpx(62), y + dockHeight - this.rpx(26));
+    ctx.stroke();
+    if (ctx.setLineDash) ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(117, 89, 58, 0.12)';
+    ctx.strokeStyle = 'rgba(92, 69, 45, 0.08)';
+    ctx.translate(x + dockWidth - this.rpx(68), y - this.rpx(20));
+    ctx.rotate(-0.14);
+    ctx.fillRect(0, 0, this.rpx(72), this.rpx(40));
+    ctx.strokeRect(0, 0, this.rpx(72), this.rpx(40));
+    ctx.restore();
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#3d342c';
+    ctx.font = `bold ${Math.round(this.rpx(26))}px sans-serif`;
+    ctx.fillText('绳', x + this.rpx(28), y + this.rpx(48));
+    ctx.fillText('历', x + this.rpx(28), y + this.rpx(80));
+    this.fillPaperRect(ctx, x + this.rpx(12), y + this.rpx(108), this.rpx(40), this.rpx(40), this.rpx(20), 1288);
+    ctx.fillStyle = '#6c5743';
+    ctx.font = `${Math.round(this.rpx(30))}px sans-serif`;
+    ctx.fillText('×', x + this.rpx(32), y + this.rpx(128));
+    ctx.restore();
+    this.addUiHit('timeline-close', x + this.rpx(8), y + this.rpx(96), this.rpx(52), this.rpx(60));
+
+    const bodyX = x + this.rpx(70);
+    const bodyWidth = dockWidth - this.rpx(88);
+    const hintY = y + this.rpx(24);
+    this.fillPaperRect(ctx, bodyX, hintY, bodyWidth, this.rpx(92), this.rpx(12), 1310);
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#7a4f43';
+    ctx.font = `${Math.round(this.rpx(20))}px sans-serif`;
+    ctx.fillText('点日期会圈住绳', bodyX + this.rpx(12), hintY + this.rpx(24));
+    ctx.fillText('上的位置，再点', bodyX + this.rpx(12), hintY + this.rpx(50));
+    ctx.fillText('一次取消。', bodyX + this.rpx(12), hintY + this.rpx(76));
+    ctx.restore();
+
+    const itemHeight = this.rpx(76);
+    const itemGap = this.rpx(18);
+    const listY = hintY + this.rpx(110);
+    const maxItems = Math.max(1, Math.floor((dockHeight - this.rpx(150)) / (itemHeight + itemGap)));
+    const allItems = this.data.recordTimelineItems || [];
+    const visibleItems = allItems.slice(-maxItems);
+
+    if (!visibleItems.length) {
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#7c6d5e';
+      ctx.font = `${Math.round(this.rpx(24))}px sans-serif`;
+      ctx.fillText('还没有记录', bodyX + bodyWidth / 2, listY + this.rpx(42));
+      ctx.restore();
+      return;
+    }
+
+    visibleItems.forEach((item, index) => {
+      const itemY = listY + index * (itemHeight + itemGap);
+      this.fillPaperRect(ctx, bodyX, itemY, bodyWidth, itemHeight, this.rpx(12), 1380 + index * 13);
+      if (item.id === this.data.selectedTimelineId) {
+        ctx.save();
+        this.roundRectPath(ctx, bodyX + 2, itemY + 2, bodyWidth - 4, itemHeight - 4, this.rpx(10));
+        ctx.strokeStyle = 'rgba(176, 37, 31, 0.72)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
+      const dotX = bodyX + this.rpx(16);
+      const dotY = itemY + this.rpx(22);
+      const kind = item.kind || '绳结';
+      const dotColor = item.status === 'badge'
+        ? '#a56a3d'
+        : item.status === 'resolved'
+          ? '#a6a094'
+          : '#6f5844';
+      ctx.save();
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = dotColor;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, this.rpx(8), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ead8b4';
+      ctx.lineWidth = Math.max(1, this.rpx(3));
+      ctx.stroke();
+      ctx.fillStyle = '#4a3425';
+      ctx.font = `bold ${Math.round(this.rpx(24))}px sans-serif`;
+      ctx.fillText(item.date || '今天', bodyX + this.rpx(34), itemY + this.rpx(22));
+      ctx.fillStyle = '#7a6857';
+      ctx.font = `${Math.round(this.rpx(20))}px sans-serif`;
+      ctx.fillText(kind, bodyX + this.rpx(34), itemY + this.rpx(50));
+      ctx.restore();
+      this.addUiHit('timeline-item', bodyX, itemY, bodyWidth, itemHeight, { eventId: item.id });
+    });
+  },
+
+  drawTimelineSelection(ctx, item, y, index) {
+    const side = this.itemSide(index);
+    const note = item.status === 'resolved' ? this.resolvedNoteCenter(item, y, index) : null;
+    const x = item.type === 'ornament' ? this.ropeX + side * 68 : note ? note.x : this.ropeX;
+    const centerY = note ? note.y : y;
+    const rx = item.type === 'ornament' ? 58 : item.status === 'resolved' ? 48 : 68;
+    const ry = item.type === 'ornament' ? 42 : item.status === 'resolved' ? 38 : 58;
+    ctx.save();
+    this.drawRoughOval(ctx, x, centerY, rx, ry, 'rgba(176, 37, 31, 0.82)', 2.2, toTime(item.createdAt) / 100000 + 177, -0.08);
+    this.drawRoughOval(ctx, x + 1, centerY + 1, rx + 5, ry + 4, 'rgba(176, 37, 31, 0.22)', 1.1, toTime(item.createdAt) / 100000 + 191, 0.05);
+    ctx.restore();
+  },
+
   closeNote() {
-    this.setData({ showNote: false, noteText: '' });
+    this.setData({ showNote: false, noteText: '' }, () => {
+      this.resumeCanvas();
+    });
   },
 
   onNoteInput(event) {
@@ -735,9 +1199,10 @@ Page({
         statsItems: this.buildStatsItems(events, this.session.rope.relationshipStartedAt),
         recordTimelineItems: this.buildRecordTimelineItems(events, this.session.rope.relationshipStartedAt),
         notebookItems: this.buildNotebookItems(events, this.data.notebookSearchText),
+      }, () => {
+        this.shouldScrollToLatest = true;
+        this.resumeCanvas();
       });
-      this.shouldScrollToLatest = true;
-      this.render();
     } catch (error) {
       console.error(error);
       this.setData({ saving: false });
@@ -777,6 +1242,8 @@ Page({
       selectedState: {},
       resolveMode: '',
       resolveText: '',
+    }, () => {
+      this.resumeCanvas();
     });
   },
 
@@ -845,8 +1312,9 @@ Page({
         statsItems: this.buildStatsItems(events, this.session.rope.relationshipStartedAt),
         recordTimelineItems: this.buildRecordTimelineItems(events, this.session.rope.relationshipStartedAt),
         notebookItems: this.buildNotebookItems(events, this.data.notebookSearchText),
+      }, () => {
+        this.resumeCanvas();
       });
-      this.render();
     } catch (error) {
       console.error(error);
       this.setData({ saving: false });
@@ -916,9 +1384,13 @@ Page({
       } else {
         this.drawKnot(ctx, item, screenY, index);
       }
+      if (this.data.timelineOpen && item.id === this.data.selectedTimelineId) {
+        this.drawTimelineSelection(ctx, item, screenY, index);
+      }
     });
 
     this.drawScrollCue(ctx, width, height);
+    this.drawCanvasUi(ctx, width, height);
   },
 
   drawPaper(ctx, width, height) {

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "node tests/timeline.test.js && node tests/web-mvp.test.js",
-    "check": "node --check miniprogram/utils/timeline.js && node --check miniprogram/services/rope-store.js && node --check miniprogram/pages/index/index.js && node --check miniprogram/app.js && node --check cloudfunctions/login/index.js && node --check web/app.js",
+    "test": "node tests/timeline.test.js && node tests/miniprogram-add-rope-page.test.js && node tests/miniprogram-rope-page.test.js && node tests/web-mvp.test.js",
+    "check": "node --check miniprogram/utils/timeline.js && node --check miniprogram/services/rope-store.js && node --check miniprogram/pages/index/index.js && node --check miniprogram/pages/add-rope/add-rope.js && node --check miniprogram/pages/rope/rope.js && node --check miniprogram/app.js && node --check web/app.js",
     "serve:web": "python3 -m http.server 4173 --directory ."
   }
 }

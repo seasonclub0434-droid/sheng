@@ -14,21 +14,17 @@
 - 3/7/14/30 天积灰效果
 - 初期天数、第一次记绳、解结和平静期自动挂饰
 - 勋章机制说明：`docs/badge-system.md`
-- 微信云开发优先读写，未配置云环境时使用本地缓存降级预览
+- 小程序端使用本地缓存读写，不依赖微信云开发或云函数
 
 ## 导入方式
 
 1. 用微信开发者工具导入本目录：`/Users/jianada/Documents/p1`
 2. 把 `project.config.json` 里的 `appid` 从 `touristappid` 换成你的小程序 AppID
-3. 开通云开发，创建数据库集合：
-   - `ropes`
-   - `rope_events`
-4. 上传并部署云函数：`cloudfunctions/login`
-5. 在开发者工具里编译 `miniprogram/pages/index/index`
+3. 在开发者工具里编译 `miniprogram/pages/index/index`
 
 ## 数据说明
 
-`ropes` 保存一根关系绳：
+小程序端数据保存在本机缓存里，主状态键是 `rope-talk-state-v2`。`ropes` 保存一根关系绳：
 
 ```js
 {
@@ -40,7 +36,7 @@
 }
 ```
 
-`rope_events` 保存结和状态：
+`events` 按 `ropeId` 保存结和状态：
 
 ```js
 {

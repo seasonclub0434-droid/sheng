@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="paper-v5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf4e2"/>
+      <stop offset="0.55" stop-color="#f2e4ca"/>
+      <stop offset="1" stop-color="#e8d1ab"/>
+    </linearGradient>
+    <filter id="rope-shadow-v5" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="5" dy="8" stdDeviation="7" flood-color="#5c3a20" flood-opacity="0.22"/>
+    </filter>
+    <filter id="fiber-wobble-v5" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035 0.15" numOctaves="3" seed="52" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.55" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <!-- The two ropes. Each is a single continuous strand with one color family. -->
+    <path id="beige-rope-v5" d="M160 405
+      C250 318 374 300 462 360
+      C532 408 560 492 610 564
+      C694 684 822 682 888 596"/>
+    <path id="red-rope-v5" d="M160 619
+      C250 706 374 724 462 664
+      C532 616 560 532 610 460
+      C694 340 822 342 888 428"/>
+
+    <!-- Redrawn on top to make the center read as a real over-under knot. -->
+    <path id="red-over-center-v5" d="M420 660
+      C492 626 532 556 585 476
+      C606 446 624 422 650 394"/>
+    <path id="beige-over-left-v5" d="M160 405
+      C250 318 374 300 462 360
+      C492 381 516 408 536 438"/>
+    <path id="beige-over-right-v5" d="M604 556
+      C690 684 822 682 888 596"/>
+
+    <style>
+      .paper-fleck { stroke: #7a5d39; stroke-linecap: round; opacity: .13; }
+      .paper-light { stroke: #fff0cc; stroke-linecap: round; opacity: .22; }
+      .rope-edge { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .fiber-line { fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .38; }
+      .highlight { fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .62; }
+    </style>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#paper-v5)"/>
+  <g fill="none">
+    <path class="paper-fleck" d="M138 222c90-12 188 1 282-6 130-9 250-17 386-5" stroke-width="1.2"/>
+    <path class="paper-fleck" d="M118 804c130 16 250 4 390 12 142 8 266 12 402-8" stroke-width="1.2"/>
+    <path class="paper-light" d="M246 276c21-5 39-2 60-6M682 744c28 6 52 2 80 8M404 766c23 2 41-1 62 1" stroke-width="1.4"/>
+    <path class="paper-fleck" d="M178 354h1M272 684h1M746 300h1M842 652h1M424 314h1M558 720h1" stroke-width="2"/>
+  </g>
+
+  <g filter="url(#rope-shadow-v5)">
+    <g filter="url(#fiber-wobble-v5)">
+      <!-- Red-brown rope base: one pure red-brown rope. -->
+      <use href="#red-rope-v5" class="rope-edge" stroke="#642b22" stroke-width="72"/>
+      <use href="#red-rope-v5" class="rope-edge" stroke="#a24d38" stroke-width="59"/>
+      <use href="#red-rope-v5" class="highlight" stroke="#cf8163" stroke-width="17"/>
+      <use href="#red-rope-v5" class="fiber-line" stroke="#52211b" stroke-width="2.2" stroke-dasharray="17 18" stroke-dashoffset="5"/>
+      <use href="#red-rope-v5" class="fiber-line" stroke="#dda084" stroke-width="2" stroke-dasharray="34 30" stroke-dashoffset="18" opacity=".32"/>
+
+      <!-- Beige rope base: one pure oatmeal-linen rope. Drawing it above red makes the side loops interlock. -->
+      <use href="#beige-rope-v5" class="rope-edge" stroke="#8d6a41" stroke-width="72"/>
+      <use href="#beige-rope-v5" class="rope-edge" stroke="#d9c193" stroke-width="59"/>
+      <use href="#beige-rope-v5" class="highlight" stroke="#f4dfb8" stroke-width="18"/>
+      <use href="#beige-rope-v5" class="fiber-line" stroke="#6c5231" stroke-width="2.2" stroke-dasharray="17 18"/>
+      <use href="#beige-rope-v5" class="fiber-line" stroke="#fff1cd" stroke-width="2" stroke-dasharray="34 30" stroke-dashoffset="14" opacity=".36"/>
+    </g>
+
+    <!-- Center red strand rises over the beige strand, producing the actual knot crossing. -->
+    <g filter="url(#fiber-wobble-v5)">
+      <use href="#red-over-center-v5" class="rope-edge" stroke="#4f241c" stroke-width="76" opacity=".18" transform="translate(5 8)"/>
+      <use href="#red-over-center-v5" class="rope-edge" stroke="#642b22" stroke-width="72"/>
+      <use href="#red-over-center-v5" class="rope-edge" stroke="#a24d38" stroke-width="59"/>
+      <use href="#red-over-center-v5" class="highlight" stroke="#cf8163" stroke-width="17"/>
+      <use href="#red-over-center-v5" class="fiber-line" stroke="#52211b" stroke-width="2.2" stroke-dasharray="17 18" stroke-dashoffset="5"/>
+    </g>
+
+    <!-- Beige is redrawn on the left and right arcs so the infinity shape stays clean and continuous. -->
+    <g filter="url(#fiber-wobble-v5)">
+      <use href="#beige-over-left-v5" class="rope-edge" stroke="#6a4f2d" stroke-width="75" opacity=".13" transform="translate(5 8)"/>
+      <use href="#beige-over-left-v5" class="rope-edge" stroke="#8d6a41" stroke-width="72"/>
+      <use href="#beige-over-left-v5" class="rope-edge" stroke="#d9c193" stroke-width="59"/>
+      <use href="#beige-over-left-v5" class="highlight" stroke="#f4dfb8" stroke-width="18"/>
+      <use href="#beige-over-left-v5" class="fiber-line" stroke="#6c5231" stroke-width="2.2" stroke-dasharray="17 18"/>
+
+      <use href="#beige-over-right-v5" class="rope-edge" stroke="#6a4f2d" stroke-width="75" opacity=".13" transform="translate(5 8)"/>
+      <use href="#beige-over-right-v5" class="rope-edge" stroke="#8d6a41" stroke-width="72"/>
+      <use href="#beige-over-right-v5" class="rope-edge" stroke="#d9c193" stroke-width="59"/>
+      <use href="#beige-over-right-v5" class="highlight" stroke="#f4dfb8" stroke-width="18"/>
+      <use href="#beige-over-right-v5" class="fiber-line" stroke="#6c5231" stroke-width="2.2" stroke-dasharray="17 18"/>
+    </g>
+  </g>
+</svg>

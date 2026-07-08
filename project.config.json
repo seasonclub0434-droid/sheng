@@ -2,7 +2,6 @@
   "appid": "wxbaa177f974e554b4",
   "projectname": "绳话",
   "miniprogramRoot": "miniprogram/",
-  "cloudfunctionRoot": "cloudfunctions/",
   "packOptions": {
     "ignore": [],
     "include": []
