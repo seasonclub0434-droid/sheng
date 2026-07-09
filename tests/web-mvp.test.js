@@ -40,12 +40,14 @@ const miniHomeIconFiles = [
   'home-icon-create.png',
   'home-icon-search.png',
 ];
+const miniHomeShelfRopePath = path.join(root, 'miniprogram/assets/home-shelf-rope.png');
 const miniAssetPaths = [
   'login-cabinet-door.png',
   'home-rope-sign-transparent.png',
   'rope-mode-single-cutout.png',
   'rope-mode-couple-cutout.png',
   'add-rope-tail-v1.png',
+  'home-shelf-rope.png',
   ...miniHomeIconFiles,
 ].map((file) => path.join(root, 'miniprogram/assets', file));
 
@@ -1036,6 +1038,12 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
     '',
     true,
   );
+  const miniSharedPaperTabs = cssBlockFrom(
+    miniWxss,
+    '.add-rope-back,\n.back-home-action,\n.rope-timeline-toggle',
+    '',
+    true,
+  );
   const miniConfig = JSON.parse(miniAppJson);
   assert.ok(miniConfig.pages.includes('pages/add-rope/add-rope'));
   assert.ok(miniWxml.includes('id="loginGate"'));
@@ -1089,8 +1097,10 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxml.includes('../../assets/home-icon-create.png'));
   assert.ok(miniWxml.includes('../../assets/home-icon-search.png'));
   assert.ok(miniWxml.includes('style="--row-index: {{item.rowIndex}}; --row-center: {{item.rowCenter}};"'));
-  assert.ok(miniWxml.includes('style="--tile-index: {{slot.tileIndex}}; --tile-shift-x: {{slot.visualShiftX}}rpx;"'));
-  assert.ok(miniPage.includes('visualShiftX: slotIndex === 0 ? -46 : 46'));
+  assert.ok(miniWxml.includes('style="--tile-index: {{slot.tileIndex}}; --tile-shift-x: {{slot.visualShiftX}}rpx; --tile-center-shift-x: {{slot.centerShiftX}}rpx;"'));
+  assert.ok(miniPage.includes('visualShiftX: 0'));
+  assert.ok(miniPage.includes('centerShiftX: -70'));
+  assert.ok(!miniPage.includes('visualShiftX: slotIndex === 0 ? -46 : 46'));
   assert.ok(!miniWxml.includes('settings-gear-logo'));
   assert.ok(!miniWxml.includes('add-rope-plus'));
   assert.ok(!miniWxml.includes('class="search-icon-ring"'));
@@ -1164,19 +1174,17 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(!miniRopeTile.includes('padding-top: 8rpx;'));
   assert.ok(miniRopeTile.includes('line-height: 1;'));
   assert.ok(miniRopeTile.includes('--tile-shift-x: 0rpx;'));
-  assert.ok(miniRopeTile.includes('--tile-rope-x: calc(50% + var(--tile-shift-x));'));
+  assert.ok(miniRopeTile.includes('--tile-center-shift-x: 0rpx;'));
+  assert.ok(miniRopeTile.includes('--tile-rope-x: calc(50% + var(--tile-center-shift-x) + var(--tile-shift-x));'));
   assert.ok(!miniRopeTile.includes('place-items: start center;'));
-  assert.ok(miniCssBlockLast('.rope-tile::after').includes('left: var(--tile-rope-x);'));
-  assert.ok(miniCssBlockLast('.rope-tile::after').includes('transform: translateX(-50%);'));
+  assert.ok(miniCssBlockLast('.rope-tile::after').includes('display: none;'));
   assert.ok(miniCssBlockLast('.rope-coil').includes('position: absolute;'));
   assert.ok(miniCssBlockLast('.rope-coil').includes('left: var(--tile-rope-x);'));
+  assert.ok(miniCssBlockLast('.rope-coil').includes('width: 104rpx;'));
   assert.ok(miniCssBlockLast('.rope-coil').includes('transform: translateX(-50%);'));
-  assert.ok(miniCssBlockLast('.rope-coil-line-a').includes('left: 30rpx;'));
-  assert.ok(miniCssBlockLast('.rope-coil-line-a').includes('transform: rotate(-3deg);'));
-  assert.ok(miniCssBlockLast('.rope-coil-line-b').includes('left: 38rpx;'));
-  assert.ok(miniCssBlockLast('.rope-coil-line-b').includes('transform: rotate(11deg);'));
-  assert.ok(miniCssBlockLast('.rope-coil-line-c').includes('left: 24rpx;'));
-  assert.ok(miniCssBlockLast('.rope-coil-line-c').includes('transform: rotate(-15deg);'));
+  assert.ok(miniCssBlockLast('.rope-coil-image').includes('display: block;'));
+  assert.ok(miniCssBlockLast('.rope-coil-image').includes('width: 104rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil-image').includes('height: 140rpx;'));
   assert.ok(miniCssBlockLast('.rope-note').includes('left: var(--tile-rope-x);'));
   assert.ok(miniCssBlockLast('.rope-note').includes('bottom: -50rpx;'));
   assert.ok(miniCssBlockLast('.rope-note').includes('transform: translateX(-50%) rotate(-0.5deg);'));
@@ -1206,13 +1214,18 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxss.includes('background-color: rgba(249, 236, 203, 0.82);'));
   assert.ok(miniWxss.includes('background-color: rgba(250, 237, 203, 0.94);'));
   assert.ok(miniWxss.includes('background-color: rgba(252, 242, 214, 0.86);'));
+  assert.ok(miniSharedPaperTabs.includes('width: 76rpx;'));
+  assert.ok(!miniSharedPaperTabs.includes('width: 104rpx;'));
   assert.ok(miniWxss.includes('.stat-item-0'));
   assert.ok(miniWxss.includes('.rope-tab-char'));
   assert.ok(miniWxml.includes('class="rope-coil"'));
-  assert.ok(miniWxml.includes('class="rope-coil-line rope-coil-line-a"'));
+  assert.ok(miniWxml.includes('class="rope-coil-image"'));
+  assert.ok(miniWxml.includes('../../assets/home-shelf-rope.png'));
+  assert.ok(!miniWxml.includes('class="rope-coil-line'));
   assert.ok(!miniWxml.includes('rope-drop'));
   assert.ok(miniWxss.includes('.rope-coil'));
-  assert.ok(miniWxss.includes('.rope-coil-line'));
+  assert.ok(miniWxss.includes('.rope-coil-image'));
+  assert.ok(!miniWxss.includes('.rope-coil-line-a'));
   assert.ok(miniAddWxss.includes('.rope-add-page'));
   assert.ok(miniPage.includes('rowCenter: (rows - 1) / 2'));
   assert.ok(miniPage.includes('tileIndex: rowIndex * 2 + slotIndex'));
@@ -1230,24 +1243,33 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniAddWxml.includes('class="add-rope-board"'));
   assert.ok(miniAddCssBlock('.add-rope-board').includes('width: 690rpx;'));
   assert.ok(miniAddCssBlock('.add-rope-board').includes('height: calc(100vh - 112rpx);'));
-  assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">返</text>'));
-  assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">回</text>'));
-  assert.ok(miniAddCssBlock('.add-rope-back').includes('left: 8rpx'));
-  assert.ok(miniAddCssBlock('.add-rope-back').includes('width: 76rpx'));
-  assert.ok(miniAddCssBlock('.add-rope-back').includes('height: 176rpx'));
-  assert.ok(miniAddCssBlock('.add-rope-back::before').includes('width: 44rpx'));
-  assert.ok(miniAddCssBlock('.add-rope-back::before').includes('height: 28rpx'));
+  assert.ok(miniAddWxml.includes('<text class="add-rope-back-label">返回</text>'));
+  assert.ok(!miniAddWxml.includes('add-rope-back-char'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('top: 80rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('left: -18rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('width: 112rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('height: 92rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('min-width: 112rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('min-height: 92rpx'));
+  assert.ok(!miniAddCssBlock('.add-rope-back').includes('top: 150rpx'));
+  assert.ok(!miniAddCssBlock('.add-rope-back').includes('height: 112rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back::before').includes('width: 64rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back::before').includes('height: 24rpx'));
   assert.ok(cssBlockFrom(miniAddWxss, '.add-mode-title,\n.add-rope-name-card').includes('width: 496rpx'));
   assert.ok(miniAddCssBlock('.rope-mode-options').includes('width: 620rpx'));
   assert.ok(miniAddCssBlock('.add-rope-rope').includes('width: 112rpx'));
-  assert.ok(miniAddCssBlock('.add-rope-rope').includes('height: 550rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-rope').includes('height: 390rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-rope').includes('margin: 24rpx auto 0'));
   assert.ok(miniAddCssBlock('.add-rope-tail-image').includes('width: 96rpx'));
-  assert.ok(miniAddCssBlock('.add-rope-tail-image').includes('height: 550rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-tail-image').includes('height: 390rpx'));
+  assert.ok(!miniAddCssBlock('.add-rope-rope').includes('height: 550rpx'));
+  assert.ok(!miniAddCssBlock('.add-rope-tail-image').includes('height: 550rpx'));
   assert.ok(miniAddCssBlock('.add-rope-tail-image').includes('transform: scaleX(1.18)'));
   assert.ok(miniAddCssBlock('.create-rope-action').includes('position: relative'));
   assert.ok(!miniAddCssBlock('.create-rope-action').includes('bottom: 0'));
   assert.ok(miniAddCssBlock('.create-rope-action').includes('width: 148rpx'));
   assert.ok(miniAddCssBlock('.create-rope-action').includes('height: 122rpx'));
+  assert.ok(miniAddCssBlock('.create-rope-action').includes('margin: 14rpx auto 0'));
   miniAssetPaths.forEach((assetPath) => {
     assert.ok(fs.existsSync(assetPath), assetPath);
     assert.ok(fs.statSync(assetPath).size < 2 * 1024 * 1024, assetPath);
@@ -1260,6 +1282,13 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(searchIconStats.alphaAbove32 > 30000);
   assert.ok(searchIconStats.cornerAlphaAbove32 < 16);
   assert.ok(searchIconStats.paleHighlightPixels < 400);
+  const shelfRopeSize = pngSize(miniHomeShelfRopePath);
+  assert.ok(shelfRopeSize.width <= 128);
+  assert.ok(shelfRopeSize.height <= 240);
+  assert.ok(fs.statSync(miniHomeShelfRopePath).size < 120 * 1024);
+  const shelfRopeStats = pngAlphaStats(miniHomeShelfRopePath);
+  assert.ok(shelfRopeStats.alphaAbove32 > 1000);
+  assert.ok(shelfRopeStats.cornerAlphaAbove32 < 16);
 });
 
 test('mini program is local-only and does not expose cloud service hooks', () => {

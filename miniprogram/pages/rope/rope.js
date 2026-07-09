@@ -142,6 +142,8 @@ Page({
   uiHits: [],
   touchStart: null,
   moved: false,
+  renderPending: false,
+  renderFallbackTimer: null,
   pendingAnchorY: 180,
   shouldScrollToLatest: true,
 
@@ -187,6 +189,11 @@ Page({
   resumeCanvas() {
     this.canvas = null;
     this.ctx = null;
+    this.renderPending = false;
+    if (this.renderFallbackTimer) {
+      clearTimeout(this.renderFallbackTimer);
+      this.renderFallbackTimer = null;
+    }
     setTimeout(() => this.initCanvas(), 0);
   },
 
@@ -621,7 +628,7 @@ Page({
     if (Math.abs(deltaY) > 3) this.moved = true;
     this.touchStart = point;
     this.scrollY = Math.max(0, Math.min(this.maxScrollY, this.scrollY - deltaY));
-    this.render();
+    this.requestRender();
   },
 
   onCanvasTouchEnd(event) {
@@ -1332,6 +1339,24 @@ Page({
       events.push(updated);
     }
     return events.sort((a, b) => toTime(a.createdAt) - toTime(b.createdAt));
+  },
+
+  requestRender() {
+    if (this.renderPending) return;
+    this.renderPending = true;
+
+    const runRender = () => {
+      this.renderPending = false;
+      this.renderFallbackTimer = null;
+      this.render();
+    };
+
+    if (this.canvas && typeof this.canvas.requestAnimationFrame === 'function') {
+      this.canvas.requestAnimationFrame(runRender);
+      return;
+    }
+
+    this.renderFallbackTimer = setTimeout(runRender, 16);
   },
 
   render() {

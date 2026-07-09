@@ -1,8 +1,7 @@
 <view id="addRopePage" class="page rope-add-page" aria-label="添加绳结">
   <view class="add-rope-board">
     <button id="addRopeBack" class="add-rope-back" type="button" bindtap="goHome">
-      <text class="add-rope-back-char">返</text>
-      <text class="add-rope-back-char">回</text>
+      <text class="add-rope-back-label">返回</text>
     </button>
     <view class="add-rope-panel">
       <view class="add-mode-title">选择你的绳结模式</view>

@@ -90,6 +90,12 @@ test('rope page owns the long-rope canvas and interaction modules', () => {
   assert.ok(ropeJs.includes('drawTimelineSelection(ctx, item, screenY, index)'));
   assert.ok(ropeJs.includes("ctx.fillText('记绳'"));
   assert.ok(ropeJs.includes("ctx.fillText('绳'"));
+  assert.ok(ropeJs.includes('renderPending: false'));
+  assert.ok(ropeJs.includes('requestRender()'));
+  assert.ok(ropeJs.includes('this.requestRender();'));
+  assert.ok(ropeJs.includes('this.canvas.requestAnimationFrame(runRender);'));
+  assert.ok(ropeJs.includes('this.renderFallbackTimer = setTimeout(runRender, 16);'));
+  assert.ok(!ropeJs.includes('this.scrollY = Math.max(0, Math.min(this.maxScrollY, this.scrollY - deltaY));\n    this.render();'));
   assert.ok(ropeJs.includes("this.drawSideTabCanvas(ctx, 'back', '返回', this.rpx(8), chrome.sideTabY);"));
   assert.ok(ropeJs.includes("this.drawSideTabCanvas(ctx, 'timeline', '绳历', width - this.rpx(84), chrome.sideTabY);"));
   assert.ok(ropeWxml.includes('id="ropeCanvas"'));
