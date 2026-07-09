@@ -5,6 +5,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const miniApp = fs.readFileSync(path.join(root, 'miniprogram/app.json'), 'utf8');
 const indexJs = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.js'), 'utf8');
+const indexWxml = fs.readFileSync(path.join(root, 'miniprogram/pages/index/index.wxml'), 'utf8');
 const ropeJs = fs.readFileSync(path.join(root, 'miniprogram/pages/rope/rope.js'), 'utf8');
 const ropeWxml = fs.readFileSync(path.join(root, 'miniprogram/pages/rope/rope.wxml'), 'utf8');
 const ropeWxss = fs.readFileSync(path.join(root, 'miniprogram/pages/rope/rope.wxss'), 'utf8');
@@ -123,4 +124,25 @@ test('rope page canvas timeline mirrors the browser record timeline list', () =>
   assert.ok(ropeJs.includes('ctx.arc(dotX, dotY'));
   assert.ok(ropeJs.includes("const kind = item.kind || '绳结';"));
   assert.ok(!ropeJs.includes('const title = item.title && item.title.length > 7'));
+});
+
+test('mini home floating docks close when tapping outside them', () => {
+  assert.ok(indexWxml.includes('class="home-popover-scrim"'));
+  assert.ok(indexWxml.includes('bindtap="closeHomePopovers"'));
+  assert.ok(indexWxml.includes('id="settingsDock" class="settings-dock open" catchtap="noop"'));
+  assert.ok(indexWxml.includes('id="globalSearchDock" class="record-timeline-dock global-search-dock open" catchtap="noop"'));
+  assert.ok(indexJs.includes('closeHomePopovers()'));
+  assert.ok(indexJs.includes('settingsOpen: false'));
+  assert.ok(indexJs.includes('globalSearchOpen: false'));
+  assert.ok(indexJs.includes('resetConfirmOpen: false'));
+  assert.ok(indexJs.includes("globalSearchText: ''"));
+  assert.ok(indexJs.includes('globalSearchResults: []'));
+});
+
+test('rope canvas closes timeline and exchange panels on blank taps', () => {
+  assert.ok(ropeJs.includes('closeCanvasDocks()'));
+  assert.ok(ropeJs.includes('if (this.closeCanvasDocks()) return;'));
+  assert.ok(ropeJs.includes('timelineOpen: false'));
+  assert.ok(ropeJs.includes('exchangeOpen: false'));
+  assert.ok(ropeJs.includes('this.setData(patch, () => this.render());'));
 });

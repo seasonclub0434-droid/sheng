@@ -38,20 +38,22 @@
 
 .add-rope-back {
   position: absolute;
-  top: 80rpx;
-  left: -18rpx;
+  top: 112rpx;
+  left: -10rpx;
   z-index: 7;
-  display: grid;
-  place-items: center;
-  width: 112rpx;
-  height: 92rpx;
-  min-width: 112rpx;
-  min-height: 92rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 74rpx;
+  height: 128rpx;
+  min-width: 74rpx;
+  min-height: 128rpx;
   margin: 0;
-  padding: 22rpx 24rpx 20rpx 28rpx;
+  padding: 28rpx 10rpx 18rpx;
   box-sizing: border-box;
   color: #58432e;
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: 0;
@@ -69,8 +71,8 @@
 .add-rope-back::before {
   position: absolute;
   top: -14rpx;
-  left: 26rpx;
-  width: 64rpx;
+  left: 12rpx;
+  width: 54rpx;
   height: 24rpx;
   content: "";
   background: rgba(106, 76, 43, 0.16);
@@ -78,11 +80,15 @@
   transform: rotate(-7deg);
 }
 
-.add-rope-back-label {
+.add-rope-back-char {
   display: block;
-  font-size: 30rpx;
-  line-height: 1;
-  white-space: nowrap;
+  font-size: 28rpx;
+  line-height: 1.22;
+  text-align: center;
+}
+
+.add-rope-back-char + .add-rope-back-char {
+  margin-top: 2rpx;
 }
 
 .add-rope-back::after,

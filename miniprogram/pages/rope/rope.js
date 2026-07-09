@@ -647,6 +647,8 @@ Page({
       return;
     }
 
+    if (this.closeCanvasDocks()) return;
+
     const hit = this.findHitItem(point.x, point.y);
     if (hit) {
       if (hit.type === 'ornament') {
@@ -658,6 +660,15 @@ Page({
     }
 
     // Blank rope taps are intentionally inert; writing starts from the journal action.
+  },
+
+  closeCanvasDocks() {
+    const patch = {};
+    if (this.data.timelineOpen) patch.timelineOpen = false;
+    if (this.data.exchangeOpen) patch.exchangeOpen = false;
+    if (!Object.keys(patch).length) return false;
+    this.setData(patch, () => this.render());
+    return true;
   },
 
   findUiHit(x, y) {

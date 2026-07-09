@@ -93,7 +93,14 @@
       </button>
     </view>
 
-    <view wx:if="{{settingsOpen}}" id="settingsDock" class="settings-dock open" catchtouchmove="noop" style="top: {{safeTop + 112}}px;">
+    <view
+      wx:if="{{settingsOpen || globalSearchOpen}}"
+      class="home-popover-scrim"
+      bindtap="closeHomePopovers"
+      catchtouchmove="noop"
+    ></view>
+
+    <view wx:if="{{settingsOpen}}" id="settingsDock" class="settings-dock open" catchtap="noop" catchtouchmove="noop" style="top: {{safeTop + 112}}px;">
       <view class="dock-rail">
         <text class="settings-title">设置</text>
         <button class="dock-close" type="button" bindtap="closeSettingsDock">×</button>
@@ -114,7 +121,7 @@
       </view>
     </view>
 
-    <view wx:if="{{globalSearchOpen}}" id="globalSearchDock" class="record-timeline-dock global-search-dock open" catchtouchmove="noop" style="top: {{safeTop + 88}}px;">
+    <view wx:if="{{globalSearchOpen}}" id="globalSearchDock" class="record-timeline-dock global-search-dock open" catchtap="noop" catchtouchmove="noop" style="top: {{safeTop + 88}}px;">
       <view class="dock-rail">
         <text class="record-timeline-title">搜索</text>
         <button class="dock-close" type="button" bindtap="closeGlobalSearchDock">×</button>

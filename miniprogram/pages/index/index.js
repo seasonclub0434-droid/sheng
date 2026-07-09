@@ -434,6 +434,16 @@ Page({
     this.setData({ globalSearchOpen: false, globalSearchText: '', globalSearchResults: [] });
   },
 
+  closeHomePopovers() {
+    this.setData({
+      settingsOpen: false,
+      resetConfirmOpen: false,
+      globalSearchOpen: false,
+      globalSearchText: '',
+      globalSearchResults: [],
+    });
+  },
+
   onGlobalSearchInput(event) {
     const value = event.detail.value;
     this.setData({
