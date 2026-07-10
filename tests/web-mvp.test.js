@@ -1245,6 +1245,8 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniAddCssBlock('.add-rope-board').includes('width: 750rpx;'));
   assert.ok(miniAddCssBlock('.add-rope-board').includes('height: 100vh;'));
   assert.ok(miniAddCssBlock('.add-rope-board').includes('border-radius: 0;'));
+  assert.ok(miniAddWxml.includes('<view id="addRopeBack" class="add-rope-back" bindtap="goHome" aria-label="返回">'));
+  assert.ok(!miniAddWxml.includes('<button id="addRopeBack"'));
   assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">返</text>'));
   assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">回</text>'));
   assert.ok(!miniAddWxml.includes('<text class="add-rope-back-label">返回</text>'));
@@ -1254,6 +1256,7 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniAddCssBlock('.add-rope-back').includes('height: 128rpx'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('min-width: 74rpx'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('min-height: 128rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('overflow: visible;'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('display: flex;'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('flex-direction: column;'));
   assert.ok(!miniAddCssBlock('.add-rope-back').includes('writing-mode'));

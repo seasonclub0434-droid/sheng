@@ -176,6 +176,8 @@ test('mini add-rope layout follows the static index reference positions', () => 
   assert.ok(indexJs.includes("this.navigateOnce('/pages/add-rope/add-rope');"));
   assert.ok(!indexWxml.includes('id="addRopePage"'));
   assert.ok(miniWxml.includes('class="add-rope-board"'));
+  assert.ok(miniWxml.includes('<view id="addRopeBack" class="add-rope-back" bindtap="goHome" aria-label="返回">'));
+  assert.ok(!miniWxml.includes('<button id="addRopeBack"'));
   assert.ok(miniWxml.includes('<text class="add-rope-back-char">返</text>'));
   assert.ok(miniWxml.includes('<text class="add-rope-back-char">回</text>'));
   assert.ok(!miniWxml.includes('<text class="add-rope-back-label">返回</text>'));
@@ -198,6 +200,7 @@ test('mini add-rope layout follows the static index reference positions', () => 
   assert.ok(backButton.includes('min-width: 74rpx'));
   assert.ok(backButton.includes('min-height: 128rpx'));
   assert.ok(backButton.includes('padding: 28rpx 10rpx 18rpx'));
+  assert.ok(backButton.includes('overflow: visible'));
   assert.ok(backButton.includes('border: 2rpx solid rgba(88, 60, 32, 0.2)'));
   assert.ok(backButton.includes('transform: rotate(-1.4deg)'));
   assert.ok(!backButton.includes('writing-mode'));

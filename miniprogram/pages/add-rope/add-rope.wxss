@@ -51,6 +51,7 @@
   margin: 0;
   padding: 28rpx 10rpx 18rpx;
   box-sizing: border-box;
+  overflow: visible;
   color: #58432e;
   font-size: 28rpx;
   font-weight: 800;
