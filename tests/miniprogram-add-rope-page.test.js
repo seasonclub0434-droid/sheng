@@ -134,7 +134,9 @@ test('mini add-rope creates a named rope after mode and name are present', async
 
 test('mini add-rope progressively reveals naming and create steps', () => {
   assert.ok(miniWxml.includes('<view wx:if="{{addRopeMode}}" class="add-rope-name-card progressive-reveal">'));
-  assert.ok(miniWxml.includes('<view wx:if="{{addRopeMode}}" class="add-rope-rope progressive-reveal">'));
+  assert.ok(miniWxml.includes('<view wx:if="{{addRopeMode}}" class="add-rope-rope add-rope-rope-{{addRopeMode}} progressive-reveal">'));
+  assert.ok(miniWxml.includes('wx:if="{{addRopeMode === \'couple\'}}"'));
+  assert.ok(miniWxml.includes('class="add-rope-tail-image add-rope-tail-red"'));
   assert.ok(miniWxml.includes('wx:if="{{canCreateRope}}"\n        id="createRopeFromAddPage"'));
   assert.ok(miniWxss.includes('.progressive-reveal'));
   assert.ok(cssBlockLast('.progressive-reveal').includes('animation: addRopeStepIn'));
@@ -149,6 +151,10 @@ test('mini add-rope progressively reveals naming and create steps', () => {
 
   page.selectAddRopeMode({ currentTarget: { dataset: { ropeMode: 'single' } } });
   assert.strictEqual(page.data.addRopeMode, 'single');
+  assert.strictEqual(page.data.canCreateRope, false);
+
+  page.selectAddRopeMode({ currentTarget: { dataset: { ropeMode: 'couple' } } });
+  assert.strictEqual(page.data.addRopeMode, 'couple');
   assert.strictEqual(page.data.canCreateRope, false);
 
   page.onAddRopeNameInput({ detail: { value: '  ' } });
@@ -222,11 +228,14 @@ test('mini add-rope layout follows the static index reference positions', () => 
   assert.ok(cssBlockLast('.add-rope-rope').includes('width: 136rpx'));
   assert.ok(cssBlockLast('.add-rope-rope').includes('height: 440rpx'));
   assert.ok(cssBlockLast('.add-rope-rope').includes('margin: 18rpx auto 0'));
+  assert.ok(cssBlockLast('.add-rope-rope').includes('position: relative'));
   assert.ok(cssBlockLast('.add-rope-tail-image').includes('width: 118rpx'));
   assert.ok(cssBlockLast('.add-rope-tail-image').includes('height: 440rpx'));
   assert.ok(!cssBlockLast('.add-rope-rope').includes('height: 550rpx'));
   assert.ok(!cssBlockLast('.add-rope-tail-image').includes('height: 550rpx'));
-  assert.ok(cssBlockLast('.add-rope-tail-image').includes('transform: scaleX(1.22)'));
+  assert.ok(cssBlockLast('.add-rope-tail-image').includes('transform: translateX(-50%) scaleX(1.22)'));
+  assert.ok(cssBlockLast('.add-rope-rope-couple').includes('width: 188rpx'));
+  assert.ok(cssBlockLast('.add-rope-rope-couple .add-rope-tail-red').includes('hue-rotate(-18deg)'));
   assert.ok(cssBlockLast('.rope-mode-options').includes('width: 620rpx'));
   assert.ok(cssBlockLast('.add-mode-title').includes('padding-top: 42rpx'));
   assert.ok(cssBlockLast('.create-rope-action').includes('position: relative'));

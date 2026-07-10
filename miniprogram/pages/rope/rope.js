@@ -14,6 +14,24 @@ const ROPE_LIGHT = 'rgba(248, 235, 205, 0.58)';
 const ROPE_EDGE = '#b89a72';
 const INK = '#342d27';
 const PAPER = '#caa36f';
+const SINGLE_ROPE_PALETTE = {
+  shadow: ROPE_SHADOW,
+  edge: ROPE_EDGE,
+  core: ROPE_COLOR,
+  light: ROPE_LIGHT,
+};
+const COUPLE_WHITE_ROPE = {
+  shadow: 'rgba(82, 61, 39, 0.2)',
+  edge: '#b99d74',
+  core: '#e4d2b2',
+  light: 'rgba(255, 244, 218, 0.72)',
+};
+const COUPLE_RED_ROPE = {
+  shadow: 'rgba(75, 31, 24, 0.24)',
+  edge: '#8b4938',
+  core: '#b96850',
+  light: 'rgba(236, 174, 139, 0.5)',
+};
 const BADGE_TONES = [
   'paper',
   'brass',
@@ -116,6 +134,7 @@ Page({
     addRopeMode: '',
     addRopeName: '',
     canCreateRope: false,
+    ropeMode: 'single',
     statusText: '一根共同记下来的绳子',
     events: [],
     showNote: false,
@@ -567,6 +586,7 @@ Page({
     this.session.rope = state.rope;
     this.setData({
       loading: false,
+      ropeMode: state.rope.mode || 'single',
       events: state.events,
       statusText: this.buildStatusText(state.events, relationshipStartedAt),
       statsItems: this.buildStatsItems(state.events, relationshipStartedAt),
@@ -606,11 +626,14 @@ Page({
     const openCount = events.filter((event) => event.type === 'knot' && event.status !== 'resolved').length;
     const resolvedCount = events.filter((event) => event.type === 'knot' && event.status === 'resolved').length;
     const days = daysBetween(relationshipStartedAt, Date.now());
+    const isCouple = this.isCoupleMode();
 
-    if (!events.length) return '一根共同记下来的绳子';
-    if (openCount) return `${openCount}个结还在，${resolvedCount}个已经解开`;
-    if (days >= 30) return `安静相伴${days}天`;
-    return `${resolvedCount}个结已经变成印记`;
+    if (!events.length) return isCouple ? '两根绳还在等第一句话' : '一根共同记下来的绳子';
+    if (openCount) return isCouple
+      ? `${openCount}个双人结还在，${resolvedCount}个已经松开`
+      : `${openCount}个结还在，${resolvedCount}个已经解开`;
+    if (days >= 30) return isCouple ? `两根绳安静相伴${days}天` : `安静相伴${days}天`;
+    return isCouple ? `${resolvedCount}个双人结已经变成印记` : `${resolvedCount}个结已经变成印记`;
   },
 
   onCanvasTouchStart(event) {
@@ -711,8 +734,7 @@ Page({
       const item = this.layoutItems[index];
       const screenY = item.y - this.scrollY;
       if (screenY < -80 || screenY > this.data.canvasHeight + 80) continue;
-      const side = this.itemSide(index);
-      const ornamentX = this.ropeX + side * 68;
+      const ornamentX = this.ornamentCenterX(index, screenY);
       const note = item.status === 'resolved' ? this.resolvedNoteCenter(item, screenY, index) : null;
       const hitX = item.type === 'ornament' ? ornamentX : note ? note.x : this.ropeX;
       const hitY = note ? note.y : screenY;
@@ -725,6 +747,22 @@ Page({
 
   itemSide(index) {
     return index % 2 === 0 ? -1 : 1;
+  },
+
+  isCoupleMode() {
+    return (this.data.ropeMode || (this.session && this.session.rope && this.session.rope.mode) || 'single') === 'couple';
+  },
+
+  ornamentAnchorX(index, y) {
+    const side = this.itemSide(index);
+    return this.isCoupleMode() ? this.coupleRopePoint(y, side, 0) : this.ropeX;
+  },
+
+  ornamentCenterX(index, y) {
+    const side = this.itemSide(index);
+    return this.isCoupleMode()
+      ? this.coupleRopePoint(y, side, 0) + side * 54
+      : this.ropeX + side * 68;
   },
 
   badgeBaseVariant(item, badgeOrdinal) {
@@ -1172,9 +1210,8 @@ Page({
   },
 
   drawTimelineSelection(ctx, item, y, index) {
-    const side = this.itemSide(index);
     const note = item.status === 'resolved' ? this.resolvedNoteCenter(item, y, index) : null;
-    const x = item.type === 'ornament' ? this.ropeX + side * 68 : note ? note.x : this.ropeX;
+    const x = item.type === 'ornament' ? this.ornamentCenterX(index, y) : note ? note.x : this.ropeX;
     const centerY = note ? note.y : y;
     const rx = item.type === 'ornament' ? 58 : item.status === 'resolved' ? 48 : 68;
     const ry = item.type === 'ornament' ? 42 : item.status === 'resolved' ? 38 : 58;
@@ -1484,7 +1521,19 @@ Page({
     return this.ropeX + sway;
   },
 
+  coupleRopePoint(y, side, pass) {
+    const worldY = y + this.scrollY;
+    const breathingGap = this.rpx(38) + Math.sin(worldY / 128 + side * 0.7) * this.rpx(4.2);
+    const sway = Math.sin(worldY / 72 + pass + side * 0.5) * 2.5 + Math.sin(worldY / 27 + side) * 0.9;
+    return this.ropeX + side * breathingGap + sway;
+  },
+
   drawRope(ctx, width, height) {
+    if (this.isCoupleMode()) {
+      this.drawCoupleRope(ctx, width, height);
+      return;
+    }
+
     const top = -28;
     const bottom = height + 28;
     const layers = [
@@ -1521,6 +1570,60 @@ Page({
       this.drawHandLine(ctx, x - 4.7, y - 7, x + 4.1, y + 7, 'rgba(103, 80, 54, 0.14)', 0.55, y + 19);
       this.drawHandLine(ctx, x + 4, y - 7, x - 4, y + 7, 'rgba(247, 233, 198, 0.12)', 0.45, y + 31);
     }
+  },
+
+  drawRopeStrand(ctx, top, bottom, pointAt, palette, seedBase) {
+    const layers = [
+      { offset: 2.6, width: 13.8, color: palette.shadow, alpha: 0.38, wobble: 0.85 },
+      { offset: 0, width: 11.6, color: palette.edge, alpha: 0.86, wobble: 0.8 },
+      { offset: 0, width: 8.8, color: palette.core, alpha: 0.98, wobble: 0.72 },
+      { offset: -1.8, width: 1.7, color: palette.light, alpha: 0.62, wobble: 0.46 },
+    ];
+
+    layers.forEach((layer, pass) => {
+      ctx.beginPath();
+      for (let y = top - 4; y <= bottom + 4; y += 9) {
+        const x = pointAt(y, pass) + layer.offset + (noise(seedBase + y + pass * 13) - 0.5) * layer.wobble;
+        if (y === top - 4) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = layer.color;
+      ctx.lineWidth = layer.width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.globalAlpha = layer.alpha;
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+
+    for (let y = top + 12; y <= bottom; y += 44) {
+      const x = pointAt(y, 0);
+      this.drawHandLine(ctx, x - 2.6, y - 14, x - 3.5, y + 14, palette.light, 0.68, seedBase + y);
+      this.drawHandLine(ctx, x + 3.7, y - 13, x + 3.1, y + 13, 'rgba(79, 57, 39, 0.16)', 0.64, seedBase + y + 7);
+    }
+
+    for (let y = top + 20; y <= bottom; y += 20) {
+      const x = pointAt(y, 0);
+      this.drawHandLine(ctx, x - 4.3, y - 7, x + 3.8, y + 7, 'rgba(92, 67, 44, 0.13)', 0.48, seedBase + y + 19);
+      this.drawHandLine(ctx, x + 3.7, y - 7, x - 3.7, y + 7, 'rgba(255, 242, 208, 0.12)', 0.42, seedBase + y + 31);
+    }
+  },
+
+  drawCoupleRope(ctx, width, height) {
+    const top = -30;
+    const bottom = height + 30;
+    this.drawRopeStrand(ctx, top, bottom, (y, pass) => this.coupleRopePoint(y, -1, pass), COUPLE_WHITE_ROPE, 3100);
+    this.drawRopeStrand(ctx, top, bottom, (y, pass) => this.coupleRopePoint(y, 1, pass), COUPLE_RED_ROPE, 4200);
+
+    ctx.save();
+    ctx.globalAlpha = 0.34;
+    for (let y = top + 54; y <= bottom; y += 118) {
+      const leftX = this.coupleRopePoint(y - 18, -1, 0);
+      const rightX = this.coupleRopePoint(y + 20, 1, 0);
+      this.drawHandLine(ctx, leftX + 2, y - 20, rightX - 2, y + 18, 'rgba(226, 203, 166, 0.42)', 1.15, y + 6100);
+      this.drawHandLine(ctx, rightX - 1, y + 18, leftX + 4, y + 52, 'rgba(152, 74, 58, 0.28)', 1.05, y + 6200);
+    }
+    ctx.restore();
   },
 
   drawHandLine(ctx, x1, y1, x2, y2, color, width, seed) {
@@ -1575,10 +1678,14 @@ Page({
   },
 
   ropeStroke(ctx, buildPath, width) {
-    this.strokeBuiltPath(ctx, buildPath, ROPE_SHADOW, width + 4.6, 0.42, 2.6, 2.4);
-    this.strokeBuiltPath(ctx, buildPath, ROPE_EDGE, width + 2.1, 0.92);
-    this.strokeBuiltPath(ctx, buildPath, ROPE_COLOR, width, 1);
-    this.strokeBuiltPath(ctx, buildPath, ROPE_LIGHT, Math.max(1.15, width * 0.19), 0.58, -1.7, -1.3);
+    this.ropeStrokeWithPalette(ctx, buildPath, width, SINGLE_ROPE_PALETTE);
+  },
+
+  ropeStrokeWithPalette(ctx, buildPath, width, palette) {
+    this.strokeBuiltPath(ctx, buildPath, palette.shadow, width + 4.6, 0.42, 2.6, 2.4);
+    this.strokeBuiltPath(ctx, buildPath, palette.edge, width + 2.1, 0.92);
+    this.strokeBuiltPath(ctx, buildPath, palette.core, width, 1);
+    this.strokeBuiltPath(ctx, buildPath, palette.light, Math.max(1.15, width * 0.19), 0.58, -1.7, -1.3);
   },
 
   buildLoopOval(path, side, rx, ry, seed) {
@@ -1630,6 +1737,11 @@ Page({
   },
 
   drawKnot(ctx, item, y, index) {
+    if (this.isCoupleMode()) {
+      this.drawCoupleKnot(ctx, item, y, index);
+      return;
+    }
+
     const x = this.ropeX;
     const seed = toTime(item.createdAt) / 100000;
     const jitter = (noise(seed) - 0.5) * 1.8;
@@ -1657,6 +1769,58 @@ Page({
     this.drawHandLine(ctx, side * (rx * 0.08), -ry * 0.28, side * (rx * 0.44), ry * 0.62, 'rgba(78, 58, 36, 0.16)', 0.55, seed + 37);
     this.drawHandLine(ctx, side * (rx * 0.72), -ry * 0.74, side * (rx * 1.08), ry * 0.1, 'rgba(78, 58, 36, 0.16)', 0.55, seed + 41);
     this.drawHandLine(ctx, side * (rx * 1.42), -ry * 0.22, side * (rx * 1.12), ry * 0.7, 'rgba(78, 58, 36, 0.14)', 0.5, seed + 45);
+    ctx.restore();
+
+    this.drawDust(ctx, item, x, y);
+  },
+
+  drawCoupleKnot(ctx, item, y, index) {
+    const x = this.ropeX;
+    const seed = toTime(item.createdAt) / 100000;
+    const jitter = (noise(seed) - 0.5) * 1.8;
+    const turn = index % 2 === 0 ? -1 : 1;
+    const whiteAnchor = this.coupleRopePoint(y, -1, 0);
+    const redAnchor = this.coupleRopePoint(y, 1, 0);
+
+    ctx.save();
+    ctx.globalAlpha = 0.94;
+    this.drawHandLine(ctx, whiteAnchor + 2, y - 30, x - 24, y - 6, COUPLE_WHITE_ROPE.edge, 2.1, seed + 701);
+    this.drawHandLine(ctx, redAnchor - 2, y - 30, x + 24, y - 4, COUPLE_RED_ROPE.edge, 2, seed + 703);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(x, y + jitter);
+    ctx.rotate(turn * 0.014);
+
+    const whiteLoop = (path) => {
+      path.moveTo(-34, -34);
+      path.bezierCurveTo(-76, -28, -80, 24, -37, 24);
+      path.bezierCurveTo(-6, 24, 9, 1, -11, -14);
+      path.bezierCurveTo(-23, -24, -38, -19, -50, -6);
+    };
+    const redLoop = (path) => {
+      path.moveTo(34, -34);
+      path.bezierCurveTo(78, -28, 80, 24, 37, 24);
+      path.bezierCurveTo(4, 24, -9, 1, 11, -14);
+      path.bezierCurveTo(24, -24, 39, -18, 51, -5);
+    };
+    const whiteBridge = (path) => {
+      path.moveTo(-62, 4);
+      path.bezierCurveTo(-28, -19, 25, -11, 62, 10);
+    };
+    const redBridge = (path) => {
+      path.moveTo(60, -8);
+      path.bezierCurveTo(22, 16, -23, 14, -60, -7);
+    };
+
+    this.ropeStrokeWithPalette(ctx, whiteLoop, 9.8, COUPLE_WHITE_ROPE);
+    this.ropeStrokeWithPalette(ctx, redLoop, 9.8, COUPLE_RED_ROPE);
+    this.ropeStrokeWithPalette(ctx, whiteBridge, 10.4, COUPLE_WHITE_ROPE);
+    this.ropeStrokeWithPalette(ctx, redBridge, 10.2, COUPLE_RED_ROPE);
+
+    this.drawHandLine(ctx, -52, -14, -9, 3, 'rgba(255, 243, 214, 0.26)', 0.72, seed + 731);
+    this.drawHandLine(ctx, 47, -12, 8, 4, 'rgba(246, 174, 139, 0.24)', 0.7, seed + 733);
+    this.drawHandLine(ctx, -14, 18, 17, -11, 'rgba(86, 58, 39, 0.2)', 0.85, seed + 735);
     ctx.restore();
 
     this.drawDust(ctx, item, x, y);
@@ -1714,8 +1878,9 @@ Page({
   resolvedNoteCenter(item, y, index) {
     const seed = toTime(item.createdAt) / 100000;
     const side = this.itemSide(index);
+    const drift = this.isCoupleMode() ? 24 : 38;
     return {
-      x: this.ropeX + side * (38 + noise(seed + 8) * 5),
+      x: this.ropeX + side * (drift + noise(seed + 8) * 5),
       y: y + (noise(seed + 12) - 0.5) * 4,
       side,
       seed,
@@ -1728,7 +1893,12 @@ Page({
 
   drawResolvedStickyNote(ctx, item, y, index) {
     const note = this.resolvedNoteCenter(item, y, index);
-    this.drawStickyTape(ctx, this.ropeX, y, note.x, note.y, note.side, note.seed);
+    if (this.isCoupleMode()) {
+      this.drawStickyTape(ctx, this.coupleRopePoint(y, -1, 0), y, note.x, note.y, -1, note.seed + 101);
+      this.drawStickyTape(ctx, this.coupleRopePoint(y, 1, 0), y, note.x, note.y, 1, note.seed + 103);
+    } else {
+      this.drawStickyTape(ctx, this.ropeX, y, note.x, note.y, note.side, note.seed);
+    }
     ctx.save();
     ctx.translate(note.x, note.y);
     ctx.rotate(note.side * (0.045 + noise(note.seed + 4) * 0.035));
@@ -1808,7 +1978,8 @@ Page({
 
   drawOrnament(ctx, item, index, y, visual) {
     const side = this.itemSide(index);
-    const x = this.ropeX + side * 68;
+    const anchorX = this.ornamentAnchorX(index, y);
+    const x = this.ornamentCenterX(index, y);
     const seed = toTime(item.createdAt) / 100000;
     visual = visual || this.badgeBaseVariant(item, index);
     const palettes = {
@@ -1832,8 +2003,8 @@ Page({
     const colors = palettes[visual.tone || item.tone || 'paper'] || palettes.paper;
     const isRepair = item.family === 'repair';
 
-    this.drawHandLine(ctx, this.ropeX, y - 5, x, y - 22, colors.cord, 1.1, seed + 2);
-    this.drawHandLine(ctx, this.ropeX - side * 2, y - 3, x + side * 9, y - 20, colors.cordHighlight, 0.58, seed + 8);
+    this.drawHandLine(ctx, anchorX, y - 5, x, y - 22, colors.cord, 1.1, seed + 2);
+    this.drawHandLine(ctx, anchorX - side * 2, y - 3, x + side * 9, y - 20, colors.cordHighlight, 0.58, seed + 8);
     ctx.save();
     ctx.fillStyle = colors.fill;
     ctx.strokeStyle = colors.edge;

@@ -260,6 +260,7 @@
 }
 
 .add-rope-rope {
+  position: relative;
   width: 136rpx;
   height: 440rpx;
   margin: 18rpx auto 0;
@@ -267,10 +268,30 @@
 }
 
 .add-rope-tail-image {
+  position: absolute;
+  top: 0;
+  left: 50%;
   width: 118rpx;
   height: 440rpx;
-  transform: scaleX(1.22);
+  transform: translateX(-50%) scaleX(1.22);
   transform-origin: 50% 50%;
+}
+
+.add-rope-rope-couple {
+  width: 188rpx;
+}
+
+.add-rope-rope-couple .add-rope-tail-image {
+  left: 38%;
+  opacity: 0.95;
+  transform: translateX(-50%) rotate(-1.4deg) scaleX(1.1);
+}
+
+.add-rope-rope-couple .add-rope-tail-red {
+  left: 62%;
+  opacity: 0.9;
+  filter: sepia(0.72) saturate(1.45) hue-rotate(-18deg) brightness(0.82);
+  transform: translateX(-50%) rotate(1.8deg) scaleX(1.08);
 }
 
 .create-rope-action {

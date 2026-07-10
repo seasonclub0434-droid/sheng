@@ -45,8 +45,14 @@
           bindinput="onAddRopeNameInput"
         />
       </view>
-      <view wx:if="{{addRopeMode}}" class="add-rope-rope progressive-reveal">
+      <view wx:if="{{addRopeMode}}" class="add-rope-rope add-rope-rope-{{addRopeMode}} progressive-reveal">
         <image class="add-rope-tail-image" src="../../assets/add-rope-tail-v1.png" mode="aspectFit" />
+        <image
+          wx:if="{{addRopeMode === 'couple'}}"
+          class="add-rope-tail-image add-rope-tail-red"
+          src="../../assets/add-rope-tail-v1.png"
+          mode="aspectFit"
+        />
       </view>
       <button
         wx:if="{{canCreateRope}}"

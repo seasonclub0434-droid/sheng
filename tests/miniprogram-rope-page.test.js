@@ -56,6 +56,13 @@ test('rope page owns the long-rope canvas and interaction modules', () => {
   assert.ok(ropeJs.includes("wx.redirectTo({ url: '/pages/index/index' });"));
   assert.ok(ropeJs.includes('resumeCanvas()'));
   assert.ok(ropeJs.includes('this.drawCanvasUi(ctx, width, height);'));
+  assert.ok(ropeJs.includes("ropeMode: 'single'"));
+  assert.ok(ropeJs.includes('ropeMode: state.rope.mode || \'single\''));
+  assert.ok(ropeJs.includes('isCoupleMode()'));
+  assert.ok(ropeJs.includes('drawCoupleRope(ctx, width, height)'));
+  assert.ok(ropeJs.includes('drawCoupleKnot(ctx, item, y, index)'));
+  assert.ok(ropeJs.includes('COUPLE_WHITE_ROPE'));
+  assert.ok(ropeJs.includes('COUPLE_RED_ROPE'));
   assert.ok(ropeJs.includes('findUiHit(x, y)'));
   assert.ok(ropeJs.includes('handleCanvasUiHit(hit)'));
   assert.ok(ropeJs.includes("hit.id === 'back'"));

@@ -62,8 +62,14 @@
                     bindtap="enterRopeFromShelf"
                     aria-label="打开{{slot.name}}"
                   >
-                    <view class="rope-coil">
+                    <view class="rope-coil rope-coil-{{slot.mode}}">
                       <image class="rope-coil-image" src="../../assets/home-shelf-rope.png" mode="aspectFit" />
+                      <image
+                        wx:if="{{slot.mode === 'couple'}}"
+                        class="rope-coil-image rope-coil-image-red"
+                        src="../../assets/home-shelf-rope.png"
+                        mode="aspectFit"
+                      />
                     </view>
                     <view class="rope-note note-tone-{{slot.noteTone}}">
                       <text class="rope-note-name">{{slot.name}}</text>
