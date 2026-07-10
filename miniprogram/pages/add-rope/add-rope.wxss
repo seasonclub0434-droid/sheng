@@ -260,16 +260,16 @@
 }
 
 .add-rope-rope {
-  width: 112rpx;
-  height: 390rpx;
-  margin: 24rpx auto 0;
+  width: 136rpx;
+  height: 440rpx;
+  margin: 18rpx auto 0;
   filter: drop-shadow(0 14rpx 18rpx rgba(71, 46, 24, 0.18));
 }
 
 .add-rope-tail-image {
-  width: 96rpx;
-  height: 390rpx;
-  transform: scaleX(1.18);
+  width: 118rpx;
+  height: 440rpx;
+  transform: scaleX(1.22);
   transform-origin: 50% 50%;
 }
 

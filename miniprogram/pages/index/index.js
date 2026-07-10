@@ -99,6 +99,8 @@ Page({
     loading: true,
     saving: false,
     viewMode: 'login',
+    loginOpening: false,
+    enteringRopeId: '',
     homeRopes: [],
     homeRows: [],
     statsItems: [],
@@ -167,6 +169,9 @@ Page({
 
   onShow() {
     this.isNavigating = false;
+    if (this.data.enteringRopeId) {
+      this.setData({ enteringRopeId: '' });
+    }
     if (this.data.viewMode === 'home') {
       this.reloadHome('home').catch((error) => {
         console.error(error);
@@ -283,7 +288,11 @@ Page({
   },
 
   enterLoginGate() {
-    this.setData({ viewMode: 'home' });
+    if (this.data.loginOpening || this.data.viewMode !== 'login') return;
+    this.setData({ loginOpening: true });
+    setTimeout(() => {
+      this.setData({ viewMode: 'home', loginOpening: false });
+    }, 620);
   },
 
   async goHome() {
@@ -309,16 +318,32 @@ Page({
   },
 
   navigateOnce(url) {
+    const options = arguments[1] || {};
     if (this.isNavigating) return;
     this.isNavigating = true;
-    wx.navigateTo({
+    const navigateOptions = {
       url,
       fail: (error) => {
         this.isNavigating = false;
+        if (this.data.enteringRopeId) {
+          this.setData({ enteringRopeId: '' });
+        }
         console.error(error);
         wx.showToast({ title: '页面暂时打不开', icon: 'none' });
       },
-    });
+    };
+    if (options.animationType) {
+      navigateOptions.animationType = options.animationType;
+    }
+    if (Number.isFinite(options.animationDuration)) {
+      navigateOptions.animationDuration = options.animationDuration;
+    }
+    const delay = Number(options.delay) || 0;
+    if (delay > 0) {
+      setTimeout(() => wx.navigateTo(navigateOptions), delay);
+      return;
+    }
+    wx.navigateTo(navigateOptions);
   },
 
   openAddRopePage() {
@@ -377,8 +402,18 @@ Page({
 
   async enterRopeFromShelf(event) {
     const ropeId = event.currentTarget.dataset.ropeId;
-    if (!ropeId) return;
-    this.navigateOnce(`/pages/rope/rope?ropeId=${ropeId}`);
+    if (!ropeId || this.isNavigating) return;
+    this.setData({
+      enteringRopeId: ropeId,
+      settingsOpen: false,
+      globalSearchOpen: false,
+      resetConfirmOpen: false,
+    });
+    this.navigateOnce(`/pages/rope/rope?ropeId=${ropeId}`, {
+      delay: 220,
+      animationType: 'slide-in-top',
+      animationDuration: 420,
+    });
   },
 
   async enterRope(ropeId) {

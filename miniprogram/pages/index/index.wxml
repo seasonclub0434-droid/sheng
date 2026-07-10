@@ -14,7 +14,7 @@
   <view
     wx:if="{{viewMode === 'login'}}"
     id="loginGate"
-    class="login-gate image-login-gate"
+    class="login-gate image-login-gate {{loginOpening ? 'opening' : ''}}"
     aria-label="绳记登录"
     bindtap="enterLoginGate"
   >
@@ -55,7 +55,7 @@
                 <block wx:for="{{item.slots}}" wx:key="slotKey" wx:for-item="slot">
                   <button
                     wx:if="{{slot.ropeId}}"
-                    class="cabinet-slot rope-tile"
+                    class="cabinet-slot rope-tile {{enteringRopeId === slot.ropeId ? 'entering-rope' : ''}}"
                     type="button"
                     data-rope-id="{{slot.ropeId}}"
                     style="--tile-index: {{slot.tileIndex}}; --tile-shift-x: {{slot.visualShiftX}}rpx; --tile-center-shift-x: {{slot.centerShiftX}}rpx;"
