@@ -1241,13 +1241,15 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniAddPage.includes('createNamedRope('));
   assert.ok(miniPage.includes('enterRopeFromShelf('));
   assert.ok(miniAddWxml.includes('class="add-rope-board"'));
-  assert.ok(miniAddCssBlock('.add-rope-board').includes('width: 690rpx;'));
-  assert.ok(miniAddCssBlock('.add-rope-board').includes('height: calc(100vh - 112rpx);'));
+  assert.ok(miniAddCssBlock('.page').includes('padding: 0;'));
+  assert.ok(miniAddCssBlock('.add-rope-board').includes('width: 750rpx;'));
+  assert.ok(miniAddCssBlock('.add-rope-board').includes('height: 100vh;'));
+  assert.ok(miniAddCssBlock('.add-rope-board').includes('border-radius: 0;'));
   assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">返</text>'));
   assert.ok(miniAddWxml.includes('<text class="add-rope-back-char">回</text>'));
   assert.ok(!miniAddWxml.includes('<text class="add-rope-back-label">返回</text>'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('top: 112rpx'));
-  assert.ok(miniAddCssBlock('.add-rope-back').includes('left: -10rpx'));
+  assert.ok(miniAddCssBlock('.add-rope-back').includes('left: 0;'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('width: 74rpx'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('height: 128rpx'));
   assert.ok(miniAddCssBlock('.add-rope-back').includes('min-width: 74rpx'));

@@ -5,7 +5,7 @@
   justify-content: center;
   width: 750rpx;
   height: 100vh;
-  padding: 72rpx 0 40rpx;
+  padding: 0;
   box-sizing: border-box;
   overflow: hidden;
   color: #352f2a;
@@ -19,8 +19,8 @@
 
 .add-rope-board {
   position: relative;
-  width: 690rpx;
-  height: calc(100vh - 112rpx);
+  width: 750rpx;
+  height: 100vh;
   overflow: hidden;
   background:
     linear-gradient(98deg, transparent 0 18%, rgba(255, 241, 194, 0.14) 19%, rgba(72, 45, 23, 0.08) 20%, transparent 22% 100%),
@@ -29,17 +29,16 @@
     radial-gradient(ellipse at 18% 19%, rgba(83, 52, 24, 0.09), transparent 24%),
     radial-gradient(ellipse at 84% 62%, rgba(245, 219, 162, 0.1), transparent 28%),
     #caa36f;
-  border: 2rpx solid rgba(96, 66, 34, 0.16);
-  border-radius: 42rpx;
+  border: 0;
+  border-radius: 0;
   box-shadow:
-    0 20rpx 34rpx rgba(54, 35, 19, 0.12),
     inset 0 2rpx 0 rgba(255, 238, 188, 0.2);
 }
 
 .add-rope-back {
   position: absolute;
   top: 112rpx;
-  left: -10rpx;
+  left: 0;
   z-index: 7;
   display: flex;
   flex-direction: column;
