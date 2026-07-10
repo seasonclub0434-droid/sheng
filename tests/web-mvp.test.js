@@ -1185,12 +1185,14 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(!miniRopeTile.includes('place-items: start center;'));
   assert.ok(miniCssBlockLast('.rope-tile::after').includes('display: none;'));
   assert.ok(miniCssBlockLast('.rope-coil').includes('position: absolute;'));
+  assert.ok(miniCssBlockLast('.rope-coil').includes('top: -8rpx;'));
   assert.ok(miniCssBlockLast('.rope-coil').includes('left: var(--tile-rope-x);'));
-  assert.ok(miniCssBlockLast('.rope-coil').includes('width: 104rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil').includes('width: 112rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil').includes('height: 154rpx;'));
   assert.ok(miniCssBlockLast('.rope-coil').includes('transform: translateX(-50%);'));
   assert.ok(miniCssBlockLast('.rope-coil-image').includes('display: block;'));
-  assert.ok(miniCssBlockLast('.rope-coil-image').includes('width: 104rpx;'));
-  assert.ok(miniCssBlockLast('.rope-coil-image').includes('height: 140rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil-image').includes('width: 112rpx;'));
+  assert.ok(miniCssBlockLast('.rope-coil-image').includes('height: 154rpx;'));
   assert.ok(miniCssBlockLast('.rope-note').includes('left: var(--tile-rope-x);'));
   assert.ok(miniCssBlockLast('.rope-note').includes('bottom: -50rpx;'));
   assert.ok(miniCssBlockLast('.rope-note').includes('transform: translateX(-50%) rotate(-0.5deg);'));
@@ -1250,8 +1252,8 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniPage.includes('enterLoginGate('));
   assert.ok(miniPage.includes("this.setData({ viewMode: 'home', loginOpening: false });"));
   assert.ok(miniPage.includes("animationType: 'slide-in-top'"));
-  assert.ok(miniPage.includes('animationDuration: 420'));
-  assert.ok(miniPage.includes('delay: 220'));
+  assert.ok(miniPage.includes('animationDuration: 620'));
+  assert.ok(miniPage.includes('delay: 120'));
   assert.ok(miniPage.includes('openAddRopePage('));
   assert.ok(miniAddPage.includes('createNamedRope('));
   assert.ok(miniPage.includes('enterRopeFromShelf('));

@@ -1530,12 +1530,12 @@
 
 .rope-coil {
   position: absolute;
-  top: 4rpx;
+  top: -8rpx;
   left: var(--tile-rope-x);
   z-index: 2;
   display: block;
-  width: 104rpx;
-  height: 140rpx;
+  width: 112rpx;
+  height: 154rpx;
   margin-top: 0;
   filter:
     drop-shadow(0 10rpx 9rpx rgba(43, 25, 9, 0.22))
@@ -1546,8 +1546,8 @@
 
 .rope-coil-image {
   display: block;
-  width: 104rpx;
-  height: 140rpx;
+  width: 112rpx;
+  height: 154rpx;
 }
 
 .rope-tile.entering-rope .rope-coil {
@@ -1568,9 +1568,9 @@
 
   100% {
     filter:
-      drop-shadow(0 18rpx 14rpx rgba(43, 25, 9, 0.28))
-      contrast(1.06);
-    transform: translateX(-50%) translateY(-14rpx) scale(1.12);
+      drop-shadow(0 15rpx 12rpx rgba(43, 25, 9, 0.26))
+      contrast(1.05);
+    transform: translateX(-50%) translateY(-5rpx) scale(1.035);
   }
 }
 
