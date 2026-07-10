@@ -67,7 +67,7 @@
                       <image
                         wx:if="{{slot.mode === 'couple'}}"
                         class="rope-coil-image rope-coil-image-red"
-                        src="../../assets/home-shelf-rope.png"
+                        src="../../assets/home-shelf-rope-red.png"
                         mode="aspectFit"
                       />
                     </view>

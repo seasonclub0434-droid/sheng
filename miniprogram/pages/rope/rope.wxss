@@ -134,6 +134,63 @@
   font-size: 24rpx;
 }
 
+.strand-picker {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10rpx;
+  margin-top: 26rpx;
+  padding: 10rpx;
+  overflow: hidden;
+  border-radius: 16rpx;
+  background:
+    linear-gradient(103deg, rgba(244, 226, 180, 0.62), rgba(219, 190, 132, 0.32)),
+    repeating-linear-gradient(90deg, rgba(93, 67, 39, 0.05) 0 2rpx, transparent 2rpx 18rpx);
+  border: 2rpx solid rgba(94, 70, 43, 0.12);
+}
+
+.strand-choice {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 68rpx;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: #5d4b3c;
+  font-size: 24rpx;
+  font-weight: 750;
+  line-height: 68rpx;
+  text-align: center;
+  white-space: nowrap;
+  background: rgba(255, 248, 226, 0.48);
+  border: 2rpx solid rgba(92, 68, 43, 0.14);
+  border-radius: 12rpx 10rpx 14rpx 10rpx;
+}
+
+.strand-choice::after {
+  border: 0;
+}
+
+.strand-choice.selected {
+  color: #382c24;
+  background: rgba(255, 243, 209, 0.82);
+  box-shadow:
+    inset 0 0 20rpx rgba(255, 250, 230, 0.34),
+    0 8rpx 14rpx rgba(76, 50, 26, 0.08);
+}
+
+.strand-red.selected {
+  color: #7f3d2e;
+  border-color: rgba(151, 74, 55, 0.36);
+}
+
+.strand-white.selected {
+  border-color: rgba(143, 117, 76, 0.34);
+}
+
 .note-input,
 .resolve-input {
   width: 100%;

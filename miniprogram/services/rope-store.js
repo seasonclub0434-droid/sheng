@@ -268,6 +268,7 @@ async function createKnot(session, payload) {
     status: 'open',
     content: payload.content,
     anchorY: payload.anchorY,
+    strand: payload.strand || 'shared',
     createdBy: session.openid,
     createdAt: now,
     updatedAt: now,

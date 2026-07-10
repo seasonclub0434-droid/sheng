@@ -1564,7 +1564,6 @@
 .rope-coil-couple .rope-coil-image-red {
   left: 58%;
   opacity: 0.92;
-  filter: sepia(0.7) saturate(1.42) hue-rotate(-18deg) brightness(0.82);
   transform: translateX(-50%) rotate(1.8deg);
 }
 

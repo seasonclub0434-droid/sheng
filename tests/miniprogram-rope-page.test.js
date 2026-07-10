@@ -59,8 +59,12 @@ test('rope page owns the long-rope canvas and interaction modules', () => {
   assert.ok(ropeJs.includes("ropeMode: 'single'"));
   assert.ok(ropeJs.includes('ropeMode: state.rope.mode || \'single\''));
   assert.ok(ropeJs.includes('isCoupleMode()'));
+  assert.ok(ropeJs.includes("noteStrand: 'shared'"));
+  assert.ok(ropeJs.includes('selectNoteStrand(event)'));
+  assert.ok(ropeJs.includes('strand: this.isCoupleMode() ? this.normalizeStrand(this.data.noteStrand) : \'shared\''));
   assert.ok(ropeJs.includes('drawCoupleRope(ctx, width, height)'));
   assert.ok(ropeJs.includes('drawCoupleKnot(ctx, item, y, index)'));
+  assert.ok(ropeJs.includes('drawCoupleStrandKnot(ctx, item, y, index, strand)'));
   assert.ok(ropeJs.includes('COUPLE_WHITE_ROPE'));
   assert.ok(ropeJs.includes('COUPLE_RED_ROPE'));
   assert.ok(ropeJs.includes('findUiHit(x, y)'));
@@ -109,12 +113,21 @@ test('rope page owns the long-rope canvas and interaction modules', () => {
   assert.ok(ropeWxml.includes('id="ropeCanvas"'));
   assert.ok(ropeWxml.includes('wx:if="{{!showNote && !showDetail && !showNotebook}}"'));
   assert.ok(!ropeWxml.includes('<cover-view'));
+  assert.ok(ropeWxml.includes('class="strand-picker"'));
+  assert.ok(ropeWxml.includes('data-strand="white"'));
+  assert.ok(ropeWxml.includes('data-strand="red"'));
+  assert.ok(ropeWxml.includes('data-strand="shared"'));
   assert.ok(ropeWxml.includes('<view wx:if="{{showDetail}}" class="modal-mask"'));
   assert.ok(ropeWxml.includes('<view wx:if="{{showNote}}" class="modal-mask"'));
   assert.ok(ropeWxml.includes('<view wx:if="{{showNotebook}}" class="modal-mask"'));
   assert.ok(!ropeWxml.includes("viewMode === 'rope'"));
   assert.ok(!ropeWxss.includes('@import'));
   assert.ok(ropeWxss.includes('.modal-mask'));
+  assert.ok(ropeWxss.includes('.strand-picker'));
+  assert.ok(ropeWxss.includes('grid-template-columns: repeat(3, minmax(0, 1fr));'));
+  assert.ok(ropeWxss.includes('overflow: hidden;'));
+  assert.ok(ropeWxss.includes('min-width: 0;'));
+  assert.ok(ropeWxss.includes('white-space: nowrap;'));
   assert.ok(ropeWxss.includes('.rope-canvas'));
   assert.ok(ropeWxss.includes('.rope-mode'));
   assert.ok(ropeWxss.includes('animation: ropePageSlideDown 720ms'));
@@ -125,7 +138,9 @@ test('rope page owns the long-rope canvas and interaction modules', () => {
 });
 
 test('rope page canvas timeline mirrors the browser record timeline list', () => {
-  assert.ok(ropeJs.includes("kind: item.type === 'ornament'"));
+  assert.ok(ropeJs.includes('kind: this.timelineKindForItem(item)'));
+  assert.ok(ropeJs.includes('timelineKindForItem(item)'));
+  assert.ok(ropeJs.includes('return this.isCoupleMode() ? `${this.strandLabel(item.strand)} · ${kind}` : kind;'));
   assert.ok(ropeJs.includes("status: item.type === 'ornament' ? 'badge'"));
   assert.ok(!ropeJs.includes("`印章 · ${item.title}`"));
   assert.ok(!ropeJs.includes("`解开 · ${item.content || '一个结'}`"));

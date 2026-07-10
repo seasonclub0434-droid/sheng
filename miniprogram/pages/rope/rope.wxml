@@ -16,6 +16,26 @@
   <view wx:if="{{showNote}}" class="modal-mask" catchtouchmove="noop">
     <view class="paper-card note-card">
       <view class="card-title">写成一个结</view>
+      <view wx:if="{{ropeMode === 'couple'}}" class="strand-picker" aria-label="选择记录到哪根绳">
+        <button
+          class="strand-choice strand-white {{noteStrand === 'white' ? 'selected' : ''}}"
+          type="button"
+          data-strand="white"
+          bindtap="selectNoteStrand"
+        >白绳</button>
+        <button
+          class="strand-choice strand-red {{noteStrand === 'red' ? 'selected' : ''}}"
+          type="button"
+          data-strand="red"
+          bindtap="selectNoteStrand"
+        >红绳</button>
+        <button
+          class="strand-choice strand-shared {{noteStrand === 'shared' ? 'selected' : ''}}"
+          type="button"
+          data-strand="shared"
+          bindtap="selectNoteStrand"
+        >同结</button>
+      </view>
       <textarea
         class="note-input"
         maxlength="500"

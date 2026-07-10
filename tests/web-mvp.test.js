@@ -41,6 +41,7 @@ const miniHomeIconFiles = [
   'home-icon-search.png',
 ];
 const miniHomeShelfRopePath = path.join(root, 'miniprogram/assets/home-shelf-rope.png');
+const miniHomeShelfRopeRedPath = path.join(root, 'miniprogram/assets/home-shelf-rope-red.png');
 const miniAssetPaths = [
   'login-cabinet-door.png',
   'home-rope-sign-transparent.png',
@@ -48,6 +49,7 @@ const miniAssetPaths = [
   'rope-mode-couple-cutout.png',
   'add-rope-tail-v1.png',
   'home-shelf-rope.png',
+  'home-shelf-rope-red.png',
   ...miniHomeIconFiles,
 ].map((file) => path.join(root, 'miniprogram/assets', file));
 
@@ -1194,7 +1196,7 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniCssBlockLast('.rope-coil-image').includes('display: block;'));
   assert.ok(miniCssBlockLast('.rope-coil-image').includes('width: 112rpx;'));
   assert.ok(miniCssBlockLast('.rope-coil-image').includes('height: 154rpx;'));
-  assert.ok(miniCssBlockLast('.rope-coil-couple .rope-coil-image-red').includes('hue-rotate(-18deg)'));
+  assert.ok(!miniCssBlockLast('.rope-coil-couple .rope-coil-image-red').includes('hue-rotate(-18deg)'));
   assert.ok(miniCssBlockLast('.rope-note').includes('left: var(--tile-rope-x);'));
   assert.ok(miniCssBlockLast('.rope-note').includes('bottom: -50rpx;'));
   assert.ok(miniCssBlockLast('.rope-note').includes('transform: translateX(-50%) rotate(-0.5deg);'));
@@ -1237,6 +1239,7 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniWxml.includes('wx:if="{{slot.mode === \'couple\'}}"'));
   assert.ok(miniWxml.includes('class="rope-coil-image rope-coil-image-red"'));
   assert.ok(miniWxml.includes('../../assets/home-shelf-rope.png'));
+  assert.ok(miniWxml.includes('../../assets/home-shelf-rope-red.png'));
   assert.ok(!miniWxml.includes('class="rope-coil-line'));
   assert.ok(!miniWxml.includes('rope-drop'));
   assert.ok(miniWxss.includes('.rope-coil'));
@@ -1314,6 +1317,10 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
     const size = pngSize(path.join(root, 'miniprogram/assets', file));
     assert.strictEqual(size.width, size.height, file);
   });
+  assert.strictEqual(
+    pngSize(miniHomeShelfRopeRedPath).alphaAbove32,
+    pngSize(miniHomeShelfRopePath).alphaAbove32,
+  );
   const searchIconStats = pngAlphaStats(path.join(root, 'miniprogram/assets/home-icon-search.png'));
   assert.ok(searchIconStats.alphaAbove32 > 30000);
   assert.ok(searchIconStats.cornerAlphaAbove32 < 16);
@@ -1376,7 +1383,14 @@ test('mini program rope store creates named ropes and keeps rope records isolate
   const secondState = await miniStore.loadState(secondSession);
   assert.strictEqual(firstState.events.length, 1);
   assert.strictEqual(firstState.events[0].content, '只写在第一根绳上');
+  assert.strictEqual(firstState.events[0].strand, 'shared');
   assert.strictEqual(secondState.events.length, 0);
+
+  await miniStore.createKnot(secondSession, { content: '写在红绳上', anchorY: 220, strand: 'red' });
+  const secondStateAfter = await miniStore.loadState(secondSession);
+  assert.strictEqual(secondStateAfter.events.length, 1);
+  assert.strictEqual(secondStateAfter.events[0].content, '写在红绳上');
+  assert.strictEqual(secondStateAfter.events[0].strand, 'red');
 
   delete global.wx;
   delete require.cache[require.resolve(storePath)];
@@ -1440,6 +1454,7 @@ test('mini program rope store ignores wx.cloud and stays local-only', async () =
 
     assert.strictEqual(rope.name, '只存本地的绳');
     assert.strictEqual(knot.content, '先写本地');
+    assert.strictEqual(knot.strand, 'shared');
     assert.strictEqual(loadedSession.ropeId, rope.ropeId);
     assert.strictEqual(state.rope.ropeId, rope.ropeId);
     assert.strictEqual(state.events[0].content, '先写本地');

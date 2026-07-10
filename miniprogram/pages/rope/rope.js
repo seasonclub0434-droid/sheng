@@ -139,6 +139,7 @@ Page({
     events: [],
     showNote: false,
     noteText: '',
+    noteStrand: 'shared',
     showNotebook: false,
     notebookSearchText: '',
     notebookItems: [],
@@ -265,14 +266,16 @@ Page({
     return sortByTime(events.concat(ornaments)).map((item) => ({
       id: item.id || item._id,
       date: shortDate(item.createdAt),
-      kind: item.type === 'ornament'
-        ? '印章'
-        : item.status === 'resolved'
-          ? '印记'
-          : '绳结',
+      kind: this.timelineKindForItem(item),
       status: item.type === 'ornament' ? 'badge' : item.status === 'resolved' ? 'resolved' : 'open',
       y: item.y || item.anchorY || 0,
     }));
+  },
+
+  timelineKindForItem(item) {
+    if (item.type === 'ornament') return '印章';
+    const kind = item.status === 'resolved' ? '印记' : '绳结';
+    return this.isCoupleMode() ? `${this.strandLabel(item.strand)} · ${kind}` : kind;
   },
 
   buildNotebookItems(events, keyword) {
@@ -288,7 +291,9 @@ Page({
       })
       .map((event) => ({
         id: event.id || event._id,
-        title: event.status === 'resolved' ? '已解开的结' : '记下的结',
+        title: this.isCoupleMode()
+          ? `${this.strandLabel(event.strand)}${event.status === 'resolved' ? '已解开的结' : '记下的结'}`
+          : event.status === 'resolved' ? '已解开的结' : '记下的结',
         meta: event.status === 'resolved' && event.resolvedAt
           ? `结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`
           : `结下 ${formatDate(event.createdAt)}`,
@@ -506,7 +511,12 @@ Page({
   openWriteKnot() {
     if (!this.session || !this.session.ropeId) return;
     this.pendingAnchorY = this.scrollY + Math.round(this.data.canvasHeight * 0.76);
-    this.setData({ showNote: true, noteText: '', exchangeOpen: false });
+    this.setData({
+      showNote: true,
+      noteText: '',
+      noteStrand: this.isCoupleMode() ? 'white' : 'shared',
+      exchangeOpen: false,
+    });
   },
 
   openLatestResolve() {
@@ -736,7 +746,7 @@ Page({
       if (screenY < -80 || screenY > this.data.canvasHeight + 80) continue;
       const ornamentX = this.ornamentCenterX(index, screenY);
       const note = item.status === 'resolved' ? this.resolvedNoteCenter(item, screenY, index) : null;
-      const hitX = item.type === 'ornament' ? ornamentX : note ? note.x : this.ropeX;
+      const hitX = item.type === 'ornament' ? ornamentX : note ? note.x : this.knotCenterX(item, screenY);
       const hitY = note ? note.y : screenY;
       const radiusX = item.type === 'ornament' ? 58 : item.status === 'resolved' ? 48 : 68;
       const radiusY = item.type === 'ornament' ? 42 : item.status === 'resolved' ? 38 : 58;
@@ -747,6 +757,28 @@ Page({
 
   itemSide(index) {
     return index % 2 === 0 ? -1 : 1;
+  },
+
+  normalizeStrand(strand) {
+    return ['white', 'red', 'shared'].includes(strand) ? strand : 'shared';
+  },
+
+  strandSide(strand) {
+    const normalized = this.normalizeStrand(strand);
+    if (normalized === 'white') return -1;
+    if (normalized === 'red') return 1;
+    return 0;
+  },
+
+  strandLabel(strand) {
+    const normalized = this.normalizeStrand(strand);
+    if (normalized === 'white') return '白绳';
+    if (normalized === 'red') return '红绳';
+    return '同结';
+  },
+
+  eventStrand(item) {
+    return this.normalizeStrand(item && item.strand ? item.strand : 'shared');
   },
 
   isCoupleMode() {
@@ -763,6 +795,12 @@ Page({
     return this.isCoupleMode()
       ? this.coupleRopePoint(y, side, 0) + side * 54
       : this.ropeX + side * 68;
+  },
+
+  knotCenterX(item, y) {
+    if (!this.isCoupleMode()) return this.ropeX;
+    const side = this.strandSide(item && item.strand);
+    return side ? this.coupleRopePoint(y, side, 0) : this.ropeX;
   },
 
   badgeBaseVariant(item, badgeOrdinal) {
@@ -1211,7 +1249,7 @@ Page({
 
   drawTimelineSelection(ctx, item, y, index) {
     const note = item.status === 'resolved' ? this.resolvedNoteCenter(item, y, index) : null;
-    const x = item.type === 'ornament' ? this.ornamentCenterX(index, y) : note ? note.x : this.ropeX;
+    const x = item.type === 'ornament' ? this.ornamentCenterX(index, y) : note ? note.x : this.knotCenterX(item, y);
     const centerY = note ? note.y : y;
     const rx = item.type === 'ornament' ? 58 : item.status === 'resolved' ? 48 : 68;
     const ry = item.type === 'ornament' ? 42 : item.status === 'resolved' ? 38 : 58;
@@ -1222,13 +1260,18 @@ Page({
   },
 
   closeNote() {
-    this.setData({ showNote: false, noteText: '' }, () => {
+    this.setData({ showNote: false, noteText: '', noteStrand: 'shared' }, () => {
       this.resumeCanvas();
     });
   },
 
   onNoteInput(event) {
     this.setData({ noteText: event.detail.value });
+  },
+
+  selectNoteStrand(event) {
+    const strand = this.normalizeStrand(event.currentTarget.dataset.strand);
+    this.setData({ noteStrand: strand });
   },
 
   async submitKnot() {
@@ -1243,6 +1286,7 @@ Page({
       const event = await store.createKnot(this.session, {
         content,
         anchorY: this.pendingAnchorY,
+        strand: this.isCoupleMode() ? this.normalizeStrand(this.data.noteStrand) : 'shared',
       });
       const events = this.replaceEvent(event);
       this.setData({
@@ -1250,6 +1294,7 @@ Page({
         saving: false,
         showNote: false,
         noteText: '',
+        noteStrand: 'shared',
         statusText: this.buildStatusText(events, this.session.rope.relationshipStartedAt),
         statsItems: this.buildStatsItems(events, this.session.rope.relationshipStartedAt),
         recordTimelineItems: this.buildRecordTimelineItems(events, this.session.rope.relationshipStartedAt),
@@ -1309,6 +1354,7 @@ Page({
     const canRequest = !isResolved;
     const canAccept = false;
     const dustStage = getDustStage(event, Date.now());
+    const strandPrefix = this.isCoupleMode() ? `${this.strandLabel(event.strand)} · ` : '';
     const dustText = {
       none: '',
       specks: '有一点灰',
@@ -1318,7 +1364,7 @@ Page({
     }[dustStage];
 
     return {
-      title: isResolved ? '一个淡淡的印记' : '一个还没解开的结',
+      title: isResolved ? `${strandPrefix}一个淡淡的印记` : `${strandPrefix}一个还没解开的结`,
       meta: isResolved && event.resolvedAt
         ? `结下 ${formatDate(event.createdAt)} · 解开 ${formatDate(event.resolvedAt)}`
         : [`结下 ${formatDate(event.createdAt)}`, dustText].filter(Boolean).join(' · '),
@@ -1738,7 +1784,12 @@ Page({
 
   drawKnot(ctx, item, y, index) {
     if (this.isCoupleMode()) {
-      this.drawCoupleKnot(ctx, item, y, index);
+      const strand = this.eventStrand(item);
+      if (strand === 'white' || strand === 'red') {
+        this.drawCoupleStrandKnot(ctx, item, y, index, strand);
+      } else {
+        this.drawCoupleKnot(ctx, item, y, index);
+      }
       return;
     }
 
@@ -1769,6 +1820,39 @@ Page({
     this.drawHandLine(ctx, side * (rx * 0.08), -ry * 0.28, side * (rx * 0.44), ry * 0.62, 'rgba(78, 58, 36, 0.16)', 0.55, seed + 37);
     this.drawHandLine(ctx, side * (rx * 0.72), -ry * 0.74, side * (rx * 1.08), ry * 0.1, 'rgba(78, 58, 36, 0.16)', 0.55, seed + 41);
     this.drawHandLine(ctx, side * (rx * 1.42), -ry * 0.22, side * (rx * 1.12), ry * 0.7, 'rgba(78, 58, 36, 0.14)', 0.5, seed + 45);
+    ctx.restore();
+
+    this.drawDust(ctx, item, x, y);
+  },
+
+  drawCoupleStrandKnot(ctx, item, y, index, strand) {
+    const side = this.strandSide(strand);
+    const x = this.coupleRopePoint(y, side, 0);
+    const palette = side < 0 ? COUPLE_WHITE_ROPE : COUPLE_RED_ROPE;
+    const seed = toTime(item.createdAt) / 100000;
+    const jitter = (noise(seed) - 0.5) * 1.8;
+    const turn = side * (0.02 + (index % 2) * 0.006);
+
+    ctx.save();
+    ctx.translate(x, y + jitter);
+    ctx.rotate(turn);
+
+    const loopPath = (path) => {
+      path.moveTo(side * -5, -34);
+      path.bezierCurveTo(side * -40, -28, side * -48, 22, side * -7, 24);
+      path.bezierCurveTo(side * 24, 25, side * 38, -2, side * 14, -16);
+      path.bezierCurveTo(side * -1, -25, side * -17, -18, side * -27, -3);
+    };
+    const wrapPath = (path) => {
+      path.moveTo(side * -32, 6);
+      path.bezierCurveTo(side * -10, -11, side * 15, -8, side * 34, 10);
+      path.bezierCurveTo(side * 45, 22, side * 8, 32, side * -8, 20);
+    };
+
+    this.ropeStrokeWithPalette(ctx, loopPath, 9.8, palette);
+    this.ropeStrokeWithPalette(ctx, wrapPath, 10.2, palette);
+    this.drawHandLine(ctx, side * -23, -11, side * 10, 3, palette.light, 0.72, seed + 641);
+    this.drawHandLine(ctx, side * 28, 5, side * -4, 18, 'rgba(78, 58, 36, 0.18)', 0.7, seed + 643);
     ctx.restore();
 
     this.drawDust(ctx, item, x, y);
@@ -1877,10 +1961,17 @@ Page({
 
   resolvedNoteCenter(item, y, index) {
     const seed = toTime(item.createdAt) / 100000;
-    const side = this.itemSide(index);
-    const drift = this.isCoupleMode() ? 24 : 38;
+    let side = this.itemSide(index);
+    let baseX = this.ropeX;
+    let drift = 38;
+    if (this.isCoupleMode()) {
+      const strandSide = this.strandSide(item && item.strand);
+      side = strandSide || side;
+      baseX = strandSide ? this.coupleRopePoint(y, strandSide, 0) : this.ropeX;
+      drift = strandSide ? 32 : 24;
+    }
     return {
-      x: this.ropeX + side * (drift + noise(seed + 8) * 5),
+      x: baseX + side * (drift + noise(seed + 8) * 5),
       y: y + (noise(seed + 12) - 0.5) * 4,
       side,
       seed,
@@ -1894,8 +1985,13 @@ Page({
   drawResolvedStickyNote(ctx, item, y, index) {
     const note = this.resolvedNoteCenter(item, y, index);
     if (this.isCoupleMode()) {
-      this.drawStickyTape(ctx, this.coupleRopePoint(y, -1, 0), y, note.x, note.y, -1, note.seed + 101);
-      this.drawStickyTape(ctx, this.coupleRopePoint(y, 1, 0), y, note.x, note.y, 1, note.seed + 103);
+      const strandSide = this.strandSide(item && item.strand);
+      if (strandSide) {
+        this.drawStickyTape(ctx, this.coupleRopePoint(y, strandSide, 0), y, note.x, note.y, strandSide, note.seed + 101);
+      } else {
+        this.drawStickyTape(ctx, this.coupleRopePoint(y, -1, 0), y, note.x, note.y, -1, note.seed + 101);
+        this.drawStickyTape(ctx, this.coupleRopePoint(y, 1, 0), y, note.x, note.y, 1, note.seed + 103);
+      }
     } else {
       this.drawStickyTape(ctx, this.ropeX, y, note.x, note.y, note.side, note.seed);
     }
