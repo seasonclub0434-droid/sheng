@@ -110,9 +110,11 @@ test('rope page owns the long-rope canvas and interaction modules', () => {
   assert.ok(ropeWxss.includes('.modal-mask'));
   assert.ok(ropeWxss.includes('.rope-canvas'));
   assert.ok(ropeWxss.includes('.rope-mode'));
-  assert.ok(ropeWxss.includes('animation: ropePageSlideDown 620ms'));
-  assert.ok(ropeWxss.includes('transform: translateY(-108%);'));
+  assert.ok(ropeWxss.includes('animation: ropePageSlideDown 720ms'));
+  assert.ok(ropeWxss.includes('transform: translate3d(0, -128%, 0);'));
   assert.ok(ropeWxss.includes('@keyframes ropePageSlideDown'));
+  assert.ok(ropeWxss.includes('.rope-mode::before'));
+  assert.ok(ropeWxss.includes('@keyframes ropePageLeadingEdge'));
 });
 
 test('rope page canvas timeline mirrors the browser record timeline list', () => {

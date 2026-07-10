@@ -1251,9 +1251,9 @@ test('mini program mirrors the static entry, cabinet home, and add-rope page', (
   assert.ok(miniPage.includes("enteringRopeId: ''"));
   assert.ok(miniPage.includes('enterLoginGate('));
   assert.ok(miniPage.includes("this.setData({ viewMode: 'home', loginOpening: false });"));
-  assert.ok(miniPage.includes("animationType: 'slide-in-top'"));
-  assert.ok(miniPage.includes('animationDuration: 620'));
-  assert.ok(miniPage.includes('delay: 120'));
+  assert.ok(miniPage.includes("animationType: 'none'"));
+  assert.ok(miniPage.includes('animationDuration: 0'));
+  assert.ok(miniPage.includes('delay: 80'));
   assert.ok(miniPage.includes('openAddRopePage('));
   assert.ok(miniAddPage.includes('createNamedRope('));
   assert.ok(miniPage.includes('enterRopeFromShelf('));

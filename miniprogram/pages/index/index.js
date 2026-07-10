@@ -410,9 +410,9 @@ Page({
       resetConfirmOpen: false,
     });
     this.navigateOnce(`/pages/rope/rope?ropeId=${ropeId}`, {
-      delay: 120,
-      animationType: 'slide-in-top',
-      animationDuration: 620,
+      delay: 80,
+      animationType: 'none',
+      animationDuration: 0,
     });
   },
 
